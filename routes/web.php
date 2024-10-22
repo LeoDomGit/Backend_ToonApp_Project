@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Controllers\PermissionsController;
+use App\Http\Controllers\RoleController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -13,9 +16,20 @@ use Inertia\Inertia;
 | be assigned to the "web" middleware group. Make something great!
 |
 */
+Route::get('/',[UserController::class,'LoginIndex'])->name('login');
+Route::post('/check-login-admin',[UserController::class,'checkLoginAdmin']);
+Route::post('/checkLoginAdmin',[UserController::class,'checkLoginAdmin1']);
+Route::get('/logout',[UserController::class,'Logout']);
+// ================================================================
 
-Route::get('/', function () {
-    return Inertia::render('Index', [
-        
-    ]);
+Route::resource('/roles',RoleController::class);
+Route::resource('/users',UserController::class);
+Route::resource('/permissions',PermissionsController::class);
+Route::post('/permissions/add-role-permision',[PermissionsController::class,'role_permission']);
+Route::get('/permissions/roles/{id}',[PermissionsController::class,'get_permissions']);
+
+
+Route::post('/checkLoginEmail',[UserController::class,'checkLoginEmailAdmin']);
+Route::group(['prefix' => 'laravel-filemanager', 'middleware' => ['web']], function () {
+    \UniSharp\LaravelFilemanager\Lfm::routes();
 });
