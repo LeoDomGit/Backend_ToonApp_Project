@@ -102,7 +102,7 @@ class RoleController extends Controller
         if(!$role){
             return response()->json(['check'=>false,'msg'=>'Không tìm thấy loại tài khoản']);
         }
-        $users = User::where('idRole',$id)->first();
+        $users = User::where('role_id',$id)->first();
         
         if($users){
             return response()->json(['check'=>false,'msg'=>'Còn tồn tại tài khoản trong loại']);

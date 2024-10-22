@@ -51,7 +51,7 @@ class UserController extends Controller
         $validator = Validator::make($request->all(), [
             'name'=>'required',
             'email'=>'required|email|unique:users,email',
-            'idRole'=>'required|exists:roles,id'
+            'role_id'=>'required|exists:roles,id'
         ]);
         if ($validator->fails()) {
             return response()->json(['check'=>false,'msg'=>$validator->errors()->first()]);
@@ -75,7 +75,7 @@ class UserController extends Controller
     public function update(Request $request,$id){
         $validator = Validator::make($request->all(), [
             'email'=>'email|unique:users,email',
-            'idRole'=>'exists:roles,id'
+            'role_id'=>'exists:roles,id'
         ]);
         if ($validator->fails()) {
             return response()->json(['check'=>false,'msg'=>$validator->errors()->first()]);
@@ -105,7 +105,7 @@ class UserController extends Controller
         $password = random_int(10000, 99999);
         $data['password'] = Hash::make($password);
         $data['name']=$request->email;
-        $data['idRole']=2;
+        $data['role_id']=2;
         User::create($data);
         $data = [
             'name'=>$request->name,
@@ -220,7 +220,7 @@ class UserController extends Controller
         $data = $request->all();
         $password = random_int(10000, 99999);
         $data['password'] = Hash::make($password);
-        $data['idRole']=2;
+        $data['role_id']=2;
         User::create($data);
         $data = [
             'name'=>$request->name,

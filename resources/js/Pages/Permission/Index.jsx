@@ -14,7 +14,7 @@ function Index({ permissions, roles }) {
     const [permission, setPermission] = useState("");
     const [data, setData] = useState(permissions);
     const [dataRole, setDataRole] = useState(roles);
-    const [idRole, setIdRole] = useState(0);
+    const [role_id, setrole_id] = useState(0);
     const [show, setShow] = useState(false);
     const handleClose = () => setShow(false);
     const handleShow = () => setShow(true);
@@ -30,7 +30,7 @@ function Index({ permissions, roles }) {
     };
     const submitRolePermission = () => {
         axios.post('/permissions/add-role-permision', {
-            role: idRole,
+            role: role_id,
             permissions: selectedPermissions
         }).then((res) => {
             console.log(res.data.check);
@@ -127,12 +127,12 @@ function Index({ permissions, roles }) {
             });
     };
     useEffect(() => {
-        fetch('/permissions/roles/' + idRole)
+        fetch('/permissions/roles/' + role_id)
             .then((res) => res.json())
             .then((res) => {
                 setSelectedPermissions(res.permissions);
             })
-    }, [idRole])
+    }, [role_id])
     const resetCreate = () => {
         setPermission("");
         setShow(true);
@@ -293,8 +293,8 @@ function Index({ permissions, roles }) {
                                                 labelId="permissions-select-label"
                                                 id="permissions-select"
                                                 autoWidth
-                                                value={idRole}
-                                                onChange={(e) => setIdRole(e.target.value)}
+                                                value={role_id}
+                                                onChange={(e) => setrole_id(e.target.value)}
                                                 label="Permissions"
                                             >
                                                 {roles &&

@@ -26,13 +26,13 @@ function Index({roles,users}) {
       };
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
-    const [idRole, setIdRole] = useState(0);
+    const [role_id, setrole_id] = useState(0);
     const [data,setData]= useState(users);
     const handleShow = () => setShow(true);
     const resetCreate = () => {
         setName('');
         setEmail('');
-        setIdRole(0);
+        setrole_id(0);
         handleClose()
     }
     const notyf = new Notyf({
@@ -86,7 +86,7 @@ function Index({roles,users}) {
                 type: 'error',
                 message: 'Email is required'
             });
-        } else if (idRole == 0) {
+        } else if (role_id == 0) {
             notyf.open({
                 type: 'error',
                 message: 'Please choose a role'
@@ -95,7 +95,7 @@ function Index({roles,users}) {
             axios.post('/users', {
                 name: name,
                 email: email,
-                idRole: idRole
+                role_id: role_id
             },
             // {
             //     headers: {
@@ -188,15 +188,15 @@ function Index({roles,users}) {
     
     const submitEdit = ()=>{
 
-        if(idRole==0 || idUser==0){
+        if(role_id==0 || idUser==0){
             notyf.open({
                 type: 'error',
                 message: 'Data is missing'
             });
-            console.log(idRole, idUser);
+            console.log(role_id, idUser);
         }else{
             axios.put('/users/'+idUser, {
-               idRole:idRole,
+               role_id:role_id,
             },
         ).then((res) => {
                 if (res.data.check == false) {
@@ -218,7 +218,7 @@ function Index({roles,users}) {
                         };
                     });
                     setData(updatedUsers);
-                    setIdRole(0);
+                    setrole_id(0);
                     setShow1(false);
                     
                 }
@@ -310,7 +310,7 @@ function Index({roles,users}) {
                         <Modal.Title>Roles Modal</Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
-                    <select name="" onChange={(e)=>setIdRole(e.target.value)} defaultValue={idRole} className='form-control'>
+                    <select name="" onChange={(e)=>setrole_id(e.target.value)} defaultValue={role_id} className='form-control'>
                         <option value="0" disabled >Choose a role</option>
                         {roles && roles.length>0 && roles.map((item,index)=>(
                             <option key={index} value={item.id}>{item.name}</option>
@@ -335,7 +335,7 @@ function Index({roles,users}) {
                     <Modal.Body>
                         <input type="text" placeholder={name == '' ? 'Please input username' : ''} value={name} className="form-control mb-2" onChange={(e) => setName(e.target.value)} />
                         <input type="text" placeholder={email == '' ? 'Please input email ' : ''} value={email} onChange={(e) => setEmail(e.target.value)} className="form-control mb-2" />
-                        <select defaultValue={idRole} onChange={(e) => setIdRole(e.target.value)} className='form-control' >
+                        <select defaultValue={role_id} onChange={(e) => setrole_id(e.target.value)} className='form-control' >
                             <option value={0} disabled>Choose a role</option>
                             {roles && roles.length > 0 && roles.map((item, index) => (
                                 <option key={index} value={item.id}>{item.name}</option>
