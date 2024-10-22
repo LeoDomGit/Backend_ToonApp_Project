@@ -65,7 +65,7 @@ class UserController extends Controller
             'email' => $request->email,
             'password' => $password,
         ];
-        Mail::to($request->email)->queue(new Createuser($data));
+        Mail::to($request->email)->queue(new createUser($data));
         $users = $this->model::with('roles')->get();
         return response()->json(['check' => true,'data'=>$users]);
     }
@@ -112,7 +112,7 @@ class UserController extends Controller
             'email' => $request->email,
             'password' => $password,
         ];
-        Mail::to($request->email)->queue(new Createuser($data));
+        Mail::to($request->email)->queue(new createUser($data));
         $finduser =User::where('email', $request->email)->first();
         $token = $finduser->createToken('user')->plainTextToken;
         return response()->json(['check' => true, 'token' => $token,'id'=>Auth::id()]);
@@ -227,7 +227,7 @@ class UserController extends Controller
             'email' => $request->email,
             'password' => $password,
         ];
-        Mail::to($request->email)->queue(new Createuser($data));
+        Mail::to($request->email)->queue(new createUser($data));
         $users = $this->model::with('roles')->get();
         return response()->json(['check' => true]);
     }
