@@ -4,6 +4,7 @@ import { createRoot } from "react-dom/client";
 import { ProSidebarProvider } from "react-pro-sidebar";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.min.js";
+import '../css/app.css';
 // import { GoogleOAuthProvider } from '@react-oauth/google';
 createInertiaApp({
 	resolve: (name) => {
