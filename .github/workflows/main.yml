@@ -1,0 +1,134 @@
+name: Deploy Laravel Project on push
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  web-deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get the latest code
+        uses: actions/checkout@v2
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+
+      - name: Install Composer dependencies
+        run: |
+          composer install --no-scripts --no-progress --no-suggest
+        continue-on-error: false  # Capture errors, but continue to allow for the error notification
+
+      - name: Update Composer dependencies
+        run: |
+          composer update --no-scripts --no-progress --no-suggest
+        continue-on-error: false
+
+      - name: Dump autoload files
+        run: composer dump-autoload --optimize
+        continue-on-error: false
+
+      - name: Generate storage link
+        run: php artisan storage:link
+        continue-on-error: false
+
+      - name: Directory Permissions
+        run: chmod -R 777 storage bootstrap/cache
+        continue-on-error: false
+
+      - name: Install Node.js (latest version)
+        uses: actions/setup-node@v2
+
+      - name: Create .env file
+        run: |
+          echo "APP_NAME=Laravel" > .env
+          echo "APP_URL=https://backendtoolapp.onggiaothanh.com" > .env
+          echo "APP_ENV=production" >> .env
+          echo "APP_KEY=${{ secrets.APP_KEY }}" >> .env
+          echo "APP_DEBUG=false" >> .env
+          echo "LOG_CHANNEL=stack" >> .env
+          echo "DB_CONNECTION=mysql" >> .env
+          echo "DB_HOST=${{ secrets.DB_HOST }}" >> .env
+          echo "DB_PORT=3306" >> .env
+          echo "DB_DATABASE=${{ secrets.DB_DATABASE }}" >> .env
+          echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> .env
+          echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
+          echo "MAIL_MAILER=smtp" >> .env
+          echo "MAIL_HOST=smtp.gmail.com" >> .env
+          echo "MAIL_PORT=465" >> .env
+          echo "MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}" >> .env
+          echo "MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}" >> .env
+          echo "MAIL_ENCRYPTION=tls" >> .env
+          echo "MAIL_FROM_ADDRESS=${{ secrets.MAIL_FROM_ADDRESS }}" >> .env
+          echo "MAIL_FROM_NAME='Dashboard'" >> .env
+          echo "VITE_OPEN_AI_KEY=${{ secrets.VITE_OPEN_AI_KEY }}" >> .env
+          echo "VITE_GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_KEY }}" >> .env
+          echo "VITE_OPEN_AI_KEY=${{ secrets.VITE_OPEN_AI_KEY }}" >> .env
+          echo "VITE_GOOGLE_CLIENT_ID=${{ secrets.VITE_GOOGLE_CLIENT_ID }}" >> .env
+          echo "QUEUE_CONNECTION=database" >> .env
+          echo "SESSION_DRIVER=file" >> .env
+          echo "SESSION_LIFETIME=360" >> .env
+          
+      - name: Install NPM dependencies
+        run: npm install
+        continue-on-error: false
+
+      - name: Build front-end assets
+        run: npm run build
+        continue-on-error: false
+
+      - name: Remove node_modules folder
+        run: rm -rf node_modules
+
+      - name: Remove vendor folder
+        run: rm -rf vendor
+
+      - name: 📂 Sync files
+        uses: SamKirkland/FTP-Deploy-Action@4.0.0
+        with:
+          server: ${{ secrets.SERVER }}
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSWORD }}
+          server-dir: /
+          exclude: |
+              .git*
+              .gitignore
+              .htaccess
+              node_modules/
+              vendor/
+
+      - name: Check for deployment errors
+        id: check_error
+        run: |
+          if [ -f /path/to/log/file ]; then
+            echo "error_output=$(tail -n 20 /path/to/log/file)" >> $GITHUB_ENV
+          else
+            echo "error_output=No errors captured." >> $GITHUB_ENV
+          fi
+
+  notify:
+    name: Discord Notification
+    runs-on: ubuntu-latest
+    needs:
+      - web-deploy
+    if: ${{ always() }} # Always notify, regardless of success or failure
+
+    steps:
+      - name: Notify Discord
+        uses: nobrayner/discord-webhook@v1
+        with:
+          github-token: ${{ secrets.TOKEN }}
+          discord-webhook: ${{ secrets.WEBHOOK }}
+          username: "GitHub Bot Actions"
+          avatar-url: 'https://cdn-icons-png.flaticon.com/512/4712/4712086.png'
+          title: "Deploy Status: ${{ job.status }}"
+          description: |
+            Build and deploy to GitHub Pages: ${{ job.status }}.
+            Error output (if any): ${{ env.error_output }}
+          color-success: '#4287f5'
+          color-failure: '#eb4034'
+          color-cancelled: '#42daf5'
