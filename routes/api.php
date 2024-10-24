@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\FeaturesController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -17,3 +18,5 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
+Route::get('/features',[FeaturesController::class,'api_index']);
+Route::get('/features/{id}',[FeaturesController::class,'api_detail']);
