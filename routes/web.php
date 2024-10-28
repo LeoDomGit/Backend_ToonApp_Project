@@ -18,7 +18,7 @@ use Inertia\Inertia;
 | be assigned to the "web" middleware group. Make something great!
 |
 */
-// Route::get('/',[UserController::class,'LoginIndex'])->name('login');
+Route::get('/',[UserController::class,'LoginIndex'])->name('login');
 Route::post('/check-login-admin',[UserController::class,'checkLoginAdmin']);
 Route::post('/checkLoginAdmin',[UserController::class,'checkLoginAdmin1']);
 Route::get('/logout',[UserController::class,'Logout']);
