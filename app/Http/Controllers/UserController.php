@@ -25,7 +25,7 @@ class UserController extends Controller
     {
         $users = $this->model::with('roles')->get();
         $roles= Roles::all();   
-        return Inertia::render('User/Index',['roles'=>$roles,'users'=>$users]);
+        return Inertia::render('Users/Index',['roles'=>$roles,'users'=>$users]);
     }
 
     /**
@@ -146,7 +146,7 @@ class UserController extends Controller
 
     }
     public function LoginIndex(){
-        return Inertia::render('User/Login');
+        return Inertia::render('Users/Login');
     }
 
     public function Logout(){
