@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
-use App\Mail\CreateUser;
+use App\Mail\Createuser;
 use Inertia\Inertia;
 
 class UserController extends Controller
@@ -51,7 +51,7 @@ class UserController extends Controller
         $validator = Validator::make($request->all(), [
             'name'=>'required',
             'email'=>'required|email|unique:users,email',
-            'role_id'=>'required|exists:roles,id'
+            'idRole'=>'required|exists:roles,id'
         ]);
         if ($validator->fails()) {
             return response()->json(['check'=>false,'msg'=>$validator->errors()->first()]);
@@ -65,7 +65,7 @@ class UserController extends Controller
             'email' => $request->email,
             'password' => $password,
         ];
-        Mail::to($request->email)->queue(new CreateUser($data));
+        Mail::to($request->email)->queue(new Createuser($data));
         $users = $this->model::with('roles')->get();
         return response()->json(['check' => true,'data'=>$users]);
     }
@@ -75,7 +75,7 @@ class UserController extends Controller
     public function update(Request $request,$id){
         $validator = Validator::make($request->all(), [
             'email'=>'email|unique:users,email',
-            'role_id'=>'exists:roles,id'
+            'idRole'=>'exists:roles,id'
         ]);
         if ($validator->fails()) {
             return response()->json(['check'=>false,'msg'=>$validator->errors()->first()]);
@@ -105,14 +105,14 @@ class UserController extends Controller
         $password = random_int(10000, 99999);
         $data['password'] = Hash::make($password);
         $data['name']=$request->email;
-        $data['role_id']=2;
+        $data['idRole']=2;
         User::create($data);
         $data = [
             'name'=>$request->name,
             'email' => $request->email,
             'password' => $password,
         ];
-        Mail::to($request->email)->queue(new CreateUser($data));
+        Mail::to($request->email)->queue(new Createuser($data));
         $finduser =User::where('email', $request->email)->first();
         $token = $finduser->createToken('user')->plainTextToken;
         return response()->json(['check' => true, 'token' => $token,'id'=>Auth::id()]);
@@ -220,14 +220,14 @@ class UserController extends Controller
         $data = $request->all();
         $password = random_int(10000, 99999);
         $data['password'] = Hash::make($password);
-        $data['role_id']=2;
+        $data['idRole']=2;
         User::create($data);
         $data = [
             'name'=>$request->name,
             'email' => $request->email,
             'password' => $password,
         ];
-        Mail::to($request->email)->queue(new CreateUser($data));
+        Mail::to($request->email)->queue(new Createuser($data));
         $users = $this->model::with('roles')->get();
         return response()->json(['check' => true]);
     }

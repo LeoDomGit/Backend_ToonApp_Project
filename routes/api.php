@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\FeaturesController;
+use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -20,3 +21,11 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 Route::get('/features',[FeaturesController::class,'api_index']);
 Route::get('/features/{id}',[FeaturesController::class,'api_detail']);
+
+
+Route::prefix('users')->group(function () {
+    Route::post('/register',[UserController::class,'register']);
+    Route::post('/login',[UserController::class,'Login']);
+    Route::post('/register-with-email',[UserController::class,'RegisterWithEmail']);
+    Route::post('/login-with-email',[UserController::class,'LoginWithEmail']);
+});
