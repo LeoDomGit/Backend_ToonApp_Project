@@ -28,7 +28,6 @@ class SubFeatureRequest extends FormRequest
         if ($this->isMethod('POST')) {
             return [
                'name'=>'required',
-               'description'=>'required',
                'feature_id'=>'required|exists:features,id'
             ];
         } else if ($this->isMethod('put') || $this->isMethod('patch')) {
