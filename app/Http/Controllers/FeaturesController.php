@@ -31,7 +31,7 @@ class FeaturesController
      */
     public function store(FeatureRequest $request)
     {
-        $data = $request->validated();
+        $data = $request->all();
         $data['created_at']= now();
         Features::create($data);
         $data =Features::all();

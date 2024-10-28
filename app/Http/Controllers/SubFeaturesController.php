@@ -34,7 +34,7 @@ class SubFeaturesController
      */
     public function store(SubFeatureRequest $request)
     {
-        $data = $request->validated();
+        $data = $request->all();
         $data['created_at']= now();
         SubFeatures::create($data);
         $data =SubFeatures::with('feature')->get();
