@@ -27,7 +27,6 @@ class FeatureRequest extends FormRequest
         if ($this->isMethod('POST')) {
             return [
                'name'=>'required',
-               'description'=>'required',
             ];
         } else if ($this->isMethod('put') || $this->isMethod('patch')) {
             $feature = Features::where('id',$id)->first();

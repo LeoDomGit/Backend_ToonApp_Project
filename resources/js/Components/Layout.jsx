@@ -33,17 +33,24 @@ function Layout({ children }) {
 							<h2>Admin</h2>
 						</MenuItem>
 						<SubMenu label="Tài khoản" icon={<GroupIcon />}>
-							<a href={"/admin/permissions"}>
+							<a href={"/permissions"}>
 								<MenuItem icon={<GroupIcon />}>Quyền tài khoản</MenuItem>
 							</a>
-							<a href={"/admin/roles"}>
+							<a href={"/roles"}>
 								<MenuItem icon={<GroupIcon />}>Loại tài khoản</MenuItem>
 							</a>
-							<a href={"/admin/users"}>
+							<a href={"/users"}>
 								<MenuItem icon={<GroupIcon />}>Tài khoản</MenuItem>
 							</a>
 						</SubMenu>
-						
+						<SubMenu label="Features" icon={<GroupIcon />}>
+							<a href={"/features"}>
+								<MenuItem icon={<GroupIcon />}>Features</MenuItem>
+							</a>
+							<a href={"/sub_feature"}>
+								<MenuItem icon={<GroupIcon />}>Sub Features</MenuItem>
+							</a>
+						</SubMenu>
 						<a href={"/logout"}>
 							<MenuItem icon={<LogoutIcon />}>Log out</MenuItem>
 						</a>
