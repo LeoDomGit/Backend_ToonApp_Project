@@ -88,7 +88,27 @@ class CustomersController extends Controller
     {
         return response()->json(['check' => true, 'customer' => $request->user()], 200);
     }
-
+    public function social_login(Request $request){
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email|exists:customers,email',
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['check' => false, 'msg' => $validator->errors()->first()], 400);
+        }
+        $customer = Customers::where('email', $request->email)->first();
+        if(!$customer){
+            return response()->json(['check' => false, 'msg' => 'Invalid email'], 401);
+        }
+        $token = $customer->createToken('customer_token')->plainTextToken;
+        $customer->update([
+            'last_login' => now(),
+            'remember_token' => $token,
+        ]);
+        return response()->json(['check' => true, 'token' => $token, 'customer' => $customer], 200);
+    }
+     /**
+     * Show customer details.
+     */
     public function forget_password(Request $request){
         $validator = Validator::make($request->all(), [
             'email' => 'required|email|exists:customers,email',

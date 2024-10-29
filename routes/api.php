@@ -23,6 +23,7 @@ Route::prefix('customers')->group(function () {
     Route::post('/register', [CustomersController::class, 'register']);
     Route::post('/login', [CustomersController::class, 'login']);
     Route::post('/forget', [CustomersController::class, 'forget_password']);
+    Route::post('/social_login', [CustomersController::class, 'social_login']);
    
 });
 Route::middleware('auth:customer')->group(function () {
