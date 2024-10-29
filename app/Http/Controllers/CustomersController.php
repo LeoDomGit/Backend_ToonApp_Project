@@ -89,6 +89,26 @@ class CustomersController extends Controller
         return response()->json(['check' => true, 'customer' => $request->user()], 200);
     }
 
+    public function forget_password(Request $request){
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email|exists:customers,email',
+            'username'=>'required|exists:customers,username',
+            'password'=>'required|min:8',
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['check' => false, 'msg' => $validator->errors()->first()], 400);
+        }
+        $customer = Customers::where('email', $request->email)->where('username', $request->username)->first();
+        if (!$customer) {
+            return response()->json(['check' => false, 'msg' => 'Invalid email or username'], 401);
+        }
+        $customer->update([
+            'password' => Hash::make($request->password),
+            'updated_at'=>now(),
+            'remember_token'=>null
+        ]);
+        return response()->json(['check' => true, 'msg' => 'Password updated successfully'], 200);
+    }
     /**
      * Update customer details.
      */
