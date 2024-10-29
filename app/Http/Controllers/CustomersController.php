@@ -77,7 +77,7 @@ class CustomersController extends Controller
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
-
+        Customers::where('id', $request->user()->id)->update(['remember_token' => null]);
         return response()->json(['check' => true, 'msg' => 'Logged out successfully'], 200);
     }
 

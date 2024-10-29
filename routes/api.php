@@ -22,11 +22,14 @@ Route::get('/features/{id}',[FeaturesController::class,'api_detail']);
 Route::prefix('customers')->group(function () {
     Route::post('/register', [CustomersController::class, 'register']);
     Route::post('/login', [CustomersController::class, 'login']);
+   
 });
 Route::middleware('auth:customer')->group(function () {
     Route::get('/user',function (Request $request) {
         return $request->user();
     });
+    Route::put('/customers', [CustomersController::class, 'update']);
+    Route::get('/logout',[CustomersController::class, 'logout']);
 });
 Route::prefix('users')->group(function () {
     Route::post('/register',[UserController::class,'register']);
