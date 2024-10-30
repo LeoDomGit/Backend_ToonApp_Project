@@ -5,10 +5,11 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Http;
-
+use Aws\S3\S3Client;
+use Aws\S3\Exception\S3Exception;
 class ImageAIController extends Controller
 {
-    protected $key ='eyJraWQiOiI5NzIxYmUzNi1iMjcwLTQ5ZDUtOTc1Ni05ZDU5N2M4NmIwNTEiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJhdXRoLXNlcnZpY2UtYzJlZWMwZTQtZTRiOS00MTQwLWFmZGEtNDU4N2FmNDAwMGYxIiwiYXVkIjoiNDY2OTAyOTQxMDEwMTAxIiwibmJmIjoxNzI5MjA2OTY5LCJzY29wZSI6WyJiMmItYXBpLmdlbl9haSIsImIyYi1hcGkuaW1hZ2VfYXBpIl0sImlzcyI6Imh0dHBzOi8vYXBpLnBpY3NhcnQuY29tL3Rva2VuLXNlcnZpY2UiLCJvd25lcklkIjoiNDY2OTAyOTQxMDEwMTAxIiwiaWF0IjoxNzI5MjA2OTY5LCJqdGkiOiI0ZWNjZjdjOC0yOGQ2LTRlMTMtYTM1Ni02NTg0NzYzY2E1OGUifQ.WZpBVZzQhO9efRWXw4ZP4FoUjPoNf1qhsK2vBIBobKhx-mZZwYJwwq2EKBsbpE0LjR5bbC-BknHhVAxu-ww1G1uekARRN2H6pt6jlUcLpxIcG1RJBBeeSBeGH3b2T1Q16nABvhR16QOhBid0lMcOcaANkTGrmpYOMg4el2h4wBEVzDn0NwhnUVgosUipVq37wOl7iZ56flZUCektLm8BFor47W7Pq0HqbuHEx8s2LU56NIBF119AK4Tuw3ERiDadELOEjOGP8VZ0gvafWTbQpEmqEz84x1TWq7hH0nwroq5a2x3QblmgCmdZx7AZH25TNqd5RrDe5fDlJtx5350H2g';
+    protected $key =env(IMAGE_API_KEY);
     /**
      * Display a listing of the resource.
      */
@@ -37,6 +38,58 @@ class ImageAIController extends Controller
     public function slideCompare(Request $request)
     {
         return response()->json(['status' => 'develop']);
+    }
+
+    private function uploadToCloudFlare($folder, $filename, $imageresponse, $code_profile)
+    {
+        try {
+            // Decode base64 image
+            $imageData = base64_decode($imageresponse);
+            $r2object = $folder.'/'.$filename.'.jpg'; // You can generate a unique name for each image
+  
+            $accountid = '453d5dc9390394015b582d09c1e82365';
+            $r2bucket = 'imagehub';
+  
+            // Example usage
+            $accessKey = '246eacf6e9a33cfe39dd02095820634d';
+            $secretKey = 'a98e160d60ecb864e5098f9ba380e347b2e4124f271add8c3d84b9e859c4de98';
+            $region = 'auto';
+            $contentType = 'image/jpeg'; // Content type of your file
+  
+            // AWS credentials and Cloudflare R2 endpoint
+            $credentials = [
+                'key'    => $accessKey,
+                'secret' => $secretKey,
+            ];
+            $endpoint = "https://$accountid.r2.cloudflarestorage.com";
+  
+            // Create an S3 client
+            $s3Client = new S3Client([
+                'version'     => 'latest',
+                'region'      => $region, // Change this to your region
+                'credentials' => $credentials,
+                'endpoint'    => $endpoint,
+            ]);
+  
+            // Upload file to Cloudflare R2
+            try {
+                $result = $s3Client->putObject([
+                    'Bucket' => $r2bucket,
+                    'Key'    => $r2object,
+                    'Body'   => $imageData,
+                    'ContentType' => $contentType,
+                ]);
+  
+                $this->storeRequest(2, $code_profile." - Upload to CloudFlare", "CloudFlare", 1, $endpoint, $r2object, $result, 0);
+  
+                return $r2object;
+            } catch (S3Exception $e) {
+                Log::debug("Error uploading file: ". $e->getMessage());
+            }
+        } catch (\Throwable $th) {
+            Log::debug($th);
+            return 'error';
+        }
     }
 
     public function removeBackground(Request $request)
