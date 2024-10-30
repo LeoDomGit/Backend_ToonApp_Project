@@ -70,6 +70,8 @@ jobs:
           echo "VITE_OPEN_AI_KEY=${{ secrets.VITE_OPEN_AI_KEY }}" >> .env
           echo "VITE_GOOGLE_CLIENT_ID=${{ secrets.VITE_GOOGLE_CLIENT_ID }}" >> .env
           echo "IMAGE_API_KEY=${{ secrets.IMAGE_API_KEY }}" >> .env
+          echo "AWS_ACCESS_KEY=${{ secrets.AWS_ACCESS_KEY }}" >> .env
+          echo "AWS_SECRET_KEY=${{ secrets.AWS_SECRET_KEY }}" >> .env
           echo "QUEUE_CONNECTION=database" >> .env
           echo "SESSION_DRIVER=file" >> .env
           echo "SESSION_LIFETIME=360" >> .env
