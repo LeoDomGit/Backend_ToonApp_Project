@@ -45,7 +45,6 @@ Route::middleware('auth:customer')->group(function () {
         Route::post('/animal_toon',[ImageAIController::class,'animalToon']);
         Route::post('/new_profile_pic',[ImageAIController::class,'newProfilePic']);
         Route::post('/funny_charactors',[ImageAIController::class,'funnyCharactors']);
-
     });
 });
 Route::prefix('users')->group(function () {
