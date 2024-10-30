@@ -9,10 +9,15 @@ use Aws\S3\S3Client;
 use Aws\S3\Exception\S3Exception;
 class ImageAIController extends Controller
 {
-    protected $key =env(IMAGE_API_KEY);
+    protected $key;
     /**
      * Display a listing of the resource.
      */
+
+     public function __construct()
+    {
+        $this->key = env('IMAGE_API_KEY');
+    }
     public function ai_cartoon(Request $request)
     {
         $validator = Validator::make($request->all(), [
