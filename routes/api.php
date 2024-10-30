@@ -33,7 +33,7 @@ Route::middleware('auth:customer')->group(function () {
     });
     Route::put('/customers', [CustomersController::class, 'update']);
     Route::get('/logout',[CustomersController::class, 'logout']);
-    Route::prefix('ai')->group(function () {
+    Route::prefix('image_ai')->group(function () {
         Route::post('/change_background',[ImageAIController::class,'changeBackground']);
         Route::post('/cartoon_style',[ImageAIController::class,'cartoonStyle']);
         Route::post('/slide_compare',[ImageAIController::class,'slideCompare']);
@@ -47,6 +47,8 @@ Route::middleware('auth:customer')->group(function () {
         Route::post('/funny_charactors',[ImageAIController::class,'funnyCharactors']);
     });
 });
+
+
 Route::prefix('users')->group(function () {
     Route::post('/register',[UserController::class,'register']);
     Route::post('/login',[UserController::class,'Login']);
