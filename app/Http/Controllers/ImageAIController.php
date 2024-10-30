@@ -12,7 +12,7 @@ class ImageAIController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function ai_cartoon(Request $request)
+    public function ai_cartoon(Request $request) 
     {
         $validator = Validator::make($request->all(), [
             'image' => 'required',
