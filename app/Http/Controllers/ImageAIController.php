@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Http;
 
 class ImageAIController extends Controller
 {
@@ -40,7 +41,43 @@ class ImageAIController extends Controller
 
     public function removeBackground(Request $request)
     {
-        return response()->json(['status' => 'develop']);
+        $validator = Validator::make($request->all(), [
+            'image' => 'required|mimes:png,jpg,jpeg',
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['check' => false, 'msg' => $validator->errors()->first()]);
+        }
+        $image = $request->file('image');
+
+        // Send request to Picsart API
+        $response = Http::withHeaders([
+            'X-Picsart-API-Key' => $this->key,
+            'Accept' => 'application/json',
+        ])->attach(
+            'image', 
+            file_get_contents($image->getRealPath()), 
+            $image->getClientOriginalName() 
+        )->post('https://api.picsart.io/tools/1.0/removebg', [
+            'output_type' => 'cutout',
+            'bg_blur' => '0',
+            'scale' => 'fit',
+            'auto_center' => 'false',
+            'stroke_size' => '0',
+            'stroke_color' => 'FFFFFF',
+            'stroke_opacity' => '100',
+            'shadow' => 'disabled',
+            'shadow_opacity' => '20',
+            'shadow_blur' => '50',
+            'format' => 'PNG',
+        ]);
+    
+        // Check response status
+        if ($response->successful()) {
+            $data = $response->json();
+            return response()->json(['check' => true, 'data' => $data]);
+        } else {
+            return response()->json(['check' => false, 'msg' => 'Failed to process image', 'error' => $response->body()]);
+        }
     }
 
     public function claymation(Request $request)
