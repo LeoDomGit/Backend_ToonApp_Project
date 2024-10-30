@@ -48,8 +48,6 @@ class ImageAIController extends Controller
             return response()->json(['check' => false, 'msg' => $validator->errors()->first()]);
         }
         $image = $request->file('image');
-
-        // Send request to Picsart API
         $response = Http::withHeaders([
             'X-Picsart-API-Key' => $this->key,
             'Accept' => 'application/json',
