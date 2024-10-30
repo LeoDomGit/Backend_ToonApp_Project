@@ -13,6 +13,9 @@ class ImageAIController extends Controller
 {
     protected $key;
     protected $client;
+    protected $aws_secret_key;
+    protected $aws_access_key;
+
 
     /**
      * Display a listing of the resource.
@@ -21,6 +24,8 @@ class ImageAIController extends Controller
      public function __construct()
     {
         $this->key = env('IMAGE_API_KEY');
+        $this->aws_secret_key = env('AWS_SECRET_KEY');
+        $this->aws_access_key = env('AWS_ACCESS_KEY');
         $this->client = new Client();
 
     }
@@ -90,8 +95,8 @@ class ImageAIController extends Controller
         // Step 3: Prepare Cloudflare R2 credentials and settings
         $accountid = '453d5dc9390394015b582d09c1e82365';
         $r2bucket = 'artapp';  // Updated bucket name
-        $accessKey = 'cbb3e2fea7c7f3e7af09b67eeec7d62c';
-        $secretKey = 'b52dcdbea046cc2cc13a5b767a1c71ea8acbe96422b3e45525d3678ce2b5ed3e';
+        $accessKey = $this->aws_access_key;
+        $secretKey = $this->aws_secret_key;
         $region = 'auto';
         $endpoint = "https://$accountid.r2.cloudflarestorage.com";
 
