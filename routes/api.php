@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\FeaturesController;
+use App\Http\Controllers\ImageAIController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -32,6 +33,20 @@ Route::middleware('auth:customer')->group(function () {
     });
     Route::put('/customers', [CustomersController::class, 'update']);
     Route::get('/logout',[CustomersController::class, 'logout']);
+    Route::prefix('ai')->group(function () {
+        Route::post('/change_background',[ImageAIController::class,'changeBackground']);
+        Route::post('/cartoon_style',[ImageAIController::class,'cartoonStyle']);
+        Route::post('/slide_compare',[ImageAIController::class,'slideCompare']);
+        Route::post('/remove_background',[ImageAIController::class,'removeBackground']);
+        Route::post('/claymation',[ImageAIController::class,'claymation']);
+        Route::post('/disney_toon',[ImageAIController::class,'disneyToon']);
+        Route::post('/disney_charactors',[ImageAIController::class,'disneyCharators']);
+        Route::post('/fullbody_cartoon',[ImageAIController::class,'fullBodyCartoon']);
+        Route::post('/animal_toon',[ImageAIController::class,'animalToon']);
+        Route::post('/new_profile_pic',[ImageAIController::class,'newProfilePic']);
+        Route::post('/funny_charactors',[ImageAIController::class,'funnyCharactors']);
+
+    });
 });
 Route::prefix('users')->group(function () {
     Route::post('/register',[UserController::class,'register']);
