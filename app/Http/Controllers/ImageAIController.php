@@ -24,8 +24,8 @@ class ImageAIController extends Controller
      public function __construct()
     {
         $this->key = env('IMAGE_API_KEY');
-        $this->aws_secret_key = 'b52dcdbea046cc2cc13a5b767a1c71ea8acbe96422b3e45525d3678ce2b5ed3e';
-        $this->aws_access_key = 'cbb3e2fea7c7f3e7af09b67eeec7d62c';
+        $this->aws_secret_key = env('AWS_SECRET_KEY');
+        $this->aws_access_key = env('AWS_ACCESS_KEY');
         $this->client = new Client();
 
     }
