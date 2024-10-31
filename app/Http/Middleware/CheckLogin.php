@@ -16,7 +16,8 @@ class CheckLogin
     public function handle(Request $request, Closure $next): Response
     {
          if (!$request->session()->has('user')) {
-            return response()->json(['check' => false, 'msg' => 'User is not logged in'], 401);
+            return redirect()->route('login');
+
         }
         return $next($request);
     }
