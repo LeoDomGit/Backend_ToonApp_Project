@@ -52,7 +52,8 @@ class ImageSizeController extends Controller
      */
     public function api_index(ImageSize $ImageSize)
     {
-        
+        $sizes= ImageSize::active()->get();
+        return response()->json($sizes);
     }
 
     /**
