@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import Layout from '../../Components/Layout'
 import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
-import { Box, Typography } from "@mui/material";
+import { Box, Select, Switch, Typography } from "@mui/material";
 import { DataGrid } from '@mui/x-data-grid';
 import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
@@ -44,10 +44,51 @@ function Index({ sizes }) {
     const date = new Date(dateString);
     return date.toLocaleString(); 
 };
-
+const switchStatus=(params,value)=>{
+    var status=0;
+        if(params.row.status==0){
+            status=1;
+        }else{
+            status=0;
+        }
+        axios.put('/sizes/'+params.id,{
+            status:status
+        },
+        ).then((res) => {
+            if (res.data.check == false) {
+                if (res.data.msg) {
+                    notyf.open({
+                        type: 'error',
+                        message: res.data.msg
+                    });
+                }
+            } else if (res.data.check == true) {
+                toast.success("Đã thay đổi thành công !", {
+                    position: "top-right"
+                  });
+                if (res.data.data) {
+                    setData(res.data.data);
+                } else {
+                    setData([]);
+                }
+            }
+        })
+}
   const columns = [
     { field: "id", headerName: "#", width: 100, renderCell: (params) => params.rowIndex },
     { field: 'size', headerName: "Size", width: 200, editable: true },
+    {
+        field: 'status',
+        headerName: "Status",
+        width: 70,
+        renderCell: (params) => (
+            <Switch
+                checked={params.value == 1}
+                onChange={(e) => switchStatus(params,e.target.value)}
+                inputProps={{ 'aria-label': 'controlled' }}
+            />
+        )
+    },
     {
       field: 'created_at', headerName: 'Created at', width: 200, valueGetter: (params) => formatCreatedAt(params)
     }

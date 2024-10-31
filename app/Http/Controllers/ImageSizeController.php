@@ -50,9 +50,9 @@ class ImageSizeController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(ImageSize $ImageSize)
+    public function api_index(ImageSize $ImageSize)
     {
-        //
+        
     }
 
     /**
