@@ -40,3 +40,4 @@ class Activities extends Model
         return $this->belongsTo(ImageSize::class, 'image_size');
     }
 }
+ 
