@@ -340,8 +340,6 @@ class ImageAIController extends Controller
                 'contents' => 'JPG'
             ]
         ]);
-
-        // Check response status
         if ($response->successful()) {
             $data = $response->json();
             $image_url = $data['data']['url'];
@@ -417,7 +415,56 @@ class ImageAIController extends Controller
 
     public function disneyCharators(Request $request)
     {
-        return response()->json(['status' => 'develop']);
+        $validator = Validator::make($request->all(), [
+            'image' => 'required|mimes:png,jpg,jpeg',
+            'reference_image' => 'required|mimes:png,jpg,jpeg',
+            'level' => 'in:l1,l2,l3,l4,l5',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['check' => false, 'msg' => $validator->errors()->first()]);
+        }
+
+        $image = $request->file('image');
+        $referenceImage = $request->file('reference_image');
+        $level = $request->input('level', 'l5'); // Default to l5
+
+        // Send request to Picsart API
+        $response = Http::withHeaders([
+            'X-Picsart-API-Key' => $this->key,
+            'Accept' => 'application/json',
+        ])->attach(
+            'image',
+            file_get_contents($image->getRealPath()),
+            $image->getClientOriginalName()
+        )->attach(
+            'reference_image',
+            file_get_contents($referenceImage->getRealPath()),
+            $referenceImage->getClientOriginalName()
+        )->post('https://api.picsart.io/tools/1.0/styletransfer', [
+            [
+                'name' => 'level',
+                'contents' => $level
+            ],
+            [
+                'name' => 'format',
+                'contents' => 'JPG'
+            ]
+        ]);
+
+        // Check response status
+        if ($response->successful()) {
+            $data = $response->json();
+            $image_url = $data['data']['url'];
+            $filename = pathinfo($image->getClientOriginalName(), PATHINFO_FILENAME);
+            $folder = 'Styletransfer';
+            $code_profile = 'image-' . time();
+            $cdnUrl = $this->uploadToCloudFlareFromFile($image_url, $code_profile, $folder, $filename);
+
+            return response()->json(['check' => true, 'url' => $cdnUrl, 'data' => $data]);
+        } else {
+            return response()->json(['check' => false, 'msg' => 'Failed to process image', 'error' => $response->body()]);
+        }
     }
 
     public function fullBodyCartoon(Request $request)
