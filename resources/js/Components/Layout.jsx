@@ -51,6 +51,9 @@ function Layout({ children }) {
 								<MenuItem icon={<GroupIcon />}>Sub Features</MenuItem>
 							</a>
 						</SubMenu>
+						<a href={"/sizes"}>
+								<MenuItem icon={<GroupIcon />}>Sizes</MenuItem>
+							</a>
 						<a href={"/logout"}>
 							<MenuItem icon={<LogoutIcon />}>Log out</MenuItem>
 						</a>
