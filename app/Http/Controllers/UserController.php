@@ -155,7 +155,9 @@ class UserController extends Controller
 
     public function Logout()
     {
+        Session::forget('user');
         Auth::logout();
+        request()->session()->regenerate();
         return redirect()->route('login');
     }
     public function Login(Request $request)
