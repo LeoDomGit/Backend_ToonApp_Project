@@ -49,45 +49,91 @@ class ImageAIController extends Controller
         if ($validator->fails()) {
             return response()->json(['check' => false, 'msg' => $validator->errors()->first()]);
         }
-        if($request->has('background')){
+        $client=$this->client;
+        if($request->hasFile('image') && $request->hasFile('background')){
             $image = $request->file('image');
-            $backgroundImage = $request->file('background_image');
-            $response = Http::withHeaders([
-                'X-Picsart-API-Key' => $this->key,
-                'Accept' => 'application/json',
-            ])->attach(
-                'image', 
-                file_get_contents($image->getRealPath()), 
-                $image->getClientOriginalName() 
-            )->attach(
-                'bg_image', 
-                file_get_contents($backgroundImage->getRealPath()), 
-                $backgroundImage->getClientOriginalName()
-            )->post('https://api.picsart.io/tools/1.0/removebg', [
-                'output_type' => 'cutout',
-                'bg_blur' => '0',
-                'scale' => 'fit',
-                'auto_center' => 'false',
-                'stroke_size' => '0',
-                'stroke_color' => 'FFFFFF',
-                'stroke_opacity' => '100',
-                'shadow' => 'disabled',
-                'shadow_opacity' => '20',
-                'shadow_blur' => '50',
-                'format' => 'PNG',
+            $background=$request->file('background');
+            $response = $client->request('POST', 'https://api.picsart.io/tools/1.0/removebg', [
+                'multipart' => [
+                    [
+                        'name' => 'output_type',
+                        'contents' => 'cutout'
+                    ],
+                    [
+                        'name' => 'bg_blur',
+                        'contents' => '0'
+                    ],
+                    [
+                        'name' => 'scale',
+                        'contents' => 'fit'
+                    ],
+                    [
+                        'name' => 'auto_center',
+                        'contents' => 'false'
+                    ],
+                    [
+                        'name' => 'stroke_size',
+                        'contents' => '0'
+                    ],
+                    [
+                        'name' => 'stroke_color',
+                        'contents' => 'FFFFFF'
+                    ],
+                    [
+                        'name' => 'stroke_opacity',
+                        'contents' => '100'
+                    ],
+                    [
+                        'name' => 'shadow',
+                        'contents' => 'disabled'
+                    ],
+                    [
+                        'name' => 'shadow_opacity',
+                        'contents' => '20'
+                    ],
+                    [
+                        'name' => 'shadow_blur',
+                        'contents' => '50'
+                    ],
+                    [
+                        'name' => 'format',
+                        'contents' => 'PNG'
+                    ],
+                    [
+                        'name' => 'image',
+                        'filename' => $image->getClientOriginalName(),
+                        'contents' => fopen($image->getPathname(), 'r'),
+                        'headers' => [
+                            'Content-Type' => 'image'
+                        ]
+                        ],
+                    [
+                        'name' => 'bg_image',
+                        'filename' => $background->getClientOriginalName(),
+                        'contents' => fopen($background->getPathname(), 'r'),
+                        'headers' => [
+                            'Content-Type' => 'image'
+                        ]
+                    ]
+                ],
+                'headers' => [
+                    'X-Picsart-API-Key' => $this->key,
+                    'accept' => 'application/json',
+                ],
             ]);
-        
-            // Check response status
-            if ($response->successful()) {
-                $data = $response->json();
-                $image_url=$data['data']['url'];
+            
+            // Fetch response body
+            if ($response->getStatusCode() === 200) {
+                $data = json_decode($response->getBody(), true);
+                $image_url = $data['data']['url'];
                 $filename = pathinfo($image->getClientOriginalName(), PATHINFO_FILENAME);
                 $folder = 'RemoveBackground';      
                 $code_profile = 'image-' . time(); 
                 $cdnUrl = $this->uploadToCloudFlareFromFile($image_url, $code_profile, $folder, $filename);
-                return response()->json(['check' => true, 'url' => $cdnUrl,'data'=>$data]);
+                
+                return response()->json(['check' => true, 'url' => $cdnUrl, 'data' => $data]);
             } else {
-                return response()->json(['check' => false, 'msg' => 'Failed to process image', 'error' => $response->body()]);
+                return response()->json(['check' => false, 'msg' => 'Failed to process image', 'error' => $response->getBody()->getContents()]);
             }
         }else{
             $image = $request->file('image');
