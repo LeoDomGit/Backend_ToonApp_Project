@@ -34,7 +34,7 @@ Route::middleware('auth:customer')->group(function () {
     Route::put('/customers', [CustomersController::class, 'update']);
     Route::get('/logout',[CustomersController::class, 'logout']);
     Route::prefix('image_ai')->group(function () {
-        Route::post('/change_background',[ImageAIController::class,'changeBackground']);
+        Route::post('/change_background',[ImageAIController::class,'changeBackground'])
         Route::post('/cartoon_style',[ImageAIController::class,'cartoonStyle']);
         Route::post('/slide_compare',[ImageAIController::class,'slideCompare']);
         Route::post('/remove_background',[ImageAIController::class,'removeBackground']);
