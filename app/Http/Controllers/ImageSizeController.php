@@ -69,6 +69,13 @@ class ImageSizeController extends Controller
      */
     public function update(Request $request, ImageSize $ImageSize,$id)
     {
+        $validator = Validator::make($request->all(), [
+            'size' => 'unique:image_sizes,size',
+          
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['check' => false, 'msg' => $validator->errors()->first()]);
+        }
         $size = ImageSize::find($id);
         if(!$size){
             return response()->json(['check'=>false,'msg'=>'Không tìm thấy loại size hình ảnh']);
