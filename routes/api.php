@@ -37,7 +37,7 @@ Route::middleware('auth:customer')->group(function () {
         Route::post('/change_background',[ImageAIController::class,'changeBackground']);
         Route::post('/cartoon_style',[ImageAIController::class,'cartoonStyle']);
         Route::post('/slide_compare',[ImageAIController::class,'slideCompare']);
-        Route::post('/remove_background',[ImageAIController::class,'removeBackground']);
+        Route::post('/remove_background',[ImageAIController::class,'changeBackground']);
         Route::post('/claymation',[ImageAIController::class,'claymation']);
         Route::post('/disney_charactors',[ImageAIController::class,'disneyCharators']);
         Route::post('/fullbody_cartoon',[ImageAIController::class,'fullBodyCartoon']);

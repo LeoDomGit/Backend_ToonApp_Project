@@ -43,7 +43,89 @@ class ImageAIController extends Controller
     }
     public function changeBackground(Request $request)
     {
-        return response()->json(['status' => 'develop']);
+        $validator = Validator::make($request->all(), [
+            'image' => 'required|mimes:png,jpg,jpeg',
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['check' => false, 'msg' => $validator->errors()->first()]);
+        }
+        if($request->has('background')){
+            $image = $request->file('image');
+            $backgroundImage = $request->file('background_image');
+            $response = Http::withHeaders([
+                'X-Picsart-API-Key' => $this->key,
+                'Accept' => 'application/json',
+            ])->attach(
+                'image', 
+                file_get_contents($image->getRealPath()), 
+                $image->getClientOriginalName() 
+            )->attach(
+                'bg_image', 
+                file_get_contents($backgroundImage->getRealPath()), 
+                $backgroundImage->getClientOriginalName()
+            )->post('https://api.picsart.io/tools/1.0/removebg', [
+                'output_type' => 'cutout',
+                'bg_blur' => '0',
+                'scale' => 'fit',
+                'auto_center' => 'false',
+                'stroke_size' => '0',
+                'stroke_color' => 'FFFFFF',
+                'stroke_opacity' => '100',
+                'shadow' => 'disabled',
+                'shadow_opacity' => '20',
+                'shadow_blur' => '50',
+                'format' => 'PNG',
+            ]);
+        
+            // Check response status
+            if ($response->successful()) {
+                $data = $response->json();
+                $image_url=$data['data']['url'];
+                $filename = pathinfo($image->getClientOriginalName(), PATHINFO_FILENAME);
+                $folder = 'RemoveBackground';      
+                $code_profile = 'image-' . time(); 
+                $cdnUrl = $this->uploadToCloudFlareFromFile($image_url, $code_profile, $folder, $filename);
+                return response()->json(['check' => true, 'url' => $cdnUrl,'data'=>$data]);
+            } else {
+                return response()->json(['check' => false, 'msg' => 'Failed to process image', 'error' => $response->body()]);
+            }
+        }else{
+            $image = $request->file('image');
+            $response = Http::withHeaders([
+                'X-Picsart-API-Key' => $this->key,
+                'Accept' => 'application/json',
+            ])->attach(
+                'image', 
+                file_get_contents($image->getRealPath()), 
+                $image->getClientOriginalName() 
+            )->post('https://api.picsart.io/tools/1.0/removebg', [
+                'output_type' => 'cutout',
+                'bg_blur' => '0',
+                'scale' => 'fit',
+                'auto_center' => 'false',
+                'stroke_size' => '0',
+                'stroke_color' => 'FFFFFF',
+                'stroke_opacity' => '100',
+                'shadow' => 'disabled',
+                'shadow_opacity' => '20',
+                'shadow_blur' => '50',
+                'format' => 'PNG',
+            ]);
+        
+            // Check response status
+            if ($response->successful()) {
+                $data = $response->json();
+                $image_url=$data['data']['url'];
+                $filename = pathinfo($image->getClientOriginalName(), PATHINFO_FILENAME);
+                $folder = 'RemoveBackground';      
+                $code_profile = 'image-' . time(); 
+                $cdnUrl = $this->uploadToCloudFlareFromFile($image_url, $code_profile, $folder, $filename);
+                return response()->json(['check' => true, 'url' => $cdnUrl,'data'=>$data]);
+            } else {
+                return response()->json(['check' => false, 'msg' => 'Failed to process image', 'error' => $response->body()]);
+            }
+        }
+        
     }
 
     public function cartoonStyle(Request $request)
