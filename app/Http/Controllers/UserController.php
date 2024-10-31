@@ -6,6 +6,7 @@ use App\Models\Roles;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
@@ -161,8 +162,12 @@ class UserController extends Controller
         if ($validator->fails()) {
             return response()->json(['check'=>false,'msg'=>$validator->errors()->first()]);
         }
-        if(Auth::attempt(['email' => $request->email, 'password' => $request->password,'status'=>1],1)){
-            return response()->json(['check'=>true]);
+        $data=$request->all();
+        if (Auth::attempt(['email' => $data['email'], 'password' => $data['password'], 'status' => 1], isset($data['remember_token']) ? true : false)) {
+            Session::regenerateToken();
+            $data = Auth::user();
+            Session::put('user_session', $data);
+            return response()->json(['check' => true, 'message' => 'Đăng nhập thành công!'], 200);
         }else{
             return response()->json(['check'=>false,'msg'=>'Sai email hoặc mật khẩu']);
         }

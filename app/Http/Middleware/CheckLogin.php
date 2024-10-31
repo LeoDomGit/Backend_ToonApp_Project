@@ -15,8 +15,8 @@ class CheckLogin
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if(!Auth::check()){
-           return redirect('/');
+        if (!$request->session()->has('user')) {
+            return redirect('/');
         }
         return $next($request);
     }
