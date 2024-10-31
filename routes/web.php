@@ -23,7 +23,7 @@ Route::get('/',[UserController::class,'LoginIndex'])->name('login');
 Route::post('/check-login-admin',[UserController::class,'checkLoginAdmin']);
 Route::post('/checkLoginAdmin',[UserController::class,'checkLoginAdmin1']);
 
-Route::middleware('auth')->group(function () {
+Route::middleware('checkLogin')->group(function () {
     Route::get('/logout',[UserController::class,'Logout']);
     Route::resource('/roles',RoleController::class);
     Route::resource('/sizes',ImageSizeController::class);
