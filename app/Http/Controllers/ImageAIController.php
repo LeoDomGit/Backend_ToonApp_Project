@@ -49,10 +49,10 @@ class ImageAIController extends Controller
         if ($validator->fails()) {
             return response()->json(['check' => false, 'msg' => $validator->errors()->first()]);
         }
-        $client=$this->client;
-        if($request->hasFile('image') && $request->hasFile('background')){
+        $client = $this->client;
+        if ($request->hasFile('image') && $request->hasFile('background')) {
             $image = $request->file('image');
-            $background=$request->file('background');
+            $background = $request->file('background');
             $response = $client->request('POST', 'https://api.picsart.io/tools/1.0/removebg', [
                 'multipart' => [
                     [
@@ -106,7 +106,7 @@ class ImageAIController extends Controller
                         'headers' => [
                             'Content-Type' => 'image'
                         ]
-                        ],
+                    ],
                     [
                         'name' => 'bg_image',
                         'filename' => $background->getClientOriginalName(),
@@ -121,29 +121,29 @@ class ImageAIController extends Controller
                     'accept' => 'application/json',
                 ],
             ]);
-            
+
             // Fetch response body
             if ($response->getStatusCode() === 200) {
                 $data = json_decode($response->getBody(), true);
                 $image_url = $data['data']['url'];
                 $filename = pathinfo($image->getClientOriginalName(), PATHINFO_FILENAME);
-                $folder = 'RemoveBackground';      
-                $code_profile = 'image-' . time(); 
+                $folder = 'RemoveBackground';
+                $code_profile = 'image-' . time();
                 $cdnUrl = $this->uploadToCloudFlareFromFile($image_url, $code_profile, $folder, $filename);
-                
+
                 return response()->json(['check' => true, 'url' => $cdnUrl, 'data' => $data]);
             } else {
                 return response()->json(['check' => false, 'msg' => 'Failed to process image', 'error' => $response->getBody()->getContents()]);
             }
-        }else{
+        } else {
             $image = $request->file('image');
             $response = Http::withHeaders([
                 'X-Picsart-API-Key' => $this->key,
                 'Accept' => 'application/json',
             ])->attach(
-                'image', 
-                file_get_contents($image->getRealPath()), 
-                $image->getClientOriginalName() 
+                'image',
+                file_get_contents($image->getRealPath()),
+                $image->getClientOriginalName()
             )->post('https://api.picsart.io/tools/1.0/removebg', [
                 'output_type' => 'cutout',
                 'bg_blur' => '0',
@@ -157,21 +157,20 @@ class ImageAIController extends Controller
                 'shadow_blur' => '50',
                 'format' => 'PNG',
             ]);
-        
+
             // Check response status
             if ($response->successful()) {
                 $data = $response->json();
-                $image_url=$data['data']['url'];
+                $image_url = $data['data']['url'];
                 $filename = pathinfo($image->getClientOriginalName(), PATHINFO_FILENAME);
-                $folder = 'RemoveBackground';      
-                $code_profile = 'image-' . time(); 
+                $folder = 'RemoveBackground';
+                $code_profile = 'image-' . time();
                 $cdnUrl = $this->uploadToCloudFlareFromFile($image_url, $code_profile, $folder, $filename);
-                return response()->json(['check' => true, 'url' => $cdnUrl,'data'=>$data]);
+                return response()->json(['check' => true, 'url' => $cdnUrl, 'data' => $data]);
             } else {
                 return response()->json(['check' => false, 'msg' => 'Failed to process image', 'error' => $response->body()]);
             }
         }
-        
     }
 
     public function cartoonStyle(Request $request)
@@ -266,7 +265,7 @@ class ImageAIController extends Controller
         }
     }
 
-      public function removeBackground(Request $request)
+    public function removeBackground(Request $request)
     {
 
         $validator = Validator::make($request->all(), [
@@ -280,9 +279,9 @@ class ImageAIController extends Controller
             'X-Picsart-API-Key' => $this->key,
             'Accept' => 'application/json',
         ])->attach(
-            'image', 
-            file_get_contents($image->getRealPath()), 
-            $image->getClientOriginalName() 
+            'image',
+            file_get_contents($image->getRealPath()),
+            $image->getClientOriginalName()
         )->post('https://api.picsart.io/tools/1.0/removebg', [
             'output_type' => 'cutout',
             'bg_blur' => '0',
@@ -296,16 +295,16 @@ class ImageAIController extends Controller
             'shadow_blur' => '50',
             'format' => 'PNG',
         ]);
-    
+
         // Check response status
         if ($response->successful()) {
             $data = $response->json();
-            $image_url=$data['data']['url'];
+            $image_url = $data['data']['url'];
             $filename = pathinfo($image->getClientOriginalName(), PATHINFO_FILENAME);
-            $folder = 'RemoveBackground';      
-            $code_profile = 'image-' . time(); 
+            $folder = 'RemoveBackground';
+            $code_profile = 'image-' . time();
             $cdnUrl = $this->uploadToCloudFlareFromFile($image_url, $code_profile, $folder, $filename);
-            return response()->json(['check' => true, 'url' => $cdnUrl,'data'=>$data]);
+            return response()->json(['check' => true, 'url' => $cdnUrl, 'data' => $data]);
         } else {
             return response()->json(['check' => false, 'msg' => 'Failed to process image', 'error' => $response->body()]);
         }
@@ -410,7 +409,56 @@ class ImageAIController extends Controller
 
     public function disneyToon(Request $request)
     {
-        return response()->json(['status' => 'develop']);
+        $validator = Validator::make($request->all(), [
+            'image' => 'required|mimes:png,jpg,jpeg',
+            'reference_image' => 'required|mimes:png,jpg,jpeg',
+            'level' => 'in:l1,l2,l3,l4,l5',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['check' => false, 'msg' => $validator->errors()->first()]);
+        }
+
+        $image = $request->file('image');
+        $referenceImage = $request->file('reference_image');
+        $level = $request->input('level', 'l2'); // Default to l5
+
+        // Send request to Picsart API
+        $response = Http::withHeaders([
+            'X-Picsart-API-Key' => $this->key,
+            'Accept' => 'application/json',
+        ])->attach(
+            'image',
+            file_get_contents($image->getRealPath()),
+            $image->getClientOriginalName()
+        )->attach(
+            'reference_image',
+            file_get_contents($referenceImage->getRealPath()),
+            $referenceImage->getClientOriginalName()
+        )->post('https://api.picsart.io/tools/1.0/styletransfer', [
+            [
+                'name' => 'level',
+                'contents' => $level
+            ],
+            [
+                'name' => 'format',
+                'contents' => 'JPG'
+            ]
+        ]);
+
+        // Check response status
+        if ($response->successful()) {
+            $data = $response->json();
+            $image_url = $data['data']['url'];
+            $filename = pathinfo($image->getClientOriginalName(), PATHINFO_FILENAME);
+            $folder = 'Styletransfer';
+            $code_profile = 'image-' . time();
+            $cdnUrl = $this->uploadToCloudFlareFromFile($image_url, $code_profile, $folder, $filename);
+
+            return response()->json(['check' => true, 'url' => $cdnUrl, 'data' => $data]);
+        } else {
+            return response()->json(['check' => false, 'msg' => 'Failed to process image', 'error' => $response->body()]);
+        }
     }
 
     public function disneyCharators(Request $request)
@@ -469,7 +517,48 @@ class ImageAIController extends Controller
 
     public function fullBodyCartoon(Request $request)
     {
-        return response()->json(['status' => 'develop']);
+        $validator = Validator::make($request->all(), [
+            'image' => 'required|mimes:png,jpg,jpeg',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['check' => false, 'msg' => $validator->errors()->first()]);
+        }
+
+        $image = $request->file('image');
+        $effectName = 'animation';
+
+        $response = Http::withHeaders([
+            'X-Picsart-API-Key' => $this->key,
+            'Accept' => 'application/json',
+        ])->attach(
+            'image',
+            file_get_contents($image->getRealPath()),
+            $image->getClientOriginalName()
+        )->post('https://api.picsart.io/tools/1.0/effects/ai', [
+            [
+                'name' => 'effect_name',
+                'contents' => $effectName
+            ],
+            [
+                'name' => 'format',
+                'contents' => 'JPG'
+            ]
+        ]);
+
+        // Check response status
+        if ($response->successful()) {
+            $data = $response->json();
+            $image_url = $data['data']['url'];
+            $filename = pathinfo($image->getClientOriginalName(), PATHINFO_FILENAME);
+            $folder = 'AIEffects';
+            $code_profile = 'image-' . time();
+            $cdnUrl = $this->uploadToCloudFlareFromFile($image_url, $code_profile, $folder, $filename);
+
+            return response()->json(['check' => true, 'url' => $cdnUrl, 'data' => $data]);
+        } else {
+            return response()->json(['check' => false, 'msg' => 'Failed to process image', 'error' => $response->body()]);
+        }
     }
 
     // public function animalToon(Request $request)
