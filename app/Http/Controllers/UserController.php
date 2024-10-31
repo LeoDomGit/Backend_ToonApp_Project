@@ -161,10 +161,8 @@ class UserController extends Controller
         if ($validator->fails()) {
             return response()->json(['check'=>false,'msg'=>$validator->errors()->first()]);
         }
-        if(Auth::attempt(['email' => $request->email, 'password' => $request->password,'status'=>1],true)){
-            $token = $request->user()->createToken('user');
-            $token=$token->plainTextToken;
-            return response()->json(['check'=>true,'token'=>$token,'id'=>Auth::id()]);
+        if(Auth::attempt(['email' => $request->email, 'password' => $request->password,'status'=>1],1)){
+            return response()->json(['check'=>true]);
         }else{
             return response()->json(['check'=>false,'msg'=>'Sai email hoặc mật khẩu']);
         }

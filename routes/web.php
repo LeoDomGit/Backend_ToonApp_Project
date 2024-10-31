@@ -22,20 +22,18 @@ use Inertia\Inertia;
 Route::get('/',[UserController::class,'LoginIndex'])->name('login');
 Route::post('/check-login-admin',[UserController::class,'checkLoginAdmin']);
 Route::post('/checkLoginAdmin',[UserController::class,'checkLoginAdmin1']);
-Route::get('/logout',[UserController::class,'Logout']);
-// ================================================================
 
-Route::resource('/roles',RoleController::class);
-Route::resource('/sizes',ImageSizeController::class);
-Route::resource('/users',UserController::class);
-Route::resource('/permissions',PermissionsController::class);
-Route::post('/permissions/add-role-permision',[PermissionsController::class,'role_permission']);
-Route::get('/permissions/roles/{id}',[PermissionsController::class,'get_permissions']);
-
-// ===================================================================
-Route::resource('/features',FeaturesController::class);
-Route::resource('/sub_feature',SubFeaturesController::class);
-
+Route::middleware('auth')->group(function () {
+    Route::get('/logout',[UserController::class,'Logout']);
+    Route::resource('/roles',RoleController::class);
+    Route::resource('/sizes',ImageSizeController::class);
+    Route::resource('/users',UserController::class);
+    Route::resource('/permissions',PermissionsController::class);
+    Route::post('/permissions/add-role-permision',[PermissionsController::class,'role_permission']);
+    Route::get('/permissions/roles/{id}',[PermissionsController::class,'get_permissions']);
+    Route::resource('/features',FeaturesController::class);
+    Route::resource('/sub_feature',SubFeaturesController::class);
+});
 
 Route::post('/checkLoginEmail',[UserController::class,'checkLoginEmailAdmin']);
 Route::group(['prefix' => 'laravel-filemanager', 'middleware' => ['web']], function () {
