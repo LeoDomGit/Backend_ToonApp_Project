@@ -76,7 +76,7 @@ const switchStatus=(params,value)=>{
 }
   const columns = [
     { field: "id", headerName: "#", width: 100, renderCell: (params) => params.rowIndex },
-    { field: 'size', headerName: "Size", width: 200, editable: true },
+    { field: 'size', headerName: "Size", editable: true, flex: 1  },
     {
         field: 'status',
         headerName: "Status",
