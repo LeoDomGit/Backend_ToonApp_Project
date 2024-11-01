@@ -395,7 +395,7 @@ class ImageAIController extends Controller
             'photo_id' => $photoId,
             'features_id' => $featuresId,
             'image_result' => $imageResult,
-            'image_size' => $imageSize,
+            // 'image_size' => $imageSize,
             'ai_model' => $aiModel,
             'api_endpoint' => $apiEndpoint,
         ]);
