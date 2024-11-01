@@ -187,7 +187,7 @@ function Index({ datafeatures }) {
       <>
         <Modal show={show} onHide={handleClose}>
           <Modal.Header closeButton>
-            <Modal.Title>Tạo loại tài khoản</Modal.Title>
+            <Modal.Title>Tạo Feature</Modal.Title>
           </Modal.Header>
           <Modal.Body>
             <input type="text" className='form-control' placeholder={feature==''?'Hãy nhập features . . . ':''} onChange={(e) => setFeature(e.target.value)} />

@@ -242,7 +242,7 @@ const handleParentChange1 = (id, value) => {
       <>
         <Modal show={show} onHide={handleClose}>
           <Modal.Header closeButton>
-            <Modal.Title>Tạo loại tài khoản</Modal.Title>
+            <Modal.Title>Tạo Sub Feature</Modal.Title>
           </Modal.Header>
           <Modal.Body>
             <input type="text" className='form-control' placeholder={feature==''?'Hãy nhập sub features . . . ':''} onChange={(e) => setFeature(e.target.value)} />
