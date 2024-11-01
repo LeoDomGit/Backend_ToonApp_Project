@@ -47,6 +47,7 @@ Route::middleware('auth:customer')->group(function () {
     });
 });
 
+Route::post('/test{id}',[ImageAIController::class,'test']);
 
 Route::prefix('users')->group(function () {
     Route::post('/register',[UserController::class,'register']);
