@@ -272,7 +272,7 @@ function Index({roles,users}) {
     ];
     const handleCellEditStop = (id, field,params, value) => {
         let data={
-            field:value
+            [field]:value
         };
         axios
             .put(
