@@ -146,13 +146,6 @@ function Index({ datafeatures }) {
             });
         }
     };
-
-    const handleBlur = (id, field) => {
-        if (editingId) {
-            handleCellEditStop(id, field, tempValue);
-            setEditingId(null);
-        }
-    };
     return (
         <Layout>
             <>
