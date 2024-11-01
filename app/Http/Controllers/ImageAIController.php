@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Photos;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Http;
@@ -32,10 +33,27 @@ class ImageAIController extends Controller
         $this->client = new Client();
         $this->user=Auth::id();
     }
-    private function uploadServerImage(){
+    private function uploadServerImage($image){
+        $filename = pathinfo($image->getClientOriginalName(), PATHINFO_FILENAME);
+        $folder = 'users-'.$this->user.'/';
+        $code_profile = 'image-' . time();
+    
+        // Step 1: Upload original image to CDN
+        $originalImageUrl = $this->uploadToCloudFlareFromFile(
+            $image->getRealPath(), // Use the real path of the uploaded file
+            $code_profile,
+            $folder,
+            $filename
+        );
+       $id=Photos::insertGetId([
+            'customer_id'=>$this->user,
+            'original_image_path'=>$originalImageUrl,
+        ]);
+
+        return $id;
 
     } 
-    
+
     public function ai_cartoon(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -60,6 +78,7 @@ class ImageAIController extends Controller
 
         if ($request->hasFile('image') && $request->hasFile('background')) {
             $image = $request->file('image');
+            $id_img=$this->uploadServerImage($image);
             $background = $request->file('background');
             $response = $client->request('POST', 'https://api.picsart.io/tools/1.0/removebg', [
                 'multipart' => [
@@ -139,12 +158,13 @@ class ImageAIController extends Controller
                 $code_profile = 'image-' . time();
                 $cdnUrl = $this->uploadToCloudFlareFromFile($image_url, $code_profile, $folder, $filename);
 
-                return response()->json(['check' => true, 'url' => $cdnUrl, 'data' => $data]);
+                return response()->json(['check' => true, 'url' => $cdnUrl,'id_img'=>$id_img]);
             } else {
                 return response()->json(['check' => false, 'msg' => 'Failed to process image', 'error' => $response->getBody()->getContents()]);
             }
         } else {
             $image = $request->file('image');
+            $id_img=$this->uploadServerImage($image);
             $response = Http::withHeaders([
                 'X-Picsart-API-Key' => $this->key,
                 'Accept' => 'application/json',
@@ -174,12 +194,13 @@ class ImageAIController extends Controller
                 $folder = 'RemoveBackground';
                 $code_profile = 'image-' . time();
                 $cdnUrl = $this->uploadToCloudFlareFromFile($image_url, $code_profile, $folder, $filename);
-                return response()->json(['check' => true, 'url' => $cdnUrl, 'data' => $data]);
+                return response()->json(['check' => true, 'url' => $cdnUrl,'id_img'=>$id_img]);
             } else {
                 return response()->json(['check' => false, 'msg' => 'Failed to process image', 'error' => $response->body()]);
             }
         }
     }
+
 
     public function cartoonStyle(Request $request)
     {
@@ -283,6 +304,7 @@ class ImageAIController extends Controller
             return response()->json(['check' => false, 'msg' => $validator->errors()->first()]);
         }
         $image = $request->file('image');
+        $id_img=$this->uploadServerImage($image);
         $response = Http::withHeaders([
             'X-Picsart-API-Key' => $this->key,
             'Accept' => 'application/json',
@@ -329,7 +351,7 @@ class ImageAIController extends Controller
 
         $image = $request->file('image');
         $effectName = 'badlands';
-
+        $id_img=$this->uploadServerImage($image);
         $response = Http::withHeaders([
             'X-Picsart-API-Key' => $this->key,
             'Accept' => 'application/json',
@@ -374,6 +396,7 @@ class ImageAIController extends Controller
         }
 
         $image = $request->file('image');
+        $id_img=$this->uploadServerImage($image);
         $referenceImage = $request->file('reference_image');
         $level = $request->input('level', 'l5'); // Default to l5
 
@@ -428,6 +451,7 @@ class ImageAIController extends Controller
         }
 
         $image = $request->file('image');
+        $id_img=$this->uploadServerImage($image);
         $referenceImage = $request->file('reference_image');
         $level = $request->input('level', 'l2'); // Default to l5
 
@@ -482,6 +506,7 @@ class ImageAIController extends Controller
         }
 
         $image = $request->file('image');
+        $id_img=$this->uploadServerImage($image);
         $referenceImage = $request->file('reference_image');
         $level = $request->input('level', 'l5'); // Default to l5
 
@@ -534,8 +559,8 @@ class ImageAIController extends Controller
         }
 
         $image = $request->file('image');
+        $id_img=$this->uploadServerImage($image);
         $effectName = 'animation';
-
         $response = Http::withHeaders([
             'X-Picsart-API-Key' => $this->key,
             'Accept' => 'application/json',
