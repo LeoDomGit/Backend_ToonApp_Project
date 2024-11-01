@@ -218,7 +218,7 @@ function Index({ datafeatures }) {
                     </div>
                 </nav>
                 <div className="row">
-                    <div className="col-md-7">
+                    <div className="col-md-8">
                         {data && data.length > 0 && (
                             <div className="card border-0 shadow">
                                 <div className="card-body">
