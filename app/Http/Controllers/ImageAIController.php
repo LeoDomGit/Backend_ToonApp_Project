@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Activities;
+use App\Models\Features;
 use App\Models\Photos;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -17,7 +19,6 @@ class ImageAIController extends Controller
     protected $key;
     protected $client;
     protected $aws_secret_key;
-    protected $user;
     protected $aws_access_key;
 
 
@@ -31,11 +32,10 @@ class ImageAIController extends Controller
         $this->aws_secret_key = 'b52dcdbea046cc2cc13a5b767a1c71ea8acbe96422b3e45525d3678ce2b5ed3e';
         $this->aws_access_key = 'cbb3e2fea7c7f3e7af09b67eeec7d62c';
         $this->client = new Client();
-        $this->user=Auth::id();
     }
     private function uploadServerImage($image){
         $filename = pathinfo($image->getClientOriginalName(), PATHINFO_FILENAME);
-        $folder = 'users-'.$this->user.'/';
+        $folder = 'users-'.Auth::id().'/';
         $code_profile = 'image-' . time();
     
         // Step 1: Upload original image to CDN
@@ -46,7 +46,7 @@ class ImageAIController extends Controller
             $filename
         );
        $id=Photos::insertGetId([
-            'customer_id'=>$this->user,
+            'customer_id'=>Auth::id(),
             'original_image_path'=>$originalImageUrl,
         ]);
 
@@ -157,7 +157,7 @@ class ImageAIController extends Controller
                 $folder = 'RemoveBackground';
                 $code_profile = 'image-' . time();
                 $cdnUrl = $this->uploadToCloudFlareFromFile($image_url, $code_profile, $folder, $filename);
-
+                $this->createActivities($id_img, $cdnUrl, $image->getSize(), 'remove_bg_with_background', 'https://api.picsart.io/tools/1.0/removebg');
                 return response()->json(['check' => true, 'url' => $cdnUrl,'id_img'=>$id_img]);
             } else {
                 return response()->json(['check' => false, 'msg' => 'Failed to process image', 'error' => $response->getBody()->getContents()]);
@@ -194,6 +194,7 @@ class ImageAIController extends Controller
                 $folder = 'RemoveBackground';
                 $code_profile = 'image-' . time();
                 $cdnUrl = $this->uploadToCloudFlareFromFile($image_url, $code_profile, $folder, $filename);
+                $this->createActivities($id_img, $cdnUrl, $image->getSize(), 'remove_bg', 'https://api.picsart.io/tools/1.0/removebg');
                 return response()->json(['check' => true, 'url' => $cdnUrl,'id_img'=>$id_img]);
             } else {
                 return response()->json(['check' => false, 'msg' => 'Failed to process image', 'error' => $response->body()]);
@@ -334,7 +335,8 @@ class ImageAIController extends Controller
             $folder = 'RemoveBackground';
             $code_profile = 'image-' . time();
             $cdnUrl = $this->uploadToCloudFlareFromFile($image_url, $code_profile, $folder, $filename);
-            return response()->json(['check' => true, 'url' => $cdnUrl, 'data' => $data]);
+            $this->createActivities($id_img, $cdnUrl, $image->getSize(), 'remove_bg', 'https://api.picsart.io/tools/1.0/removebg');
+            return response()->json(['check' => true, 'url' => $cdnUrl]);
         } else {
             return response()->json(['check' => false, 'msg' => 'Failed to process image', 'error' => $response->body()]);
         }
@@ -376,11 +378,26 @@ class ImageAIController extends Controller
             $folder = 'AIEffects';
             $code_profile = 'image-' . time();
             $cdnUrl = $this->uploadToCloudFlareFromFile($image_url, $code_profile, $folder, $filename);
-
-            return response()->json(['check' => true, 'url' => $cdnUrl, 'data' => $data]);
+            $this->createActivities($id_img, $cdnUrl, $image->getSize(), 'animalToon', 'https://api.picsart.io/tools/1.0/effects/ai');
+            return response()->json(['check' => true, 'url' => $cdnUrl, ]);
         } else {
             return response()->json(['check' => false, 'msg' => 'Failed to process image', 'error' => $response->body()]);
         }
+    }
+    public function createActivities($photoId, $imageResult, $imageSize, $featuresId, $apiEndpoint, $aiModel = null)
+    {
+        // Set default AI model to 'Picsart' if not provided
+        $aiModel = $aiModel ?? 'Picsart';
+        $featuresId = Features::where('name','like','%'.$featuresId.'%')->first()->id;
+        return Activities::create([
+            'customer_id' => Auth::id(),
+            'photo_id' => $photoId,
+            'features_id' => $featuresId,
+            'image_result' => $imageResult,
+            'image_size' => $imageSize,
+            'ai_model' => $aiModel,
+            'api_endpoint' => $apiEndpoint,
+        ]);
     }
 
     public function claymation(Request $request)
@@ -431,8 +448,8 @@ class ImageAIController extends Controller
             $folder = 'Styletransfer';
             $code_profile = 'image-' . time();
             $cdnUrl = $this->uploadToCloudFlareFromFile($image_url, $code_profile, $folder, $filename);
-
-            return response()->json(['check' => true, 'url' => $cdnUrl, 'data' => $data]);
+            $this->createActivities($id_img, $cdnUrl, $image->getSize(), 'claymation', 'https://api.picsart.io/tools/1.0/styletransfer');
+            return response()->json(['check' => true, 'url' => $cdnUrl]);
         } else {
             return response()->json(['check' => false, 'msg' => 'Failed to process image', 'error' => $response->body()]);
         }
@@ -486,8 +503,8 @@ class ImageAIController extends Controller
             $folder = 'Styletransfer';
             $code_profile = 'image-' . time();
             $cdnUrl = $this->uploadToCloudFlareFromFile($image_url, $code_profile, $folder, $filename);
-
-            return response()->json(['check' => true, 'url' => $cdnUrl, 'data' => $data]);
+            $this->createActivities($id_img, $cdnUrl, $image->getSize(), 'disneyToon', 'https://api.picsart.io/tools/1.0/styletransfer');
+            return response()->json(['check' => true, 'url' => $cdnUrl]);
         } else {
             return response()->json(['check' => false, 'msg' => 'Failed to process image', 'error' => $response->body()]);
         }
@@ -541,8 +558,8 @@ class ImageAIController extends Controller
             $folder = 'Styletransfer';
             $code_profile = 'image-' . time();
             $cdnUrl = $this->uploadToCloudFlareFromFile($image_url, $code_profile, $folder, $filename);
-
-            return response()->json(['check' => true, 'url' => $cdnUrl, 'data' => $data]);
+            $this->createActivities($id_img, $cdnUrl, $image->getSize(), 'disneyCharators', 'https://api.picsart.io/tools/1.0/styletransfer');
+            return response()->json(['check' => true, 'url' => $cdnUrl]);
         } else {
             return response()->json(['check' => false, 'msg' => 'Failed to process image', 'error' => $response->body()]);
         }
@@ -587,9 +604,9 @@ class ImageAIController extends Controller
             $folder = 'AIEffects';
             $code_profile = 'image-' . time();
             $cdnUrl = $this->uploadToCloudFlareFromFile($image_url, $code_profile, $folder, $filename);
-
-            return response()->json(['check' => true, 'url' => $cdnUrl, 'data' => $data]);
-        } else {
+            $this->createActivities($id_img, $cdnUrl, $image->getSize(), 'fullBodyCartoon', 'https://api.picsart.io/tools/1.0/effects/ai');
+            return response()->json(['check' => true, 'url' => $cdnUrl ]);
+        } else {    
             return response()->json(['check' => false, 'msg' => 'Failed to process image', 'error' => $response->body()]);
         }
     }
