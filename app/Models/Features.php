@@ -9,14 +9,15 @@ class Features extends Model
 {
     use HasFactory;
     protected $table = 'features';
-    
+
     protected $fillable = [
         'id',
         'name',
         'description',
         'status',
         'created_at',
-        'updated_at'
+        'updated_at',
+        'api_endpoint',
     ];
 
     // Define the inverse relationship with the SubFeatures model
