@@ -210,7 +210,7 @@ setSize('');
           </div>
         </nav>
         <div className="row">
-          <div className="col-md-5">
+          <div className="col-md">
             {data && data.length > 0 && (
               <div
                 class="card border-0 shadow"
