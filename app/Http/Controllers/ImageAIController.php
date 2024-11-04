@@ -220,7 +220,6 @@ class ImageAIController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'image' => 'required|mimes:png,jpg,jpeg',
-            'reference_image' => 'required|mimes:png,jpg,jpeg',
             'level' => 'in:l1,l2,l3,l4,l5',
         ]);
         
@@ -234,10 +233,7 @@ class ImageAIController extends Controller
         
         $image = $request->file('image');
         $id_img = $this->uploadServerImage($image);
-        $referenceImage = $request->file('reference_image');
-        $level = $request->input('level', 'l5'); // Default to l5
-        
-        // Log the start of the background removal process
+        $level = $request->input('level', 'l5'); 
         activity('removeBackground')
             ->withProperties(['id_img' => $id_img])
             ->log('Removing background from image');
@@ -275,10 +271,6 @@ class ImageAIController extends Controller
                 'image',
                 file_get_contents($backgroundRemovedUrl), // Use the URL directly from the remove background response
                 basename($backgroundRemovedUrl) // Use the name of the original image or appropriate name
-            )->attach(
-                'reference_image',
-                file_get_contents($referenceImage->getRealPath()),
-                $referenceImage->getClientOriginalName()
             )->post('https://api.picsart.io/tools/1.0/styletransfer', [
                 [
                     'name' => 'level',
@@ -287,6 +279,9 @@ class ImageAIController extends Controller
                 [
                     'name' => 'format',
                     'contents' => 'JPG'
+                ],[
+                    'name' => 'reference_image_url',
+                    'contents' => env('APP_URL').'/storage/anime/anime1.jpg'
                 ]
             ]);
         
