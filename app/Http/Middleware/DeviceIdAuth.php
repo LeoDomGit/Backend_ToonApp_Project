@@ -23,8 +23,15 @@ class DeviceIdAuth
             if ($customer) {
                 // Log the customer in for this request
                 Auth::guard('customer')->setUser($customer);
-                return $next($request);
+            }else{
+                $customer = Customers::create([
+                    'device_id' => $deviceId,
+                    'created_at' => now(),
+                ]);
+                Auth::guard('customer')->setUser($customer);
             }
+            return $next($request);
+
         }
 
         return response()->json([
