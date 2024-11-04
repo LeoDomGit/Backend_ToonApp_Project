@@ -10,6 +10,7 @@ import axios from "axios";
 import Swal from "sweetalert2";
 
 function Index({ datafeatures }) {
+    const [image, setImage] = useState(null);
     const [feature, setFeature] = useState("");
     const [description, setDescription] = useState("");
     const [apiEndpoint, setApiEndpoint] = useState("");
@@ -71,6 +72,26 @@ function Index({ datafeatures }) {
             editable: true,
         },
         {
+            field: "image",
+            headerName: "Image",
+            width: 100,
+            renderCell: (params) => (
+                <img
+                    src={
+                        params.value
+                            ? `/storage/${params.value}` // Đường dẫn đến hình ảnh đã lưu
+                            : "/default-image.jpg" // Hình ảnh mặc định nếu không có
+                    }
+                    alt="Feature"
+                    style={{
+                        width: "50px",
+                        height: "50px",
+                        objectFit: "cover",
+                    }}
+                />
+            ),
+        },
+        {
             field: "created_at",
             headerName: "Created at",
             width: 200,
@@ -85,16 +106,24 @@ function Index({ datafeatures }) {
     ];
 
     const submitRole = () => {
+        const formData = new FormData();
+        formData.append("name", feature);
+        formData.append("description", description);
+        formData.append("api_endpoint", apiEndpoint);
+        if (image) {
+            formData.append("image", image);
+        }
+
         axios
-            .post("/features", {
-                name: feature,
-                description: description,
-                api_endpoint: apiEndpoint,
+            .post("/features", formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
             })
             .then((res) => {
                 if (res.data.check) {
                     notyf.success("Đã thêm thành công");
-                    setData(res.data.data);
+                    setData((prevData) => [...prevData, res.data.data]); // Thêm dữ liệu mới vào bảng
                     resetCreate();
                     setShow(false);
                 } else {
@@ -174,6 +203,12 @@ function Index({ datafeatures }) {
                             placeholder="Nhập API Endpoint . . ."
                             value={apiEndpoint}
                             onChange={(e) => setApiEndpoint(e.target.value)}
+                        />
+                        <input
+                            type="file"
+                            className="form-control mt-2"
+                            accept="image/*"
+                            onChange={(e) => setImage(e.target.files[0])} // Cập nhật file ảnh vào state
                         />
                     </Modal.Body>
                     <Modal.Footer>
