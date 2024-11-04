@@ -82,6 +82,26 @@ class FeaturesController
         return response()->json(['check' => true, 'data' => $data]);
     }
 
+    public function feature_update_image($id){
+        $result = Features::where('id', $id)->first();
+        if(!$result){
+            return response()->json(['check'=>false,'msg'=>'Không tìm thấy feature']);
+        }
+        if(!request()->hasFile('image')){
+            return response()->json(['check'=>false,'msg'=>'Vui lòng chọn hình ảnh']);
+        }
+        $filePath = storage_path('public/features' .$result->image );
+        if (file_exists($filePath)) {
+            unlink($filePath); 
+        }
+        $image= request()->file('image');
+        $path = $image->storeAs('public/features', $image->getClientOriginalName());
+        $data['image'] = 'features/'.$image->getClientOriginalName();
+        $data['updated_at']=now();
+        Features::where('id', $id)->update($data);
+        $data= Features::all();
+        return response()->json(['check'=>true,'data'=>$data]);
+    }
     /**
      * Remove the specified resource from storage.
      */

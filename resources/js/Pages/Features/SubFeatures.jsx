@@ -17,6 +17,10 @@ function SubFeatures({ dataSubFeatures, dataFeatures }) {
     const [data, setData] = useState(dataSubFeatures);
     const [features, setFeatures] = useState(dataFeatures);
     const [show, setShow] = useState(false);
+    const [showImageModal, setShowImageModal] = useState(false);
+    const [selectedRowId, setSelectedRowId] = useState(null);
+    const closeImageModal = () => setShowImageModal(false);
+
     const handleClose = () => setShow(false);
     const handleShow = () => setShow(true);
     const api = "http://localhost:8000/api/";
@@ -109,6 +113,10 @@ function SubFeatures({ dataSubFeatures, dataFeatures }) {
             },
         ],
     });
+    const openImageModal = (id) => {
+        setSelectedRowId(id);
+        setShowImageModal(true);
+    };
     const columns = [
         {
             field: "id",
@@ -150,27 +158,23 @@ function SubFeatures({ dataSubFeatures, dataFeatures }) {
             field: "image",
             headerName: "Image",
             width: 100,
-            renderCell: (params) => {
-                // Find the corresponding feature for the current row
-                const selectedFeature = features.find(
-                    (feature) => feature.id === params.row.feature_id
-                );
-                const imageUrl = selectedFeature
-                    ? `/storage/${selectedFeature.image}`
-                    : "/images/default-image.jpg";
-
-                return (
-                    <img
-                        src={imageUrl}
-                        alt="Feature"
-                        style={{
-                            width: "50px",
-                            height: "50px",
-                            objectFit: "cover",
-                        }}
-                    />
-                );
-            },
+            renderCell: (params) => (
+                <img
+                    src={
+                        params.value
+                            ? `/storage/${params.value}`
+                            : "/default-image.jpg"
+                    }
+                    alt="Feature"
+                    style={{
+                        width: "50px",
+                        height: "50px",
+                        objectFit: "cover",
+                        cursor: "pointer",
+                    }}
+                    onClick={() => openImageModal(params.row.id)} // Open modal when image is clicked
+                />
+            ),
         },
         {
             field: "created_at",
@@ -179,15 +183,20 @@ function SubFeatures({ dataSubFeatures, dataFeatures }) {
             valueGetter: (params) => formatCreatedAt(params),
         },
     ];
-    const submitRole = () => {
-        const imageUrl = imageMap[featureId] || null; // Get the image URL from imageMap if available
-
+    const submitSubFeature = () => {
+        const formData = new FormData();
+        formData.append("name", feature);
+        formData.append("description", description);
+        formData.append("description", description);
+        formData.append("feature_id", featureId);
+        if (image) {
+            formData.append("image", image);
+        }
         axios
-            .post("/sub_feature", {
-                name: feature,
-                description: description,
-                feature_id: featureId,
-                image: imageUrl, // Include the image URL in the request
+            .post("/sub_feature", formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
             })
             .then((res) => {
                 if (res.data.check == true) {
@@ -217,6 +226,26 @@ function SubFeatures({ dataSubFeatures, dataFeatures }) {
         setFeature("");
         setDescription("");
         setShow(true);
+    };
+    const updateImage = () => {
+        const formData = new FormData();
+        formData.append("image", image);
+
+        axios
+            .post(`/sub-feature-update-image/${selectedRowId}`, formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            })
+            .then((res) => {
+                if (res.data.check) {
+                    notyf.success("Ảnh đã được cập nhật thành công");
+                    setData(res.data.data);
+                    closeImageModal();
+                } else {
+                    notyf.error(res.data.msg);
+                }
+            });
     };
     const handleCellEditStop = (id, field, value) => {
         if (field == "name") {
@@ -302,6 +331,32 @@ function SubFeatures({ dataSubFeatures, dataFeatures }) {
     return (
         <Layout>
             <>
+            <Modal show={showImageModal} onHide={closeImageModal}>
+                    <Modal.Header closeButton>
+                        <Modal.Title>Thay đổi hình ảnh</Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>
+                        <input
+                            type="file"
+                            className="form-control"
+                            accept="image/*"
+                            onChange={(e) => setImage(e.target.files[0])}
+                        />
+                    </Modal.Body>
+                    <Modal.Footer>
+                        <Button variant="secondary" onClick={closeImageModal}>
+                            Đóng
+                        </Button>
+                        <Button
+                            variant="primary"
+                            onClick={updateImage}
+                            disabled={!image}
+                        >
+                            Cập nhật ảnh
+                        </Button>
+                    </Modal.Footer>
+                </Modal>
+
                 <Modal show={show} onHide={handleClose}>
                     <Modal.Header closeButton>
                         <Modal.Title>Tạo Sub Feature</Modal.Title>
@@ -340,6 +395,12 @@ function SubFeatures({ dataSubFeatures, dataFeatures }) {
                             value={description}
                             id=""
                         ></textarea>
+                         <input
+                            type="file"
+                            className="form-control mt-2"
+                            accept="image/*"
+                            onChange={(e) => setImage(e.target.files[0])}
+                        />
                     </Modal.Body>
                     <Modal.Footer>
                         <Button variant="secondary" onClick={handleClose}>
@@ -348,7 +409,7 @@ function SubFeatures({ dataSubFeatures, dataFeatures }) {
                         <Button
                             variant="primary text-light"
                             disabled={feature == "" ? true : false}
-                            onClick={(e) => submitRole()}
+                            onClick={(e) => submitSubFeature()}
                         >
                             Tạo mới
                         </Button>

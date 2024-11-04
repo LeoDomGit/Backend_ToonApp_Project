@@ -35,6 +35,9 @@ Route::middleware('checkLogin')->group(function () {
     Route::resource('/features',FeaturesController::class);
     Route::resource('/sub_feature',SubFeaturesController::class);
     Route::resource('/backgrounds',BackgroundController::class);
+    Route::post('/feature-update-image/{id}',[FeaturesController::class,'feature_update_image']);
+    Route::post('/sub-feature-update-image/{id}',[SubFeaturesController::class,'sub_feature_update_image']);
+
 });
 
 Route::post('/checkLoginEmail',[UserController::class,'checkLoginEmailAdmin']);

@@ -14,6 +14,7 @@ class SubFeatures extends Model
         'name',
         'description',
         'status',
+        'image',
         'feature_id', // Make sure this matches your database column
         'created_at',
         'updated_at'

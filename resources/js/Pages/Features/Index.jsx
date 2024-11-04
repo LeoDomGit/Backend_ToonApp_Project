@@ -16,12 +16,18 @@ function Index({ datafeatures }) {
     const [apiEndpoint, setApiEndpoint] = useState("");
     const [data, setData] = useState(datafeatures);
     const [show, setShow] = useState(false);
+    const [showImageModal, setShowImageModal] = useState(false);
+    const [selectedRowId, setSelectedRowId] = useState(null);
+
     const handleClose = () => setShow(false);
     const handleShow = () => setShow(true);
+    const closeImageModal = () => setShowImageModal(false);
+
     const formatCreatedAt = (dateString) => {
         const date = new Date(dateString);
         return date.toLocaleString();
     };
+
     const notyf = new Notyf({
         duration: 1000,
         position: {
@@ -79,15 +85,17 @@ function Index({ datafeatures }) {
                 <img
                     src={
                         params.value
-                            ? `/storage/${params.value}` // Đường dẫn đến hình ảnh đã lưu
-                            : "/default-image.jpg" // Hình ảnh mặc định nếu không có
+                            ? `/storage/${params.value}`
+                            : "/default-image.jpg"
                     }
                     alt="Feature"
                     style={{
                         width: "50px",
                         height: "50px",
                         objectFit: "cover",
+                        cursor: "pointer",
                     }}
+                    onClick={() => openImageModal(params.row.id)} // Open modal when image is clicked
                 />
             ),
         },
@@ -95,7 +103,7 @@ function Index({ datafeatures }) {
             field: "created_at",
             headerName: "Created at",
             width: 200,
-            valueGetter: (params) => formatCreatedAt(params),
+            valueGetter: (params) => formatCreatedAt(params.value),
         },
         {
             field: "api_endpoint",
@@ -123,7 +131,7 @@ function Index({ datafeatures }) {
             .then((res) => {
                 if (res.data.check) {
                     notyf.success("Đã thêm thành công");
-                    setData((prevData) => [...prevData, res.data.data]); // Thêm dữ liệu mới vào bảng
+                    setData((prevData) => [...prevData, res.data.data]);
                     resetCreate();
                     setShow(false);
                 } else {
@@ -138,6 +146,7 @@ function Index({ datafeatures }) {
         setApiEndpoint("");
         setShow(true);
     };
+
     const handleCellEditStop = (id, field, value) => {
         if (field === "name" && value === "") {
             Swal.fire({
@@ -175,9 +184,63 @@ function Index({ datafeatures }) {
             });
         }
     };
+
+    const openImageModal = (id) => {
+        setSelectedRowId(id);
+        setShowImageModal(true);
+    };
+
+    const updateImage = () => {
+        const formData = new FormData();
+        formData.append("image", image);
+
+        axios
+            .post(`/feature-update-image/${selectedRowId}`, formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            })
+            .then((res) => {
+                if (res.data.check) {
+                    notyf.success("Ảnh đã được cập nhật thành công");
+                    setData(res.data.data);
+                    closeImageModal();
+                } else {
+                    notyf.error(res.data.msg);
+                }
+            });
+    };
+
     return (
         <Layout>
             <>
+                <Modal show={showImageModal} onHide={closeImageModal}>
+                    <Modal.Header closeButton>
+                        <Modal.Title>Thay đổi hình ảnh</Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>
+                        <input
+                            type="file"
+                            className="form-control"
+                            accept="image/*"
+                            onChange={(e) => setImage(e.target.files[0])}
+                        />
+                    </Modal.Body>
+                    <Modal.Footer>
+                        <Button variant="secondary" onClick={closeImageModal}>
+                            Đóng
+                        </Button>
+                        <Button
+                            variant="primary"
+                            onClick={updateImage}
+                            disabled={!image}
+                        >
+                            Cập nhật ảnh
+                        </Button>
+                    </Modal.Footer>
+                </Modal>
+
+                {/* Existing modal and data grid setup */}
                 <Modal show={show} onHide={handleClose}>
                     <Modal.Header closeButton>
                         <Modal.Title>Tạo loại tài khoản</Modal.Title>
@@ -208,7 +271,7 @@ function Index({ datafeatures }) {
                             type="file"
                             className="form-control mt-2"
                             accept="image/*"
-                            onChange={(e) => setImage(e.target.files[0])} // Cập nhật file ảnh vào state
+                            onChange={(e) => setImage(e.target.files[0])}
                         />
                     </Modal.Body>
                     <Modal.Footer>
@@ -224,6 +287,8 @@ function Index({ datafeatures }) {
                         </Button>
                     </Modal.Footer>
                 </Modal>
+
+                {/* Navbar */}
                 <nav className="navbar navbar-expand-lg navbar-light bg-light">
                     <div className="container-fluid">
                         <button
@@ -252,8 +317,10 @@ function Index({ datafeatures }) {
                         </div>
                     </div>
                 </nav>
+
+                {/* Data Grid */}
                 <div className="row">
-                    <div className="col-md-8">
+                    <div className="col-md-9">
                         {data && data.length > 0 && (
                             <div className="card border-0 shadow">
                                 <div className="card-body">

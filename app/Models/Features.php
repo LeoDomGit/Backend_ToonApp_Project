@@ -16,6 +16,7 @@ class Features extends Model
         'name',
         'description',
         'status',
+        'image',
         'created_at',
         'updated_at',
         'api_endpoint',

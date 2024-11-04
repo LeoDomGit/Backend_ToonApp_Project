@@ -20,7 +20,26 @@ class SubFeaturesController
         $features = Features::all();
         return Inertia::render('Features/SubFeatures', ['dataSubFeatures' => $data, 'dataFeatures' => $features]);
     }
-
+    public function sub_feature_update_image($id){
+        $result = SubFeatures::where('id', $id)->first();
+        if(!$result){
+            return response()->json(['check'=>false,'msg'=>'Không tìm thấy feature']);
+        }
+        if(!request()->hasFile('image')){
+            return response()->json(['check'=>false,'msg'=>'Vui lòng chọn hình ảnh']);
+        }
+        $filePath = storage_path('public/features' .$result->image );
+        if (file_exists($filePath)) {
+            unlink($filePath); 
+        }
+        $image= request()->file('image');
+        $path = $image->storeAs('public/features', $image->getClientOriginalName());
+        $data['image'] = 'features/'.$image->getClientOriginalName();
+        $data['updated_at']=now();
+        SubFeatures::where('id', $id)->update($data);
+        $data= SubFeatures::with('feature')->get();
+        return response()->json(['check'=>true,'data'=>$data]);
+    }
     /**
      * Show the form for creating a new resource.
      */
