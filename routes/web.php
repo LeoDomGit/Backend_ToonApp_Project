@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\BackgroundController;
 use App\Http\Controllers\FeaturesController;
 use App\Http\Controllers\ImageSizeController;
 use App\Http\Controllers\PermissionsController;
@@ -33,6 +34,7 @@ Route::middleware('checkLogin')->group(function () {
     Route::get('/permissions/roles/{id}',[PermissionsController::class,'get_permissions']);
     Route::resource('/features',FeaturesController::class);
     Route::resource('/sub_feature',SubFeaturesController::class);
+    Route::resource('/backgrounds',BackgroundController::class);
 });
 
 Route::post('/checkLoginEmail',[UserController::class,'checkLoginEmailAdmin']);

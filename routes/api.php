@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\BackgroundController;
 use App\Http\Controllers\FeaturesController;
 use App\Http\Controllers\ImageAIController;
 use App\Http\Controllers\UserController;
@@ -42,6 +43,7 @@ Route::middleware('device_login')->group(function () {
         Route::post('/funny_charactors',[ImageAIController::class,'funnyCharactors']);
     });
 });
+Route::get('/backgrounds',[BackgroundController::class,'api_index']);
 
 Route::get('/test/{id}',[ImageAIController::class,'test']);
 Route::middleware('device_login')->group(function () {
@@ -55,3 +57,5 @@ Route::prefix('users')->group(function () {
     Route::post('/register-with-email',[UserController::class,'RegisterWithEmail']);
     Route::post('/login-with-email',[UserController::class,'LoginWithEmail']);
 });
+
+Route::post('/upload-zip', [BackgroundController::class, 'uploadAndUnzip']);
