@@ -14,8 +14,8 @@ class FeaturesController
      */
     public function index()
     {
-        $features =Features::all();
-        return Inertia::render('Features/Index',['datafeatures'=>$features]);
+        $features = Features::all();
+        return Inertia::render('Features/Index', ['datafeatures' => $features]);
     }
 
     /**
@@ -29,13 +29,24 @@ class FeaturesController
     /**
      * Store a newly created resource in storage.
      */
-    public function store(FeatureRequest $request)
+    public function store(Request $request)
     {
-        $data = $request->all();
-        $data['created_at']= now();
-        Features::create($data);
-        $data =Features::all();
-        return response()->json(['check'=>true,'data'=>$data]);
+        // Kiểm tra có file ảnh không
+        $path = null;
+        if ($request->hasFile('image')) {
+            // Lưu file vào thư mục 'public/features' và lấy đường dẫn lưu
+            $path = $request->file('image')->store('features', 'public');
+        }
+
+        // Lưu thông tin feature vào database cùng với đường dẫn ảnh
+        $feature = Features::create([
+            'name' => $request->input('name'),
+            'description' => $request->input('description'),
+            'api_endpoint' => $request->input('api_endpoint'),
+            'image' => $path, // Lưu đường dẫn ảnh vào cơ sở dữ liệu
+        ]);
+
+        return response()->json(['check' => true, 'data' => $feature]);
     }
 
     /**
@@ -51,12 +62,12 @@ class FeaturesController
      */
     public function api_index(Features $features)
     {
-        $features =Features::with('subFeatures')->get();
+        $features = Features::with('subFeatures')->get();
         return response()->json($features);
     }
-    public function api_detail(Features $features,$id)
+    public function api_detail(Features $features, $id)
     {
-        $features =Features::with('subFeatures')->where('id',$id)->first();
+        $features = Features::with('subFeatures')->where('id', $id)->first();
         return response()->json($features);
     }
     /**
@@ -65,19 +76,19 @@ class FeaturesController
     public function update(FeatureRequest $request, $id)
     {
         $data = $request->all();
-        $data['updated_at']= now();
-        Features::where('id',$id)->update($data);
-        $data =Features::all();
-        return response()->json(['check'=>true,'data'=>$data]);
+        $data['updated_at'] = now();
+        Features::where('id', $id)->update($data);
+        $data = Features::all();
+        return response()->json(['check' => true, 'data' => $data]);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(FeatureRequest $features,$id)
+    public function destroy(FeatureRequest $features, $id)
     {
-        Features::where('id',$id)->delete();
-        $data =Features::all();
-        return response()->json(['check'=>true,'data'=>$data]);
+        Features::where('id', $id)->delete();
+        $data = Features::all();
+        return response()->json(['check' => true, 'data' => $data]);
     }
 }

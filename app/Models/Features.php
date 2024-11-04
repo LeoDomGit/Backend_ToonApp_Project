@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class Features extends Model
 {
@@ -18,11 +19,20 @@ class Features extends Model
         'created_at',
         'updated_at',
         'api_endpoint',
+        'image',
     ];
 
-    // Define the inverse relationship with the SubFeatures model
+    // Định nghĩa mối quan hệ với model SubFeatures
     public function subFeatures()
     {
-        return $this->hasMany(SubFeatures::class, 'feature_id', 'id'); // Specify the foreign key explicitly
+        return $this->hasMany(SubFeatures::class, 'feature_id', 'id');
+    }
+
+    // Thêm accessor để trả về URL đầy đủ của ảnh
+    protected function imageUrl(): Attribute
+    {
+        return Attribute::get(function ($value, $attributes) {
+            return $attributes['image'] ? asset('storage/' . $attributes['image']) : null;
+        });
     }
 }

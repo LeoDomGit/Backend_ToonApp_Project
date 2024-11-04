@@ -16,9 +16,9 @@ class SubFeaturesController
      */
     public function index()
     {
-        $data =SubFeatures::with('feature')->get();
+        $data = SubFeatures::with('feature')->get();
         $features = Features::all();
-        return Inertia::render('Features/SubFeatures',['dataSubFeatures'=>$data,'dataFeatures'=>$features]);
+        return Inertia::render('Features/SubFeatures', ['dataSubFeatures' => $data, 'dataFeatures' => $features]);
     }
 
     /**
@@ -32,15 +32,29 @@ class SubFeaturesController
     /**
      * Store a newly created resource in storage.
      */
-    public function store(SubFeatureRequest $request)
+    public function store(Request $request)
     {
-        $data = $request->all();
-        $data['created_at']= now();
-        SubFeatures::create($data);
-        $data =SubFeatures::with('feature')->get();
-        return response()->json(['check'=>true,'data'=>$data]);
-    }
+        $request->validate([
+            'name' => 'required',
+            'description' => 'required',
+            'feature_id' => 'required|integer',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
 
+        $subFeature = new SubFeatures();
+        $subFeature->name = $request->name;
+        $subFeature->description = $request->description;
+        $subFeature->feature_id = $request->feature_id;
+
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('sub_feature_images', 'public');
+            $subFeature->image = $path; // Save the path to the database
+        }
+
+        $subFeature->save();
+
+        return response()->json(['check' => true, 'data' => SubFeatures::all()]);
+    }
     /**
      * Display the specified resource.
      */
@@ -63,19 +77,19 @@ class SubFeaturesController
     public function update(SubFeatureRequest $request, $id)
     {
         $data = $request->all();
-        $data['updated_at']= now();
-        SubFeatures::where('id',$id)->update($data);
-        $data =SubFeatures::with('feature')->get();
-        return response()->json(['check'=>true,'data'=>$data]);
+        $data['updated_at'] = now();
+        SubFeatures::where('id', $id)->update($data);
+        $data = SubFeatures::with('feature')->get();
+        return response()->json(['check' => true, 'data' => $data]);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(FeatureRequest $features,$id)
+    public function destroy(FeatureRequest $features, $id)
     {
-        SubFeatures::where('id',$id)->delete();
-        $data =SubFeatures::with('feature')->get();
-        return response()->json(['check'=>true,'data'=>$data]);
+        SubFeatures::where('id', $id)->delete();
+        $data = SubFeatures::with('feature')->get();
+        return response()->json(['check' => true, 'data' => $data]);
     }
 }
