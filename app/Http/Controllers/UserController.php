@@ -61,6 +61,7 @@ class UserController extends Controller
         $data = $request->all();
         $password = random_int(10000, 99999);
         $data['password'] = Hash::make($password);
+        $data['role_id'] = 1;
         User::create($data);
         $data = [
             'name' => $request->name,
@@ -146,7 +147,6 @@ class UserController extends Controller
         User::where('id', $identifier)->delete();
         $data = $this->model::with('roles')->get();
         return response()->json(['check' => true, 'data' => $data], 200);
-
     }
     public function LoginIndex()
     {
