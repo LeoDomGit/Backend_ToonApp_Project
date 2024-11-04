@@ -23,6 +23,9 @@ class Customers extends Authenticatable
         'country',
         'city',
         'last_login',
+        'device_id',
+        'created_at',
+        'updated_at',
     ];
 
     protected $hidden = [

@@ -27,10 +27,7 @@ Route::prefix('customers')->group(function () {
     Route::post('/social_login', [CustomersController::class, 'social_login']);
    
 });
-Route::middleware('auth:customer')->group(function () {
-    Route::get('/user',function (Request $request) {
-        return $request->user();
-    });
+Route::middleware('device_login')->group(function () {
     Route::put('/customers', [CustomersController::class, 'update']);
     Route::get('/logout',[CustomersController::class, 'logout']);
     Route::prefix('image_ai')->group(function () {
@@ -48,7 +45,11 @@ Route::middleware('auth:customer')->group(function () {
 });
 
 Route::get('/test/{id}',[ImageAIController::class,'test']);
-
+Route::middleware('device_login')->group(function () {
+    Route::post('/user',function (Request $request) {
+        return $request->user();
+    });
+});
 Route::prefix('users')->group(function () {
     Route::post('/register',[UserController::class,'register']);
     Route::post('/login',[UserController::class,'Login']);

@@ -37,7 +37,7 @@ class ImageAIController extends Controller
     private function uploadServerImage($image)
     {
         $filename = pathinfo($image->getClientOriginalName(), PATHINFO_FILENAME);
-        $folder = 'users-' . Auth::id() . '/';
+        $folder = 'users-' . Auth::guard('customer')->id() . '/';
         $code_profile = 'image-' . time();
 
         // Step 1: Upload original image to CDN
@@ -48,7 +48,7 @@ class ImageAIController extends Controller
             $filename
         );
         $id = Photos::insertGetId([
-            'customer_id' => Auth::id(),
+            'customer_id' => Auth::guard('customer')->id(),
             'original_image_path' => $originalImageUrl,
         ]);
 
@@ -439,7 +439,7 @@ class ImageAIController extends Controller
         $result = Features::where('api_endpoint','like','%'.$featuresId.'%')->first();
         $featuresId = $result->id;
         return Activities::create([
-            'customer_id' => Auth::id(),
+            'customer_id' => Auth::guard('customer')->id(),
             'photo_id' => $photoId,
             'features_id' => $featuresId,
             'image_result' => $imageResult,
@@ -456,7 +456,7 @@ class ImageAIController extends Controller
         return response()->json($result);
         // $featuresId = $result->id;
         // return Activities::create([
-        //     'customer_id' => Auth::id(),
+        //     'customer_id' => Auth::guard('customer')->id(),
         //     'photo_id' => $photoId,
         //     'features_id' => $featuresId,
         //     'image_result' => $imageResult,
