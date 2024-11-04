@@ -218,14 +218,110 @@ class ImageAIController extends Controller
 
     public function cartoonStyle(Request $request)
     {
-        return response()->json(['status' => 'develop']);
+        $validator = Validator::make($request->all(), [
+            'image' => 'required|mimes:png,jpg,jpeg',
+            'reference_image' => 'required|mimes:png,jpg,jpeg',
+            'level' => 'in:l1,l2,l3,l4,l5',
+        ]);
+        
+        if ($validator->fails()) {
+            activity('claymation')
+                ->withProperties(['error' => $validator->errors()->first()])
+                ->log('Validation failed');
+        
+            return response()->json(['check' => false, 'msg' => $validator->errors()->first()]);
+        }
+        
+        $image = $request->file('image');
+        $id_img = $this->uploadServerImage($image);
+        $referenceImage = $request->file('reference_image');
+        $level = $request->input('level', 'l5'); // Default to l5
+        
+        // Log the start of the background removal process
+        activity('removeBackground')
+            ->withProperties(['id_img' => $id_img])
+            ->log('Removing background from image');
+        
+        // Send request to Picsart API to remove the background
+        $response = Http::withHeaders([
+            'X-Picsart-API-Key' => $this->key,
+            'Accept' => 'application/json',
+        ])->attach(
+            'image',
+            file_get_contents($image->getRealPath()),
+            $image->getClientOriginalName()
+        )->post('https://api.picsart.io/tools/1.0/removebg', [
+            'output_type' => 'cutout',
+            'bg_blur' => '0',
+            'scale' => 'fit',
+            'auto_center' => 'false',
+            'stroke_size' => '0',
+            'stroke_color' => 'FFFFFF',
+            'stroke_opacity' => '100',
+            'shadow' => 'disabled',
+            'shadow_opacity' => '20',
+            'shadow_blur' => '50',
+            'format' => 'PNG',
+        ]);
+        
+        // Check response status for background removal
+        if ($response->successful()) {
+            $data = $response->json();
+            $backgroundRemovedUrl = $data['data']['url'];
+            $response = Http::withHeaders([
+                'X-Picsart-API-Key' => $this->key,
+                'Accept' => 'application/json',
+            ])->attach(
+                'image',
+                file_get_contents($backgroundRemovedUrl), // Use the URL directly from the remove background response
+                basename($backgroundRemovedUrl) // Use the name of the original image or appropriate name
+            )->attach(
+                'reference_image',
+                file_get_contents($referenceImage->getRealPath()),
+                $referenceImage->getClientOriginalName()
+            )->post('https://api.picsart.io/tools/1.0/styletransfer', [
+                [
+                    'name' => 'level',
+                    'contents' => $level
+                ],
+                [
+                    'name' => 'format',
+                    'contents' => 'JPG'
+                ]
+            ]);
+        
+            // Check response status for style transfer
+            if ($response->successful()) {
+                $data = $response->json();
+                $image_url = $data['data']['url'];
+                $filename = pathinfo($image->getClientOriginalName(), PATHINFO_FILENAME);
+                $folder = 'Styletransfer';
+                $code_profile = 'image-' . time();
+                $cdnUrl = $this->uploadToCloudFlareFromFile($image_url, $code_profile, $folder, $filename);
+                activity('claymation')
+                    ->withProperties([
+                        'cdnUrl' => $cdnUrl,
+                        'size' => $image->getSize(),
+                    ])
+                    ->log('Image processed successfully');
+                $this->createActivities($id_img, $cdnUrl, $image->getSize(), '/api/claymation', 'https://api.picsart.io/tools/1.0/styletransfer');
+                return response()->json(['check' => true, 'url' => $cdnUrl]);
+            } else {
+                activity('claymation')
+                    ->withProperties(['error' => $response->body()])
+                    ->log('Failed to process image');
+        
+                return response()->json(['check' => false, 'msg' => 'Failed to process image', 'error' => $response->body()]);
+            }
+        } else {
+            activity('removeBackground')
+                ->withProperties(['error' => $response->body()])
+                ->log('Failed to remove background');
+        
+            return response()->json(['check' => false, 'msg' => 'Failed to remove background', 'error' => $response->body()]);
+        }
+        
     }
-
-    public function slideCompare(Request $request)
-    {
-        return response()->json(['status' => 'develop']);
-    }
-
     private function storeRequest($request_type, $prompt, $modelai, $method, $url_endpoint, $postfields, $response, $id_content_category)
     {
         $request = new RequestModel();
