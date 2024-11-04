@@ -43,6 +43,7 @@ Route::middleware('device_login')->group(function () {
         Route::post('/funny_charactors',[ImageAIController::class,'funnyCharactors']);
     });
 });
+Route::get('/backgrounds',[BackgroundController::class,'api_index']);
 
 Route::get('/test/{id}',[ImageAIController::class,'test']);
 Route::middleware('device_login')->group(function () {

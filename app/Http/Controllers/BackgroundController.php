@@ -48,9 +48,9 @@ class BackgroundController extends Controller
                 }
             }
 
-            return response()->json(['message' => 'Files unzipped and paths saved successfully.'], 200);
+            return response()->json(['msg' => 'Files unzipped and paths saved successfully.'], 200);
         } else {
-            return response()->json(['message' => 'Failed to open the ZIP file.'], 500);
+            return response()->json(['msg' => 'Failed to open the ZIP file.'], 500);
         }
     }
     /**
@@ -59,7 +59,7 @@ class BackgroundController extends Controller
     public function index()
     {
         $backgrounds = Background::all();
-        return Inertia::render('Background/Index', ['data' => $backgrounds]);
+        return Inertia::render('Background/Index', ['data_images' => $backgrounds]);
     }
 
     /**
@@ -85,9 +85,10 @@ class BackgroundController extends Controller
         }
         $data = Background::all();
         return response()->json([
-            'message' => 'Background images uploaded successfully.',
+            'check'=>true,
+            'msg' => 'Background images uploaded successfully.',
             'data' => $data
-        ], 201);
+        ], 200);
     }
 
     /**
@@ -112,21 +113,39 @@ class BackgroundController extends Controller
         $data= $request->all();
         $data['updated_at'] = now();
         $background->update($data);
-        return response()->json(['message' => 'Background image updated successfully.', 'data' => $background], 200);
+        $data = Background::all();
+        return response()->json([
+            'check'=>true,
+            'msg' => 'Background images uploaded successfully.',
+            'data' => $data
+        ], 200);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Background $background)
+    public function destroy($id)
     {
+        $item = Background::find($id);
+        if (!$item) {
+            return response()->json(['check'=>false,'msg' => 'Background image not found.'], 200);
+        }
+        $background = Background::where('id',$id)->first();
         $filePath = storage_path('app/public/' . $background->path);
-
         if (file_exists($filePath)) {
             unlink($filePath); 
         }
-        $background->delete();
+        Background::where('id',$id)->delete();
+        $data = Background::all();
+        return response()->json([
+            'check'=>true,
+            'msg' => 'Background images uploaded successfully.',
+            'data' => $data
+        ], 200);
+    }
 
-        return response()->json(['message' => 'Background image deleted successfully.'], 200);
+    public function api_index(){
+        $backgrounds = Background::all();
+        return response()->json($backgrounds);
     }
 }
