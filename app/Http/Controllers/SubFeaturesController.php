@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\FeatureRequest;
 use App\Http\Requests\SubFeatureRequest;
 use App\Models\Features;
 use App\Models\SubFeatures;
@@ -105,7 +104,7 @@ class SubFeaturesController
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(FeatureRequest $features, $id)
+    public function destroy(SubFeatureRequest $features, $id)
     {
         SubFeatures::where('id', $id)->delete();
         $data = SubFeatures::with('feature')->get();
