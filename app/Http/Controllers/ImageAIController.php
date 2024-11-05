@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Activities;
+use App\Models\FeatureImage;
 use App\Models\Features;
 use App\Models\Photos;
 use Illuminate\Http\Request;
@@ -230,7 +231,9 @@ class ImageAIController extends Controller
         
             return response()->json(['check' => false, 'msg' => $validator->errors()->first()]);
         }
-        
+        $routePath = $request->path();
+        $result= FeatureImage::where('api_route',$routePath)->first()->value('path');
+        $image_url=env('APP_URL').`/storage/`.$result;
         $image = $request->file('image');
         $id_img = $this->uploadServerImage($image);
         $level = $request->input('level', 'l5'); 
@@ -281,7 +284,7 @@ class ImageAIController extends Controller
                     'contents' => 'JPG'
                 ],[
                     'name' => 'reference_image_url',
-                    'contents' => env('APP_URL').'/storage/anime/anime1.jpg'
+                    'contents' => $image_url
                 ]
             ]);
         
