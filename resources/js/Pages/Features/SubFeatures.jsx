@@ -444,7 +444,7 @@ function SubFeatures({ dataSubFeatures, dataFeatures }) {
                     </div>
                 </nav>
                 <div className="row">
-                    <div className="col-md-8">
+                    <div className="col-md-9">
                         {data && data.length > 0 && (
                             <div class="card border-0 shadow">
                                 <div class="card-body">
