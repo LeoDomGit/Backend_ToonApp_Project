@@ -1,13 +1,15 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Dropzone, FileMosaic } from "@dropzone-ui/react";
 import axios from 'axios';
 import Layout from "../../Components/Layout";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import BackgroundGallery from "../../Components/BackgroundGallery";
-function Index({data_images}) {
+function Index({data_images,data_features}) {
     const [files, setFiles] = useState([]);
+    const [features, setFeatures] = useState(data_features);
     const [data,setData]= useState(data_images);
+    const [feature_id,setFeatureId]= useState(0);
   const updateFiles = (incomingFiles) => {
     setFiles(incomingFiles);
   };
@@ -21,10 +23,18 @@ function Index({data_images}) {
         }
       })
   };
-
+  // ==================================================
+  useEffect(() => {
+    if(feature_id!=0){
+      axios.get('/backgrounds/'+feature_id).then((res)=>{
+        setData(res.data)
+      })
+    }
+   
+  },[feature_id])
   const handleSubmit = async () => {
     const formData = new FormData();
-    
+    formData.append('feature_id', feature_id);
     // Append each file to the FormData
     files.forEach((file) => {
       formData.append('images[]', file.file); // 'images[]' for multiple file inputs in the request
@@ -41,7 +51,7 @@ function Index({data_images}) {
           });
         setFiles([]);
         setData(response.data.data); // Clear the files after successful upload
-      } else {
+      } else if(response.data.check==false) {
         alert(response.data.msg);
       }
     } catch (error) {
@@ -58,6 +68,17 @@ function Index({data_images}) {
       <ToastContainer />
       <div className="row">
             <div className="col-md-4">
+             <div className="row">
+                <div className="col-md mb-3">
+                  <label htmlFor="">Feature</label>
+                <select name="" defaultValue={feature_id} className='form-control' onChange={(e)=>setFeatureId(e.target.value)} id="">
+                  <option value={0} disabled>Chọn 1 feature</option>
+                  {features.map((feature)=>{
+                    return <option value={feature.id} key={feature.id}>{feature.name}</option>
+                  })}
+                </select>
+                </div>
+             </div>
             <Dropzone
         onChange={updateFiles}
         value={files}
