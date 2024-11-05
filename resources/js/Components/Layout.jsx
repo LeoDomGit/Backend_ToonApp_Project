@@ -50,6 +50,9 @@ function Layout({ children }) {
 							<a href={"/sub_feature"}>
 								<MenuItem icon={<GroupIcon />}>Sub Features</MenuItem>
 							</a>
+							<a href={"/api_images"}>
+								<MenuItem icon={<GroupIcon />}>API Images</MenuItem>
+							</a>
 						</SubMenu>
 						<a href={"/sizes"}>
 								<MenuItem icon={<GroupIcon />}>Sizes</MenuItem>

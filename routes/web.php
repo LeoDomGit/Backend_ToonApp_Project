@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\BackgroundController;
+use App\Http\Controllers\FeatureImageController;
 use App\Http\Controllers\FeaturesController;
 use App\Http\Controllers\ImageSizeController;
 use App\Http\Controllers\PermissionsController;
@@ -37,6 +38,8 @@ Route::middleware('checkLogin')->group(function () {
     Route::resource('/backgrounds',BackgroundController::class);
     Route::post('/feature-update-image/{id}',[FeaturesController::class,'feature_update_image']);
     Route::post('/sub-feature-update-image/{id}',[SubFeaturesController::class,'sub_feature_update_image']);
+    Route::resource('/api_images',FeatureImageController::class);
+    Route::post('/api-features-update-image/{id}',[FeatureImageController::class,'feature_update_image']);
 
 });
 
