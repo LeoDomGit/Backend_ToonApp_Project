@@ -103,7 +103,7 @@ function Index({ datafeatures }) {
             field: "created_at",
             headerName: "Created at",
             width: 200,
-            valueGetter: (params) => formatCreatedAt(params.value),
+            valueGetter: (params) => formatCreatedAt(params),
         },
         {
             field: "api_endpoint",
