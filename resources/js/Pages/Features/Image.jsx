@@ -16,6 +16,11 @@ function Image({ datafeatures }) {
     const closeImageModal = () => setShowImageModal(false);
     const [show, setShow] = useState(false);
     const [selectedRowId, setSelectedRowId] = useState(null);
+    const formatCreatedAt = (dateString) => {
+        const date = new Date(dateString);
+        return date.toLocaleString();
+    };
+
     const openImageModal = (id) => {
         setSelectedRowId(id);
         setShowImageModal(true);
@@ -57,7 +62,12 @@ function Image({ datafeatures }) {
                 />
             ),
         },
-        { field: "created_at", headerName: "Created at", width: 200 },
+        {
+            field: "created_at",
+            headerName: "Created at",
+            width: 200,
+            valueGetter: (params) => formatCreatedAt(params),
+        },
     ];
     const [image, setImage] = useState(null);
 
