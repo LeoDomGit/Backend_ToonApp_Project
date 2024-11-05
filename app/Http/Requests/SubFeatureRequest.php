@@ -42,7 +42,7 @@ class SubFeatureRequest extends FormRequest
                 'feature_id'=>'exists:features,id'
             ];
         }else if ($this->isMethod('delete')) {
-            $feature = Features::find($id);
+            $feature = SubFeatures::find($id);
             if (!$feature) {
                 throw new HttpResponseException(response()->json([
                     'check' => false,
