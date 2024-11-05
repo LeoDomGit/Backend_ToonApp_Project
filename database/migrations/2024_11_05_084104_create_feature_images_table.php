@@ -13,11 +13,9 @@ return new class extends Migration
     {
         Schema::create('feature_images', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('feature_id');
             $table->string('api_route',255);
             $table->string('path',255);
             $table->timestamps();
-            $table->foreign('feature_id')->references('id')->on('features')->onDelete('restrict');
         });
     }
 
