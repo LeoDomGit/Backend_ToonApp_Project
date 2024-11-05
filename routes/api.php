@@ -45,7 +45,7 @@ Route::middleware('device_login')->group(function () {
 });
 Route::get('/backgrounds',[BackgroundController::class,'api_index']);
 
-Route::get('/test/{id}',[ImageAIController::class,'test']);
+Route::get('/test',[ImageAIController::class,'test']);
 Route::middleware('device_login')->group(function () {
     Route::post('/user',function (Request $request) {
         return $request->user();

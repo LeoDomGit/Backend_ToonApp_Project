@@ -233,7 +233,7 @@ class ImageAIController extends Controller
         }
         $routePath = $request->path();
         $result= FeatureImage::where('api_route',$routePath)->first()->value('path');
-        $image_url= 'https://toonappbackend.trungthanhzone.com/storage/'.$result;
+        $image_url= config('app.image_url').$result;
         $image = $request->file('image');
         $id_img = $this->uploadServerImage($image);
         $level = $request->input('level', 'l5'); 
@@ -542,22 +542,9 @@ class ImageAIController extends Controller
             'api_endpoint' => $apiEndpoint,
         ]);
     }
-    public function test($photoId, $imageResult, $imageSize, $featuresId, $apiEndpoint, $aiModel = null)
+    public function test()
     {
-        // Set default AI model to 'Picsart' if not provided
-        // $aiModel = $aiModel ?? 'Picsart';
-        $result = Features::where('name', 'like', '%' . $featuresId . '%')->first();
-        return response()->json($result);
-        // $featuresId = $result->id;
-        // return Activities::create([
-        //     'customer_id' => Auth::guard('customer')->id(),
-        //     'photo_id' => $photoId,
-        //     'features_id' => $featuresId,
-        //     'image_result' => $imageResult,
-        //     'image_size' => $imageSize,
-        //     'ai_model' => $aiModel,
-        //     'api_endpoint' => $apiEndpoint,
-        // ]);
+        return response()->json(config('app.image_url'));
     }
     public function claymation(Request $request)
     {
