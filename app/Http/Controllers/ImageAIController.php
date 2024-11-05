@@ -233,7 +233,7 @@ class ImageAIController extends Controller
         }
         $routePath = $request->path();
         $result= FeatureImage::where('api_route',$routePath)->first()->value('path');
-        $image_url=env('APP_URL').`/storage/`.$result;
+        $image_url= 'https://toonappbackend.trungthanhzone.com/storage/'.$result;
         $image = $request->file('image');
         $id_img = $this->uploadServerImage($image);
         $level = $request->input('level', 'l5'); 
