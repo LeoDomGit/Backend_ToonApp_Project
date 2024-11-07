@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Log;
 use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Auth;
 use Spatie\Activitylog\Models\Activity;
+use Illuminate\Support\Facades\Storage;
 
 class ImageAIController extends Controller
 {
@@ -401,41 +402,101 @@ class ImageAIController extends Controller
             return 'error';
         }
     }
-
+    private function uploadToCloudFlareFromCdn($image_url, $code_profile, $folder, $filename)
+    {
+        try {
+            // Step 1: Prepare Cloudflare R2 credentials and settings
+            $accountid = '453d5dc9390394015b582d09c1e82365';
+            $r2bucket = 'artapp';  // Updated bucket name
+            $accessKey = $this->aws_access_key;
+            $secretKey = $this->aws_secret_key;
+            $region = 'auto';
+            $endpoint = "https://$accountid.r2.cloudflarestorage.com";
+    
+            // Set up the S3 client with Cloudflare's endpoint
+            $s3Client = new S3Client([
+                'version' => 'latest',
+                'region' => $region,
+                'credentials' => [
+                    'key' => $accessKey,
+                    'secret' => $secretKey,
+                ],
+                'endpoint' => $endpoint,
+                'use_path_style_endpoint' => true,
+            ]);
+    
+            // Step 2: Stream image directly from CDN
+            $imageData = file_get_contents($image_url);
+    
+            if ($imageData === false) {
+                // Handle download error
+                Log::error('Failed to retrieve image from CDN URL: ' . $image_url);
+                return 'error';
+            }
+    
+            // Step 3: Define the object path and name in R2
+            $r2object = $folder . '/' . $filename . '.jpg';
+    
+            // Step 4: Upload the file to Cloudflare R2
+            try {
+                $result = $s3Client->putObject([
+                    'Bucket' => $r2bucket,
+                    'Key' => $r2object,
+                    'Body' => $imageData,  // Pass the image content directly from CDN
+                    'ContentType' => 'image/jpeg',
+                ]);
+    
+                // Generate the CDN URL using the custom domain
+                $cdnUrl = "https://artapp.promptme.info/$folder/$filename.jpg";
+                return $cdnUrl;
+            } catch (S3Exception $e) {
+                Log::error("Error uploading file: " . $e->getMessage());
+                return 'error: ' . $e->getMessage();
+            }
+        } catch (\Throwable $th) {
+            Log::error($th->getMessage());
+            return 'error';
+        }
+    }
     public function removeBackground($image)
     {
-            $response = Http::withHeaders([
-                'X-Picsart-API-Key' => $this->key,
-                'Accept' => 'application/json',
-            ])->post('https://api.picsart.io/tools/1.0/removebg', [
-                'output_type' => 'cutout',
-                'bg_blur' => '0',
-                'scale' => 'fit',
-                'auto_center' => 'false',
-                'stroke_size' => '0',
-                'stroke_color' => 'FFFFFF',
-                'stroke_opacity' => '100',
-                'shadow' => 'disabled',
-                'shadow_opacity' => '20',
-                'shadow_blur' => '50',
-                'format' => 'PNG',
-                'image'=>$image,
-            ]);
-
-            // Check response status
-            if ($response->successful()) {
-                $data = $response->json();
-                $image_url = $data['data']['url'];
-              activity('remove_background')
+        $imageContent = file_get_contents($image);
+        $tempFilePath = storage_path('app/public/anime/temp_image.jpg');
+        file_put_contents($tempFilePath, $imageContent);
+        $response = Http::withHeaders([
+            'X-Picsart-API-Key' => $this->key,
+            'Accept' => 'application/json',
+        ])->attach(
+            'image', file_get_contents($tempFilePath), 'temp_image.jpg'
+        )->post('https://api.picsart.io/tools/1.0/removebg', [
+            'output_type' => 'cutout',
+            'bg_blur' => '0',
+            'scale' => 'fit',
+            'auto_center' => 'false',
+            'stroke_size' => '0',
+            'stroke_color' => 'FFFFFF',
+            'stroke_opacity' => '100',
+            'shadow' => 'disabled',
+            'shadow_opacity' => '20',
+            'shadow_blur' => '50',
+            'format' => 'PNG',
+        ]);
+        
+        // Check response status
+        if ($response->successful()) {
+            $data = $response->json();
+            $processedImageUrl = $data['data']['url'];
+        
+            activity('remove_background')
                 ->withProperties([
-                    'cdnUrl' => $image_url,
-                    'size' => $image->getSize(),
+                    'cdnUrl' => $processedImageUrl,
+                    'sourceUrl' => $image,
                 ])
                 ->log('Image processed successfully');
-                return $image_url;
-            } else {
-                return response()->json(['check' => false, 'msg' => 'Failed to process image', 'error' => $response->body()],400);
-            }
+            return $processedImageUrl;
+        } else {
+            return response()->json(['check' => false, 'msg' => 'Failed to process image', 'error' => $response->json()], 400);
+        }
     }
 
     public function animalToon(Request $request)
@@ -863,7 +924,9 @@ class ImageAIController extends Controller
                     $data = $response->json();
                     if (!empty($data['generations_by_pk']['generated_images'])) {
                         $firstImageUrl = $data['generations_by_pk']['generated_images'][0]['url'];
-                        return response()->json(['check' => true, 'url' => $firstImageUrl]);
+                        $image = $this->removeBackground($firstImageUrl);
+                        $image = $this->uploadToCloudFlareFromCdn($image, 'image-' . time(), 'Cartoon','gen'.$generationId);
+                        return response()->json(['check' => true, 'url' => $image]);
                     } 
                 }
             }

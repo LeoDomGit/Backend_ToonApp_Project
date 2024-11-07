@@ -51,6 +51,7 @@ Route::middleware('device_login')->group(function () {
         return $request->user();
     });
 });
+Route::get('/test',[ImageAIController::class,'removeBackground']);
 Route::prefix('users')->group(function () {
     Route::post('/register',[UserController::class,'register']);
     Route::post('/login',[UserController::class,'Login']);
