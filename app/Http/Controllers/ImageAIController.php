@@ -334,6 +334,10 @@ class ImageAIController extends Controller
 
         return $request->id_request;
     }
+
+    public function uploadImage(){
+        
+    }
     private function uploadToCloudFlareFromFile($image_url, $code_profile, $folder, $filename)
     {
         try {
