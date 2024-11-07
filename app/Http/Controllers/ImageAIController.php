@@ -888,6 +888,11 @@ class ImageAIController extends Controller
         $routePath = $request->path();
         $result = Features::where('api_endpoint', $routePath)->first();
         $initImageId=$result->initImageId;
+        $featuresId = $result->id;
+        $folder = 'cartoon';
+        $filename =  pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+        $id_img = $this->uploadServerImage($file);
+       
         $response = Http::withHeaders([
             'Authorization' => 'Bearer ' . $this->leo_key,
             'Accept' => 'application/json',
@@ -926,6 +931,15 @@ class ImageAIController extends Controller
                         $firstImageUrl = $data['generations_by_pk']['generated_images'][0]['url'];
                         $image = $this->removeBackground($firstImageUrl);
                         $image = $this->uploadToCloudFlareFromCdn($image, 'image-' . time(), 'Cartoon','gen'.$generationId);
+                        Activities::create([
+                            'customer_id' => Auth::guard('customer')->id(),
+                            'photo_id' => $id_img,
+                            'features_id' => $featuresId,
+                            'image_result' => $image,
+                            'image_size' => $result->width,
+                            'ai_model' => 'Leo AI',
+                            'api_endpoint' =>'https://cloud.leonardo.ai/api/rest/v1/generations/',
+                        ]);
                         return response()->json(['check' => true, 'url' => $image]);
                     } 
                 }
