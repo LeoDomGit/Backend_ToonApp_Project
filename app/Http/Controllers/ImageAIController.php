@@ -20,6 +20,7 @@ use Spatie\Activitylog\Models\Activity;
 class ImageAIController extends Controller
 {
     protected $key;
+    protected $leo_key;
     protected $client;
     protected $aws_secret_key;
     protected $aws_access_key;
@@ -31,7 +32,8 @@ class ImageAIController extends Controller
 
     public function __construct()
     {
-        $this->key = env('IMAGE_API_KEY');
+        $this->key = env('PICSART_API_KEY');
+        $this->leo_key = env('IMAGE_API_KEY');
         $this->aws_secret_key = 'b52dcdbea046cc2cc13a5b767a1c71ea8acbe96422b3e45525d3678ce2b5ed3e';
         $this->aws_access_key = 'cbb3e2fea7c7f3e7af09b67eeec7d62c';
         $this->client = new Client();
@@ -334,10 +336,6 @@ class ImageAIController extends Controller
 
         return $request->id_request;
     }
-
-    public function uploadImage(){
-        
-    }
     private function uploadToCloudFlareFromFile($image_url, $code_profile, $folder, $filename)
     {
         try {
@@ -404,28 +402,12 @@ class ImageAIController extends Controller
         }
     }
 
-    public function removeBackground(Request $request)
+    public function removeBackground($image)
     {
-        $validator = Validator::make($request->all(), [
-            'image' => 'required|mimes:png,jpg,jpeg',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['check' => false, 'msg' => $validator->errors()->first()]);
-        }
-
-        $image = $request->file('image');
-        $id_img = $this->uploadServerImage($image);
-
-        // Send request to Picsart API
         $response = Http::withHeaders([
             'X-Picsart-API-Key' => $this->key,
             'Accept' => 'application/json',
-        ])->attach(
-            'image',
-            file_get_contents($image->getRealPath()),
-            $image->getClientOriginalName()
-        )->post('https://api.picsart.io/tools/1.0/removebg', [
+        ])->post('https://api.picsart.io/tools/1.0/removebg', [
             'output_type' => 'cutout',
             'bg_blur' => '0',
             'scale' => 'fit',
@@ -437,33 +419,14 @@ class ImageAIController extends Controller
             'shadow_opacity' => '20',
             'shadow_blur' => '50',
             'format' => 'PNG',
+            'image_url'=>$image
         ]);
 
         // Check response status
         if ($response->successful()) {
             $data = $response->json();
             $image_url = $data['data']['url'];
-            $filename = pathinfo($image->getClientOriginalName(), PATHINFO_FILENAME);
-            $folder = 'RemoveBackground';
-            $code_profile = 'image-' . time();
-            $cdnUrl = $this->uploadToCloudFlareFromFile($image_url, $code_profile, $folder, $filename);
-            activity('removeBackground')
-                ->withProperties([
-                    'id_img' => $id_img,
-                    'cdnUrl' => $cdnUrl,
-                    'image_size' => $image->getSize(),
-                    'api_url' => 'https://api.picsart.io/tools/1.0/removebg'
-                ])
-                ->log('Successfully removed background from image');
-            $this->createActivities($id_img, $cdnUrl, $image->getSize(), '/api/remove_background', 'https://api.picsart.io/tools/1.0/removebg');
-            return response()->json(['check' => true, 'url' => $cdnUrl]);
-        } else {
-            // Log activity on failure
-            activity('removeBackground')
-                ->withProperties(['error' => $response->body()])
-                ->log('Failed to remove background from image');
-
-            return response()->json(['check' => false, 'msg' => 'Failed to process image', 'error' => $response->body()],400);
+            return $image_url;
         }
     }
 
@@ -841,11 +804,79 @@ class ImageAIController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
-    {
-        //
+    public function cartoon (Request $request){
+        $url = $this->uploadImage($request);
+        $image=$this->removeBackground($url);
+       return response()->json(['check' => true, 'url' => $image]);
     }
+     /**
+     * Show the form for creating a new resource.
+     */
+    
+    public function uploadImage(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'image' => 'required|mimes:png,jpg,jpeg',
+        ]);
 
+        if ($validator->fails()) {
+            return response()->json(['check' => false, 'msg' => $validator->errors()->first()]);
+        }
+
+        $file = $request->file('image');
+        $this->uploadServerImage($file);
+        $response = Http::withHeaders([
+            'Authorization' => 'Bearer ' . $this->leo_key,
+            'Accept' => 'application/json',
+        ])->post('https://cloud.leonardo.ai/api/rest/v1/init-image', [
+            'extension'=>'png'
+        ]);
+        if ($response->successful()) {
+            $data = $response->json();
+            $fields = json_decode($data['uploadInitImage']['fields'], true);
+            $contentType = $fields['Content-Type'];
+            $bucket = $fields['bucket'];
+            $algorithm = $fields['X-Amz-Algorithm'];
+            $credential = $fields['X-Amz-Credential'];
+            $date = $fields['X-Amz-Date'];
+            $securityToken = $fields['X-Amz-Security-Token'];
+            $key = $data['uploadInitImage']['key'];
+            $policy = $fields['Policy'];
+            $url=$data['uploadInitImage']['url'];
+            $id=$data['uploadInitImage']['id'];
+            $signature = $fields['X-Amz-Signature'];
+            $response = Http::asMultipart()->post($url, [
+                ['name' => 'Content-Type', 'contents' => $contentType],
+                ['name' => 'bucket', 'contents' => $bucket],
+                ['name' => 'X-Amz-Algorithm', 'contents' => $algorithm],
+                ['name' => 'X-Amz-Credential', 'contents' => $credential],
+                ['name' => 'X-Amz-Date', 'contents' => $date],
+                ['name' => 'X-Amz-Security-Token', 'contents' => $securityToken],
+                ['name' => 'key', 'contents' => $key],
+                ['name' => 'Policy', 'contents' => $policy],
+                ['name' => 'X-Amz-Signature', 'contents' => $signature],
+                ['name' => 'file', 'contents' => fopen($file->getPathname(), 'r'), 'filename' => $file->getClientOriginalName()],
+            ]);
+            
+            if ($response->status() === 204) {
+                return $this->get_leo_image_url($id);
+            } else {
+                return response()->json(['check' => false, 'msg' => 'Failed to upload image.', 'details' => $response->body()]);
+            }
+        } else {
+            return $response->body();
+        }
+    }
+    public function get_leo_image_url($id){
+        $response = Http::withHeaders([
+            'Authorization' => 'Bearer ' . $this->leo_key,
+            'Accept' => 'application/json',
+        ])->get('https://cloud.leonardo.ai/api/rest/v1/init-image/'.$id);
+        if ($response->successful()) {
+            $data = $response->json();
+            return $data['init_images_by_pk']['url'];
+        }
+    }
     /**
      * Store a newly created resource in storage.
      */

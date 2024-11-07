@@ -31,9 +31,10 @@ Route::prefix('customers')->group(function () {
 Route::middleware('device_login')->group(function () {
     Route::put('/customers', [CustomersController::class, 'update']);
     Route::get('/logout',[CustomersController::class, 'logout']);
+    Route::post('/upload_image',[ImageAIController::class,'uploadImage']);
     Route::prefix('image_ai')->group(function () {
         Route::post('/change_background',[ImageAIController::class,'changeBackground']);
-        Route::post('/cartoon_style',[ImageAIController::class,'cartoonStyle']);
+        Route::post('/cartoon_style',[ImageAIController::class,'cartoon']);
         Route::post('/remove_background',[ImageAIController::class,'changeBackground']);
         Route::post('/claymation',[ImageAIController::class,'claymation']);
         Route::post('/disney_charactors',[ImageAIController::class,'disneyCharators']);
@@ -45,7 +46,6 @@ Route::middleware('device_login')->group(function () {
 });
 Route::get('/backgrounds',[BackgroundController::class,'api_index']);
 
-Route::get('/test',[ImageAIController::class,'test']);
 Route::middleware('device_login')->group(function () {
     Route::post('/user',function (Request $request) {
         return $request->user();
