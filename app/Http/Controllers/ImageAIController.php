@@ -404,30 +404,38 @@ class ImageAIController extends Controller
 
     public function removeBackground($image)
     {
-        $response = Http::withHeaders([
-            'X-Picsart-API-Key' => $this->key,
-            'Accept' => 'application/json',
-        ])->post('https://api.picsart.io/tools/1.0/removebg', [
-            'output_type' => 'cutout',
-            'bg_blur' => '0',
-            'scale' => 'fit',
-            'auto_center' => 'false',
-            'stroke_size' => '0',
-            'stroke_color' => 'FFFFFF',
-            'stroke_opacity' => '100',
-            'shadow' => 'disabled',
-            'shadow_opacity' => '20',
-            'shadow_blur' => '50',
-            'format' => 'PNG',
-            'image_url'=>$image
-        ]);
+            $response = Http::withHeaders([
+                'X-Picsart-API-Key' => $this->key,
+                'Accept' => 'application/json',
+            ])->post('https://api.picsart.io/tools/1.0/removebg', [
+                'output_type' => 'cutout',
+                'bg_blur' => '0',
+                'scale' => 'fit',
+                'auto_center' => 'false',
+                'stroke_size' => '0',
+                'stroke_color' => 'FFFFFF',
+                'stroke_opacity' => '100',
+                'shadow' => 'disabled',
+                'shadow_opacity' => '20',
+                'shadow_blur' => '50',
+                'format' => 'PNG',
+                'image'=>$image,
+            ]);
 
-        // Check response status
-        if ($response->successful()) {
-            $data = $response->json();
-            $image_url = $data['data']['url'];
-            return $image_url;
-        }
+            // Check response status
+            if ($response->successful()) {
+                $data = $response->json();
+                $image_url = $data['data']['url'];
+              activity('remove_background')
+                ->withProperties([
+                    'cdnUrl' => $image_url,
+                    'size' => $image->getSize(),
+                ])
+                ->log('Image processed successfully');
+                return $image_url;
+            } else {
+                return response()->json(['check' => false, 'msg' => 'Failed to process image', 'error' => $response->body()],400);
+            }
     }
 
     public function animalToon(Request $request)
@@ -805,16 +813,6 @@ class ImageAIController extends Controller
      * Show the form for creating a new resource.
      */
     public function cartoon (Request $request){
-        $url = $this->uploadImage($request);
-        $image=$this->removeBackground($url);
-       return response()->json(['check' => true, 'url' => $image]);
-    }
-     /**
-     * Show the form for creating a new resource.
-     */
-    
-    public function uploadImage(Request $request)
-    {
         $validator = Validator::make($request->all(), [
             'image' => 'required|mimes:png,jpg,jpeg',
         ]);
@@ -824,6 +822,61 @@ class ImageAIController extends Controller
         }
 
         $file = $request->file('image');
+        $result=$this->uploadImage($file);
+        $image_id=$result['id'];
+        $routePath = $request->path();
+        $result = Features::where('api_endpoint', $routePath)->first();
+        $initImageId=$result->initImageId;
+        $response = Http::withHeaders([
+            'Authorization' => 'Bearer ' . $this->leo_key,
+            'Accept' => 'application/json',
+        ])->post('https://cloud.leonardo.ai/api/rest/v1/generations', [
+            'height'=>$result->height,
+            'modelId'=>$result->model_id,
+            'prompt'=>$result->prompt,
+            'presetStyle'=>$result->presetStyle,
+            'width'=>$result->width,
+            'num_images'=>1,
+            'alchemy'=>true,
+            'controlnets' => [
+                    [
+                        'initImageId' =>  $initImageId,
+                        'initImageType' => 'UPLOADED',
+                        'preprocessorId' => (int)$result->preprocessorId, 
+                        'strengthType' => 'High',
+                    ]
+                ],
+            "init_image_id"=>$image_id,
+            "init_strength"=> 0.5,
+        ]);
+        if ($response->successful()) {
+            $data=$response->body();
+            $data = json_decode($data, true);
+            $generationId= $data['sdGenerationJob']['generationId'];
+            while (true) {
+                $response = Http::withHeaders([
+                    'accept' => 'application/json',
+                    'authorization' =>'Bearer ' . $this->leo_key,
+                ])->get('https://cloud.leonardo.ai/api/rest/v1/generations/'.$generationId);
+        
+                if ($response->successful()) {
+                    $data = $response->json();
+                    if (!empty($data['generations_by_pk']['generated_images'])) {
+                        $firstImageUrl = $data['generations_by_pk']['generated_images'][0]['url'];
+                        return response()->json(['check' => true, 'url' => $firstImageUrl]);
+                    } 
+                }
+            }
+        }else{
+            return response()->json(['check' => false, 'msg' => 'Failed to upload image.', 'details' => $response->body()]);
+        }
+    }
+     /**
+     * Show the form for creating a new resource.
+     */
+    
+    public function uploadImage($file)
+    {
         $this->uploadServerImage($file);
         $response = Http::withHeaders([
             'Authorization' => 'Bearer ' . $this->leo_key,
@@ -859,7 +912,10 @@ class ImageAIController extends Controller
             ]);
             
             if ($response->status() === 204) {
-                return $this->get_leo_image_url($id);
+                return [
+                    'url'=>$this->get_leo_image_url($id),
+                    'id'=>$id
+                ];
             } else {
                 return response()->json(['check' => false, 'msg' => 'Failed to upload image.', 'details' => $response->body()]);
             }
