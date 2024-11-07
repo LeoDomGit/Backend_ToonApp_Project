@@ -18,7 +18,12 @@ function Index({ datafeatures }) {
     const [show, setShow] = useState(false);
     const [showImageModal, setShowImageModal] = useState(false);
     const [selectedRowId, setSelectedRowId] = useState(null);
-
+    const [modelId, setModelId] = useState("");
+    const [prompt, setPrompt] = useState("");
+    const [presetStyle, setPresetStyle] = useState("");
+    const [initImageId, setInitImageId] = useState("");
+    const [preprocessorId, setPreprocessorId] = useState("");
+    const [strengthType, setStrengthType] = useState("");
     const handleClose = () => setShow(false);
     const handleShow = () => setShow(true);
     const closeImageModal = () => setShowImageModal(false);
@@ -72,6 +77,37 @@ function Index({ datafeatures }) {
         { field: "id", headerName: "#", width: 100 },
         { field: "name", headerName: "Features", width: 200, editable: true },
         {
+            field: "model_id",
+            headerName: "Model ID",
+            width: 200,
+            editable: true,
+        },
+        { field: "prompt", headerName: "Prompt", width: 200, editable: true },
+        {
+            field: "presetStyle",
+            headerName: "Preset Style",
+            width: 200,
+            editable: true,
+        },
+        {
+            field: "initImageId",
+            headerName: "Init Image ID",
+            width: 200,
+            editable: true,
+        },
+        {
+            field: "preprocessorId",
+            headerName: "Preprocessor ID",
+            width: 200,
+            editable: true,
+        },
+        {
+            field: "strengthType",
+            headerName: "Strength Type",
+            width: 200,
+            editable: true,
+        },
+        {
             field: "description",
             headerName: "Description",
             width: 200,
@@ -95,7 +131,7 @@ function Index({ datafeatures }) {
                         objectFit: "cover",
                         cursor: "pointer",
                     }}
-                    onClick={() => openImageModal(params.row.id)} // Open modal when image is clicked
+                    onClick={() => openImageModal(params.row.id)}
                 />
             ),
         },
@@ -112,15 +148,22 @@ function Index({ datafeatures }) {
             editable: true,
         },
     ];
-
     const submitRole = () => {
         const formData = new FormData();
         formData.append("name", feature);
         formData.append("description", description);
         formData.append("api_endpoint", apiEndpoint);
+
         if (image) {
             formData.append("image", image);
         }
+
+        formData.append("model_id", modelId);
+        formData.append("prompt", prompt);
+        formData.append("presetStyle", presetStyle);
+        formData.append("initImageId", initImageId);
+        formData.append("preprocessorId", preprocessorId);
+        formData.append("strengthType", strengthType);
 
         axios
             .post("/features", formData, {
@@ -130,13 +173,18 @@ function Index({ datafeatures }) {
             })
             .then((res) => {
                 if (res.data.check) {
-                    notyf.success("Đã thêm thành công");
+                    notyf.success("Đã thêm thành công");
+
                     setData((prevData) => [...prevData, res.data.data]);
+
                     resetCreate();
                     setShow(false);
                 } else {
                     notyf.error(res.data.msg);
                 }
+            })
+            .catch((err) => {
+                notyf.error("Có lỗi xảy ra. Vui lòng thử lại.");
             });
     };
 
@@ -144,6 +192,13 @@ function Index({ datafeatures }) {
         setFeature("");
         setDescription("");
         setApiEndpoint("");
+        setModelId("");
+        setPrompt("");
+        setPresetStyle("");
+        setInitImageId("");
+        setPreprocessorId("");
+        setStrengthType("");
+        setImage(null);
         setShow(true);
     };
 
@@ -272,6 +327,50 @@ function Index({ datafeatures }) {
                             className="form-control mt-2"
                             accept="image/*"
                             onChange={(e) => setImage(e.target.files[0])}
+                        />
+
+                        {/* New fields for the additional columns */}
+                        <input
+                            type="text"
+                            className="form-control mt-2"
+                            placeholder="Nhập Model ID . . ."
+                            value={modelId}
+                            onChange={(e) => setModelId(e.target.value)}
+                        />
+                        <input
+                            type="text"
+                            className="form-control mt-2"
+                            placeholder="Nhập Prompt . . ."
+                            value={prompt}
+                            onChange={(e) => setPrompt(e.target.value)}
+                        />
+                        <input
+                            type="text"
+                            className="form-control mt-2"
+                            placeholder="Nhập Preset Style . . ."
+                            value={presetStyle}
+                            onChange={(e) => setPresetStyle(e.target.value)}
+                        />
+                        <input
+                            type="text"
+                            className="form-control mt-2"
+                            placeholder="Nhập Init Image ID . . ."
+                            value={initImageId}
+                            onChange={(e) => setInitImageId(e.target.value)}
+                        />
+                        <input
+                            type="text"
+                            className="form-control mt-2"
+                            placeholder="Nhập Preprocessor ID . . ."
+                            value={preprocessorId}
+                            onChange={(e) => setPreprocessorId(e.target.value)}
+                        />
+                        <input
+                            type="text"
+                            className="form-control mt-2"
+                            placeholder="Nhập Strength Type . . ."
+                            value={strengthType}
+                            onChange={(e) => setStrengthType(e.target.value)}
                         />
                     </Modal.Body>
                     <Modal.Footer>

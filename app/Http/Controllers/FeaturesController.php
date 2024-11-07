@@ -31,24 +31,29 @@ class FeaturesController
      */
     public function store(Request $request)
     {
-        // Kiểm tra có file ảnh không
+
         $path = null;
         if ($request->hasFile('image')) {
-            // Lưu file vào thư mục 'public/features' và lấy đường dẫn lưu
+
             $path = $request->file('image')->store('features', 'public');
         }
 
-        // Lưu thông tin feature vào database cùng với đường dẫn ảnh
+
         $feature = Features::create([
             'name' => $request->input('name'),
             'description' => $request->input('description'),
             'api_endpoint' => $request->input('api_endpoint'),
-            'image' => $path, // Lưu đường dẫn ảnh vào cơ sở dữ liệu
+            'image' => $path,
+            'model_id' => $request->input('model_id'),
+            'prompt' => $request->input('prompt'),
+            'presetStyle' => $request->input('presetStyle'),
+            'initImageId' => $request->input('initImageId'),
+            'preprocessorId' => $request->input('preprocessorId'),
+            'strengthType' => $request->input('strengthType')
         ]);
 
         return response()->json(['check' => true, 'data' => $feature]);
     }
-
     /**
      * Display the specified resource.
      */
@@ -82,25 +87,26 @@ class FeaturesController
         return response()->json(['check' => true, 'data' => $data]);
     }
 
-    public function feature_update_image($id){
+    public function feature_update_image($id)
+    {
         $result = Features::where('id', $id)->first();
-        if(!$result){
-            return response()->json(['check'=>false,'msg'=>'Không tìm thấy feature']);
+        if (!$result) {
+            return response()->json(['check' => false, 'msg' => 'Không tìm thấy feature']);
         }
-        if(!request()->hasFile('image')){
-            return response()->json(['check'=>false,'msg'=>'Vui lòng chọn hình ảnh']);
+        if (!request()->hasFile('image')) {
+            return response()->json(['check' => false, 'msg' => 'Vui lòng chọn hình ảnh']);
         }
-        $filePath = storage_path('public/features' .$result->image );
+        $filePath = storage_path('public/features' . $result->image);
         if (file_exists($filePath)) {
-            unlink($filePath); 
+            unlink($filePath);
         }
-        $image= request()->file('image');
+        $image = request()->file('image');
         $path = $image->storeAs('public/features', $image->getClientOriginalName());
-        $data['image'] = 'features/'.$image->getClientOriginalName();
-        $data['updated_at']=now();
+        $data['image'] = 'features/' . $image->getClientOriginalName();
+        $data['updated_at'] = now();
         Features::where('id', $id)->update($data);
-        $data= Features::all();
-        return response()->json(['check'=>true,'data'=>$data]);
+        $data = Features::all();
+        return response()->json(['check' => true, 'data' => $data]);
     }
     /**
      * Remove the specified resource from storage.
