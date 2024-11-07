@@ -337,71 +337,53 @@ class ImageAIController extends Controller
 
         return $request->id_request;
     }
-    private function uploadToCloudFlareFromFile($image_url, $code_profile, $folder, $filename)
-    {
+    private function uploadToCloudFlareFromFile($file, $folder, $filename)
+{
+    try {
+        // Step 1: Prepare Cloudflare R2 credentials and settings
+        $accountid = '453d5dc9390394015b582d09c1e82365';
+        $r2bucket = 'artapp';  // Updated bucket name
+        $accessKey = $this->aws_access_key;
+        $secretKey = $this->aws_secret_key;
+        $region = 'auto';
+        $endpoint = "https://$accountid.r2.cloudflarestorage.com";
+
+        // Set up the S3 client with Cloudflare's endpoint
+        $s3Client = new S3Client([
+            'version' => 'latest',
+            'region' => $region,
+            'credentials' => [
+                'key' => $accessKey,
+                'secret' => $secretKey,
+            ],
+            'endpoint' => $endpoint,
+            'use_path_style_endpoint' => true,
+        ]);
+
+        // Step 2: Define the object path and name in R2
+        $r2object = $folder . '/' . $filename . '.' . $file->getClientOriginalExtension();
+
+        // Step 3: Upload the file to Cloudflare R2
         try {
-            // Step 1: Download the image
-            $ch = curl_init($image_url);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 60);  // Timeout in seconds
-            $imageData = curl_exec($ch);
-
-            if ($imageData === false) {
-                // Handle download error
-                Log::error('Curl error: ' . curl_error($ch));
-                return 'error';
-            }
-
-            curl_close($ch);
-
-            // Step 2: Save the downloaded image temporarily
-            $localPath = 'local-image.jpg';
-            file_put_contents($localPath, $imageData);
-
-            // Step 3: Prepare Cloudflare R2 credentials and settings
-            $accountid = '453d5dc9390394015b582d09c1e82365';
-            $r2bucket = 'artapp';  // Updated bucket name
-            $accessKey = $this->aws_access_key;
-            $secretKey = $this->aws_secret_key;
-            $region = 'auto';
-            $endpoint = "https://$accountid.r2.cloudflarestorage.com";
-
-            // Set up the S3 client with Cloudflare's endpoint
-            $s3Client = new S3Client([
-                'version' => 'latest',
-                'region' => $region,
-                'credentials' => [
-                    'key' => $accessKey,
-                    'secret' => $secretKey,
-                ],
-                'endpoint' => $endpoint,
-                'use_path_style_endpoint' => true,
+            $result = $s3Client->putObject([
+                'Bucket' => $r2bucket,
+                'Key' => $r2object,
+                'Body' => file_get_contents($file->getRealPath()), // Get the file content
+                'ContentType' => $file->getMimeType(),
             ]);
 
-            // Step 4: Define the object path and name in R2
-            $r2object = $folder . '/' . $filename . '.jpg';
-
-            // Step 5: Upload the file to Cloudflare R2
-            try {
-                $result = $s3Client->putObject([
-                    'Bucket' => $r2bucket,
-                    'Key' => $r2object,
-                    'Body' => file_get_contents($localPath),
-                    'ContentType' => 'image/jpeg',
-                ]);
-
-                // Generate the CDN URL using the custom domain
-                $cdnUrl = "https://artapp.promptme.info/$folder/$filename.jpg";
-                return $cdnUrl;
-            } catch (S3Exception $e) {
-                Log::error("Error uploading file: " . $e->getMessage());
-                return 'error' . $e->getMessage();
-            }
-        } catch (\Throwable $th) {
-            Log::error($th->getMessage());
-            return 'error';
+            // Generate the CDN URL using the custom domain
+            $cdnUrl = "https://artapp.promptme.info/$folder/$filename." . $file->getClientOriginalExtension();
+            return $cdnUrl;
+        } catch (S3Exception $e) {
+            Log::error("Error uploading file: " . $e->getMessage());
+            return 'error' . $e->getMessage();
         }
+    } catch (\Throwable $th) {
+        Log::error($th->getMessage());
+        return 'error';
     }
+}
     private function uploadToCloudFlareFromCdn($image_url, $code_profile, $folder, $filename)
     {
         try {
@@ -891,8 +873,12 @@ class ImageAIController extends Controller
         $featuresId = $result->id;
         $folder = 'cartoon';
         $filename =  pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-        $id_img = $this->uploadServerImage($file);
-       
+         $cdn = $this->uploadToCloudFlareFromFile($file,$folder,$filename);
+          $id_img = Photos::insertGetId([
+            'customer_id' => Auth::guard('customer')->id(),
+            'original_image_path' => $cdn,
+        ]);
+
         $response = Http::withHeaders([
             'Authorization' => 'Bearer ' . $this->leo_key,
             'Accept' => 'application/json',
@@ -931,6 +917,8 @@ class ImageAIController extends Controller
                         $firstImageUrl = $data['generations_by_pk']['generated_images'][0]['url'];
                         $image = $this->removeBackground($firstImageUrl);
                         $image = $this->uploadToCloudFlareFromCdn($image, 'image-' . time(), 'Cartoon','gen'.$generationId);
+ 
+                        
                         Activities::create([
                             'customer_id' => Auth::guard('customer')->id(),
                             'photo_id' => $id_img,
