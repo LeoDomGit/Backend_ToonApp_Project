@@ -32,6 +32,7 @@ Route::middleware('device_login')->group(function () {
     Route::put('/customers', [CustomersController::class, 'update']);
     Route::get('/logout',[CustomersController::class, 'logout']);
     Route::prefix('image_ai')->group(function () {
+        Route::post('/upload_image',[ImageAIController::class,'uploadImage']);
         Route::post('/change_background',[ImageAIController::class,'changeBackground']);
         Route::post('/cartoon_style',[ImageAIController::class,'cartoonStyle']);
         Route::post('/remove_background',[ImageAIController::class,'changeBackground']);
