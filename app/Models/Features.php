@@ -14,6 +14,12 @@ class Features extends Model
     protected $fillable = [
         'id',
         'name',
+        'model_id',
+        'prompt',
+        'presetStyle',
+        'initImageId',
+        'preprocessorId',
+        'strengthType',
         'description',
         'status',
         'image',
