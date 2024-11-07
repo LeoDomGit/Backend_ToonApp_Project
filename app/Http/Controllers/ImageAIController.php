@@ -839,7 +839,57 @@ class ImageAIController extends Controller
      */
     public function uploadImage(Request $request)
     {
-        
+        $validator = Validator::make($request->all(), [
+            'image' => 'required|mimes:png,jpg,jpeg',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['check' => false, 'msg' => $validator->errors()->first()]);
+        }
+
+        $file = $request->file('image');
+
+        $response = Http::withHeaders([
+            'Authorization' => 'Bearer ' . $this->key,
+            'Accept' => 'application/json',
+        ])->post('https://cloud.leonardo.ai/api/rest/v1/init-image', [
+            'extension'=>'png'
+        ]);
+        if ($response->successful()) {
+            $data = $response->json();
+            $fields = json_decode($data['uploadInitImage']['fields'], true);
+            $contentType = $fields['Content-Type'];
+            $bucket = $fields['bucket'];
+            $algorithm = $fields['X-Amz-Algorithm'];
+            $credential = $fields['X-Amz-Credential'];
+            $date = $fields['X-Amz-Date'];
+            $securityToken = $fields['X-Amz-Security-Token'];
+            $key = $data['uploadInitImage']['key'];
+            $policy = $fields['Policy'];
+            $url=$data['uploadInitImage']['url'];
+            $id=$data['uploadInitImage']['id'];
+            $signature = $fields['X-Amz-Signature'];
+            $response = Http::asMultipart()->post($url, [
+                ['name' => 'Content-Type', 'contents' => $contentType],
+                ['name' => 'bucket', 'contents' => $bucket],
+                ['name' => 'X-Amz-Algorithm', 'contents' => $algorithm],
+                ['name' => 'X-Amz-Credential', 'contents' => $credential],
+                ['name' => 'X-Amz-Date', 'contents' => $date],
+                ['name' => 'X-Amz-Security-Token', 'contents' => $securityToken],
+                ['name' => 'key', 'contents' => $key],
+                ['name' => 'Policy', 'contents' => $policy],
+                ['name' => 'X-Amz-Signature', 'contents' => $signature],
+                ['name' => 'file', 'contents' => fopen($file->getPathname(), 'r'), 'filename' => $file->getClientOriginalName()],
+            ]);
+            
+            if ($response->status() === 204) {
+                return response()->json(['check' => true, 'msg' => 'Image uploaded successfully. id='.$id]);
+            } else {
+                return response()->json(['check' => false, 'msg' => 'Failed to upload image.', 'details' => $response->body()]);
+            }
+        } else {
+            return $response->body();
+        }
     }
 
     /**
