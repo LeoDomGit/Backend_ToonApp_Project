@@ -440,7 +440,7 @@ function Index({ datafeatures }) {
                 </nav>
 
                 {/* Data Grid */}
-                <div className="row w-100">
+                <div className="row w-80">
                     <div className="col-md">
                         {data && data.length > 0 && (
                             <div className="card border-0 shadow">
