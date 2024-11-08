@@ -905,11 +905,11 @@ class ImageAIController extends Controller
                     $data = $response->json();
                     if (!empty($data['generations_by_pk']['generated_images'])) {
                         $firstImageUrl = $data['generations_by_pk']['generated_images'][0]['url'];
-                        $firstImageUrl = $this->uploadToCloudFlareFromCdn($firstImageUrl, 'image-' . time(), 'Cartoon','gen'.$generationId);
+                        $firstImageUrl = $this->uploadToCloudFlareFromCdn($firstImageUrl, 'image-' . time(), $feature->slug,Auth::user()->id.'-gen'.$generationId);
                         if($feature->remove_bg==1){
                             $image = $this->removeBackground($firstImageUrl);
                         }
-                        $image = $this->uploadToCloudFlareFromCdn($image, 'image-' . time(), 'Cartoon','gen'.$generationId);
+                        $image = $this->uploadToCloudFlareFromCdn($image, 'image-' . time(), $feature->slug,Auth::user()->id.'-gen'.$generationId);
                         Activities::create([
                             'customer_id' => Auth::guard('customer')->id(),
                             'photo_id' => $id_img,
