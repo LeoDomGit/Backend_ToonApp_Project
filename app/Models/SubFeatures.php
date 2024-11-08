@@ -12,6 +12,9 @@ class SubFeatures extends Model
     protected $fillable = [
         'id',
         'name',
+        'slug',
+        'api_endpoint',
+        'remove_bg',
         'description',
         'status',
         'image',

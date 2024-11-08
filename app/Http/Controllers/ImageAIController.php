@@ -320,7 +320,7 @@ class ImageAIController extends Controller
     private function storeRequest($request_type, $prompt, $modelai, $method, $url_endpoint, $postfields, $response, $id_content_category)
     {
         $request = new RequestModel();
-        $request->id_user = Auth::user()->id;
+        $request->id_user = Auth::guard('customer')->id();
         $request->request_type = $request_type;
         $request->prompt = $prompt;
         $request->code_model_ai = $modelai;
@@ -857,6 +857,7 @@ class ImageAIController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'image' => 'required|mimes:png,jpg,jpeg',
+            'slug'=>'required|exists:features,slug'
         ]);
 
         if ($validator->fails()) {
@@ -869,6 +870,11 @@ class ImageAIController extends Controller
         $routePath = $request->path();
         $result = Features::where('api_endpoint', $routePath)->first();
         $initImageId = $result->initImageId;
+
+        $result = Features::where('slug', $request->slug)->first();
+        $feature=Features::where('slug', $request->slug)->first();
+        $initImageId=$result->initImageId;
+
         $featuresId = $result->id;
         $folder = 'cartoon';
         $filename =  pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
@@ -908,9 +914,32 @@ class ImageAIController extends Controller
                 if ($response->successful()) {
                     $data = $response->json();
                     if (!empty($data['generations_by_pk']['generated_images'])) {
+                        // Get the original image URL and upload it to Cloudflare
                         $firstImageUrl = $data['generations_by_pk']['generated_images'][0]['url'];
+
                         $image = $this->removeBackground($firstImageUrl);
                         $image = $this->uploadToCloudFlareFromCdn($image, 'image-' . time(), 'Cartoon', 'gen' . $generationId);
+
+                        $originalImageUrl = $this->uploadToCloudFlareFromCdn(
+                             $data['generations_by_pk']['generated_images'][0]['url'], 
+                            'image-result' . time(), 
+                            $feature->slug,
+                            Auth::guard('customer')->id() . '-gen' . $generationId
+                        );
+                        // By default, set $image to $originalImageUrl
+                        $image = $originalImageUrl;
+                        // Check if background removal is enabled
+                        if ($feature->remove_bg == 1) {
+                            $imageWithoutBg = $this->removeBackground($originalImageUrl);
+                            $image = $this->uploadToCloudFlareFromCdn(
+                                $imageWithoutBg, 
+                                'image-' . time(), 
+                                $feature->slug,
+                                Auth::guard('customer')->id() . 'result-gen' . $generationId
+                            );
+                        }
+                        // Log the activity with the final image URL
+
                         Activities::create([
                             'customer_id' => Auth::guard('customer')->id(),
                             'photo_id' => $id_img,
@@ -920,7 +949,17 @@ class ImageAIController extends Controller
                             'ai_model' => 'Leo AI',
                             'api_endpoint' => 'https://cloud.leonardo.ai/api/rest/v1/generations/',
                         ]);
+
                         return response()->json(['check' => true, 'url' => $image, 'bg_url' => $firstImageUrl]);
+
+                    
+                        // Return the JSON response with both the original and modified URLs
+                        return response()->json([
+                            'check' => true,
+                            'url' => $image,              // Final image URL (with or without background removed)
+                            'bg_url' => $originalImageUrl  // Original image URL
+                        ]);
+
                     }
                 }
             }
