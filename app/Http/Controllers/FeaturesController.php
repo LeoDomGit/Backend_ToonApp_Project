@@ -79,12 +79,12 @@ class FeaturesController
      */
     public function api_index(Features $features)
     {
-        $features = Features::with('subFeatures')->get();
+        $features = Features::with(['subFeatures','sizes'])->get();
         return response()->json($features);
     }
     public function api_detail(Features $features, $id)
     {
-        $features = Features::with('subFeatures')->where('id', $id)->first();
+        $features = Features::with(['subFeatures','sizes'])->where('id', $id)->first();
         return response()->json($features);
     }
     /**
