@@ -11,11 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (Schema::hasTable('sub_features')) {
-            Schema::table('sub_features', function (Blueprint $table) {
+        if (Schema::hasTable('features')) {
+            Schema::table('features', function (Blueprint $table) {
                 $table->boolean('remove_bg')->after('name')->default(0);
                 $table->string('slug',255)->after('name')->nullable();
-                $table->string('api_endpoint',255)->after('feature_id')->nullable();
             });
         }
     }

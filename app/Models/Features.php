@@ -21,6 +21,8 @@ class Features extends Model
         'preprocessorId',
         'strengthType',
         'description',
+        'slug',
+        'remove_bg',
         'status',
         'image',
         'created_at',

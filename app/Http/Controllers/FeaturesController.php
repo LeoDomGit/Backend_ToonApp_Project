@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\FeatureRequest;
 use App\Models\Features;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 
 class FeaturesController
@@ -18,6 +19,14 @@ class FeaturesController
         return Inertia::render('Features/Index', ['datafeatures' => $features]);
     }
 
+
+    //=============================================================
+    public function update_feature_slug(){
+        $result = Features::all();
+        foreach ($result as $key => $item) {
+            $item->update(['slug' => Str::slug($item->name)]);
+        }
+    }
     /**
      * Show the form for creating a new resource.
      */

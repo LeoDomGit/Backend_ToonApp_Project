@@ -45,11 +45,8 @@ Route::middleware('device_login')->group(function () {
 });
 Route::get('/backgrounds',[BackgroundController::class,'api_index']);
 
-Route::middleware('device_login')->group(function () {
-    Route::post('/user',function (Request $request) {
-        return $request->user();
-    });
-});
+Route::get('/update_feature_slug',[FeaturesController::class,'update_feature_slug']);
+
 Route::get('/test',[ImageAIController::class,'removeBackground']);
 Route::prefix('users')->group(function () {
     Route::post('/register',[UserController::class,'register']);
