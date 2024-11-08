@@ -3,6 +3,7 @@
 use App\Http\Controllers\BackgroundController;
 use App\Http\Controllers\FeaturesController;
 use App\Http\Controllers\ImageAIController;
+use App\Http\Controllers\SubFeaturesController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -46,6 +47,7 @@ Route::middleware('device_login')->group(function () {
 Route::get('/backgrounds',[BackgroundController::class,'api_index']);
 
 Route::get('/update_feature_slug',[FeaturesController::class,'update_feature_slug']);
+Route::get('/update_sub_feature_slug',[SubFeaturesController::class,'update_feature_slug']);
 
 Route::get('/test',[ImageAIController::class,'removeBackground']);
 Route::prefix('users')->group(function () {

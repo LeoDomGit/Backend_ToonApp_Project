@@ -132,6 +132,37 @@ function SubFeatures({ dataSubFeatures, dataFeatures }) {
             editable: true,
         },
         {
+            field: "api_endpoint",
+            headerName: "API Endpoint",
+            width: 250,
+            editable: true,
+        },
+        { field: "slug", headerName: "Slug", width: 200},
+        {
+            field: "remove_bg",
+            headerName: "Remove Background",
+            width: 200,
+            renderCell: (params) => (
+                <input
+                key={params.row.id}
+                    type="checkbox"
+                    className="text-center"
+                    checked={params.value}
+                    onChange={(event) => {
+                        const checked = event.target.checked;
+                        axios.put(`/sub_feature/${params.row.id}`, {
+                            remove_bg: checked,
+                        }).then((res)=>{
+                            if(res.data.check==true){
+                                setData(res.data.data); 
+                            }
+                        })
+                    }}
+                />
+            ),
+            editable: true,
+        },
+        {
             field: "feature_id",
             headerName: "Nhóm feature",
             width: 200,
