@@ -4,6 +4,7 @@ use App\Http\Controllers\BackgroundController;
 use App\Http\Controllers\FeatureImageController;
 use App\Http\Controllers\FeaturesController;
 use App\Http\Controllers\ImageSizeController;
+use App\Http\Controllers\KeyController;
 use App\Http\Controllers\PermissionsController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SubFeaturesController;
@@ -40,6 +41,7 @@ Route::middleware('checkLogin')->group(function () {
     Route::post('/sub-feature-update-image/{id}',[SubFeaturesController::class,'sub_feature_update_image']);
     Route::resource('/api_images',FeatureImageController::class);
     Route::post('/api-features-update-image/{id}',[FeatureImageController::class,'feature_update_image']);
+    Route::resource('/keys', KeyController::class);
     Route::post('/updated_size/{id}',[FeaturesController::class,'updated_size']);
 
 });
