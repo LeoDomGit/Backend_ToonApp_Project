@@ -8,16 +8,9 @@ import { DataGrid } from "@mui/x-data-grid";
 import "notyf/notyf.min.css";
 import axios from "axios";
 import Swal from "sweetalert2";
-import { render } from "react-dom";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import OutlinedInput from '@mui/material/OutlinedInput';
-import InputLabel from '@mui/material/InputLabel';
-import MenuItem from '@mui/material/MenuItem';
-import FormControl from '@mui/material/FormControl';
-import ListItemText from '@mui/material/ListItemText';
-import Select from '@mui/material/Select';
-import Checkbox from '@mui/material/Checkbox';
+import { Select, MenuItem, OutlinedInput, InputLabel, FormControl, Checkbox, ListItemText } from '@mui/material';
 function Index({ datafeatures, datasizes }) {
     const [image, setImage] = useState(null);
     const [feature, setFeature] = useState("");
@@ -36,7 +29,11 @@ function Index({ datafeatures, datasizes }) {
     const handleClose = () => setShow(false);
     const handleShow = () => setShow(true);
     const closeImageModal = () => setShowImageModal(false);
-
+    const handleSizeChange = (e) => {
+        const selectedValues = e.target.value;  // This will be an array of selected sizes
+        setSizes(selectedValues);
+      };
+    const [sizes,setSizes]= useState([]);
     const formatCreatedAt = (dateString) => {
         const date = new Date(dateString);
         return date.toLocaleString();
@@ -90,47 +87,6 @@ function Index({ datafeatures, datasizes }) {
             field: "model_id",
             headerName: "Model ID",
             width: 200,
-            editable: true,
-        },
-        {
-            field: "sizes",
-            headerName: "Sizes",
-            width: 200,
-            renderCell: (params) => (
-                <FormControl sx={{ m: 1, width: 200 }}>
-                    <InputLabel>Sizes</InputLabel>
-                    <Select
-                        multiple
-                        value={params.value || []} // Set the initial value to an empty array if no sizes
-                        input={<OutlinedInput label="Sizes" />}
-                        renderValue={(selected) => selected.join(", ")}
-                        onChange={(event) => {
-                            const newSizes = event.target.value;
-                            axios.put(`/features/${params.row.id}`, {
-                                sizes: newSizes,
-                            }).then((res) => {
-                                if (res.data.check) {
-                                    toast.success("Sizes updated successfully!", {
-                                        position: "top-right",
-                                    });
-                                    setData(res.data.data); // Update data state with new response
-                                } else {
-                                    toast.error(res.data.msg, {
-                                        position: "top-right",
-                                    });
-                                }
-                            });
-                        }}
-                    >
-                        {datasizes.map((size) => (
-                            <MenuItem key={size} value={size}>
-                                <Checkbox checked={params.value.includes(size)} />
-                                <ListItemText primary={size} />
-                            </MenuItem>
-                        ))}
-                    </Select>
-                </FormControl>
-            ),
             editable: true,
         },
         { field: "prompt", headerName: "Prompt", width: 200, editable: true },
@@ -238,6 +194,58 @@ function Index({ datafeatures, datasizes }) {
                     onClick={() => openImageModal(params.row.id)}
                 />
             ),
+        },
+        {
+            field: "sizes",
+            headerName: "Sizes",
+            width: 200,
+            renderCell: (params) => {
+                // Convert the sizes from params.row.sizes to an array of selected sizes
+                const selectedSizes = params.row.sizes ? params.row.sizes.map(size => size.id) : [];
+        
+                return (
+                    <Select
+                        value={selectedSizes}  // Set the value to the selected sizes array
+                        onChange={handleSizeChange}
+                        onBlur={() => {
+                            const featureId = params.row.id;
+                            var formData = new FormData();
+                            sizes.forEach(size => {
+                                formData.append('size_id[]', size);
+                            });
+        
+                            axios.post(`/updated_size/${featureId}`, formData)
+                                .then((res) => {
+                                    if (res.data.check) {
+                                        toast.success("Sizes updated successfully!", {
+                                            position: "top-right"
+                                        });
+                                        setData(res.data.data);
+                                    } else {
+                                        toast.error(res.data.msg, {
+                                            position: "top-right"
+                                        });
+                                    }
+                                })
+                                .catch((error) => {
+                                    console.error("There was an error updating sizes:", error);
+                                    toast.error("Failed to update sizes.", {
+                                        position: "top-right"
+                                    });
+                                });
+                        }}
+                        multiple={true}
+                        fullWidth
+                    >
+                        {datasizes.map((size) => (
+                            <MenuItem key={size.id} value={size.id}>
+                                {size.size}
+                            </MenuItem>
+                        ))}
+                    </Select>
+                );
+            },
+            editable: true,
         },
         {
             field: "created_at",
