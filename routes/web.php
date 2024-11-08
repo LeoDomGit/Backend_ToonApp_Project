@@ -40,6 +40,7 @@ Route::middleware('checkLogin')->group(function () {
     Route::post('/sub-feature-update-image/{id}',[SubFeaturesController::class,'sub_feature_update_image']);
     Route::resource('/api_images',FeatureImageController::class);
     Route::post('/api-features-update-image/{id}',[FeatureImageController::class,'feature_update_image']);
+    Route::post('/updated_size/{id}',[FeaturesController::class,'updated_size']);
 
 });
 

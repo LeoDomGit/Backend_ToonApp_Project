@@ -4,11 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\FeatureRequest;
 use App\Models\Features;
+use App\Models\FeaturesSizes;
 use App\Models\ImageSize;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
-
+use Illuminate\Support\Facades\Validator;
 class FeaturesController
 {
     /**
@@ -16,7 +17,7 @@ class FeaturesController
      */
     public function index()
     {
-        $features = Features::all();
+        $features = Features::with('sizes')->get();
         $sizes= ImageSize::all();
         return Inertia::render('Features/Index', ['datafeatures' => $features,'datasizes'=>$sizes]);
     }
@@ -32,11 +33,27 @@ class FeaturesController
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function updated_size(Request $request,$id)
     {
-        //
+        $validator = Validator::make($request->all(), [
+            'size_id' => 'required|array',
+            'size_id.*'=>'exists:image_sizes,id'
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['check' => false, 'msg' => $validator->errors()->first()]);
+        }
+        $arr=$request->size_id;
+        FeaturesSizes::where('feature_id',$id)->delete();
+        foreach ($arr as $key => $value) {
+           FeaturesSizes::create([
+            'feature_id'=>$id,
+            'size_id'=>$value,
+            'created_at'=>now()
+           ]);
+        }
+        $data = Features::with('sizes')->get();
+        return response()->json(['check'=>true,'data'=>$data]);
     }
-
     /**
      * Store a newly created resource in storage.
      */
