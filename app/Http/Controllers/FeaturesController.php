@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\FeatureRequest;
 use App\Models\Features;
+use App\Models\ImageSize;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -16,7 +17,8 @@ class FeaturesController
     public function index()
     {
         $features = Features::all();
-        return Inertia::render('Features/Index', ['datafeatures' => $features]);
+        $sizes= ImageSize::all();
+        return Inertia::render('Features/Index', ['datafeatures' => $features,'sizes'=>$sizes]);
     }
 
 

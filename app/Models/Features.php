@@ -45,4 +45,7 @@ class Features extends Model
             return $attributes['image'] ? asset('storage/' . $attributes['image']) : null;
         });
     }
+    public function sizes() {
+        return $this->belongsToMany(ImageSize::class, 'features_sizes', 'feature_id', 'size_id');
+    }
 }

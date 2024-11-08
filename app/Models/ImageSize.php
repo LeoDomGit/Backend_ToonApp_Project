@@ -12,6 +12,8 @@ class ImageSize extends Model
     protected $fillable=[
         'id',
         'size',
+        'width',
+        'height',
         'status',
         'created_at',
         'updated_at',
@@ -19,5 +21,8 @@ class ImageSize extends Model
     public function scopeActive($query)
     {
         return $query->where('status', 1);
+    }
+    public function feature() {
+        return $this->belongsToMany(Features::class, 'features_sizes', 'size_id', 'feature_id');
     }
 }
