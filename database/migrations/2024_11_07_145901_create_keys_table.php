@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('keys', function (Blueprint $table) {
             $table->id();
             $table->string('api',255);
+            $table->string('key',255);
             $table->timestamps();
         });
     }
