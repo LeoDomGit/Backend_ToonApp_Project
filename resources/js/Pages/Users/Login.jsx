@@ -18,7 +18,8 @@ import 'notyf/notyf.min.css';
 import axios from 'axios';
 import { googleLogout, useGoogleLogin } from '@react-oauth/google';
 const defaultTheme = createTheme();
-
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 export default function SignInSide() {
     const notyf = new Notyf({
         duration: 1000,
@@ -52,50 +53,43 @@ export default function SignInSide() {
         const password = data.get('password');
 
         if (email === '') {
-            notyf.open({
-                type: "error",
-                message: "Email is required",
-            });
+            toast.error("Email is required !", {
+                position: "top-right"
+              });
         } else if (password === '') {
-            notyf.open({
-                type: "error",
-                message: "Password is required",
-            });
+            toast.error("Password is required !", {
+                position: "top-right"
+              });
         } else {
             axios.post('/checkLoginAdmin', {
                 email: email,
                 password: password,
             }).then((res) => {
                 if (res.data.check === true) {
-                    notyf.open({
-                        type: "success",
-                        message: "Đăng nhập thành công",
-                    });
+                    toast.success("Create successfully !", {
+                        position: "top-right"
+                      });
                     setTimeout(() => {
                         window.location.replace('/users');
                     }, 2000);
                 } else if (res.data.check === false) {
                     if (res.data.errors.password) {
-                        notyf.open({
-                            type: "error",
-                            message: res.data.errors.password,
+                        toast.error(res.data.errors.password, {
+                            position: "top-right"
                         });
                     } else if (res.data.errors.name) {
-                        notyf.open({
-                            type: "error",
-                            message: res.data.errors.name,
+                        toast.error(res.data.errors.name, {
+                            position: "top-right"
                         });
                     } else if (res.data.errors.email) {
-                        notyf.open({
-                            type: "error",
-                            message: res.data.errors.email,
+                        toast.error(res.data.errors.email, {
+                            position: "top-right"
                         });
                     }
                 }
             }).catch((error) => {
-                notyf.open({
-                    type: "error",
-                    message: "Sai tên đăng nhập hoặc mật khẩu.",
+                toast.error('Sai email hoặc mật khẩu', {
+                    position: "top-right"
                 });
             });
         }
@@ -123,19 +117,17 @@ export default function SignInSide() {
                             email:res.data.email
                         }).then((res)=>{
                             if(res.data.check==true){
-                                notyf.open({
-                                    type: "success",
-                                    message: "Đăng nhập thành công",
+                                toast.success("Đăng nhập thành công", {
+                                    position: "top-right"
                                 });
                                 setTimeout(() => {
                                     window.location.replace('/users');
                                 }, 2000);
                             }else if(res.data.check==false){
                               if(res.data.msg){
-                                notyf.open({
-                                  type: "error",
-                                  message: res.data.msg,
-                              });
+                                toast.error(res.data.msg, {
+                                    position: "top-right"
+                                });
                               }
                             }
                         })
@@ -147,6 +139,7 @@ export default function SignInSide() {
     );
     return (
         <ThemeProvider theme={defaultTheme}>
+            <ToastContainer />
             <Grid container component="main" sx={{ height: '100vh' }}>
                 <CssBaseline />
                 <Grid

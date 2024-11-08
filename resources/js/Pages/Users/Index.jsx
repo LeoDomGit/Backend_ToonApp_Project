@@ -7,6 +7,8 @@ import { Notyf } from 'notyf';
 import 'notyf/notyf.min.css';
 import axios from 'axios';
 import { DataGrid } from '@mui/x-data-grid';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import Swal from 'sweetalert2';
 function Index({roles,users}) {
     const [show1, setShow1] = useState(false);
@@ -106,16 +108,14 @@ function Index({roles,users}) {
         ).then((res) => {
                 if (res.data.check == false) {
                     if (res.data.msg) {
-                        notyf.open({
-                            type: 'error',
-                            message: res.data.msg
+                        toast.error(res.data.msg, {
+                            position: "top-right"
                         });
                     }
                 } else if (res.data.check == true) {
-                    notyf.open({
-                        type: 'success',
-                        message: 'Create successfully'
-                    });
+                    toast.success("Đã thêm thành công !", {
+                        position: "top-right"
+                      });
                     resetCreate();
                     if (res.data.data) {
                         setData(res.data.data);
@@ -142,16 +142,14 @@ function Index({roles,users}) {
         ).then((res) => {
             if (res.data.check == false) {
                 if (res.data.msg) {
-                    notyf.open({
-                        type: 'error',
-                        message: res.data.msg
+                    toast.error(res.data.msg, {
+                        position: "top-right"
                     });
                 }
             } else if (res.data.check == true) {
-                notyf.open({
-                    type: 'success',
-                    message: 'Switch successfully'
-                });
+                toast.success("Đã chỉnh sửa thành công !", {
+                    position: "top-right"
+                  });
                 if (res.data.data) {
                     setData(res.data.data);
                 } else {
@@ -173,11 +171,15 @@ function Index({roles,users}) {
             if (result.isConfirmed) {
                 axios.delete('/users/'+id).then((res)=>{
                     if(res.data.check==true){
-                        notyf.success("Đã xóa thành công");
+                        toast.success("Đã xoá thành công !", {
+                            position: "top-right"
+                          });
                         setData(res.data.data)
                     }else if(res.data.check==false){
                         if(res.data.msg){
-                            notyf.error(res.data.msg);
+                            toast.error(res.data.msg, {
+                                position: "top-right"
+                            });
                         }
                     }
                 })
@@ -201,16 +203,14 @@ function Index({roles,users}) {
         ).then((res) => {
                 if (res.data.check == false) {
                     if (res.data.msg) {
-                        notyf.open({
-                            type: 'error',
-                            message: res.data.msg
+                        toast.error(res.data.msg, {
+                            position: "top-right"
                         });
                     }
                 } else if (res.data.check == true) {
-                    notyf.open({
-                        type: 'success',
-                        message: 'Create successfully'
-                    });
+                    toast.success("Đã thêm thành công !", {
+                        position: "top-right"
+                      });
                     const updatedUsers =  res.data.data.map(user => {
                         return {
                             ...user,
@@ -287,16 +287,14 @@ function Index({roles,users}) {
             )
             .then((res) => {
                 if (res.data.check == true) {
-                    notyf.open({
-                        type: "success",
-                        message: "User is updated successfully",
-                    });
+                    toast.success("Đã chỉnh sửa thành công !", {
+                        position: "top-right"
+                      });
                     setUsers(res.data.data);
                 } else if (res.data.check == false) {
-                    notyf.open({
-                        type: "error",
-                        message: res.data.msg,
-                    });
+                    toast.error(res.data.msg, {
+                        position: "top-right"
+                      });
                 }
             });
     };
@@ -304,6 +302,8 @@ function Index({roles,users}) {
     },[])
     return (
         <Layout>
+        <ToastContainer />
+
             <>
             <Modal show={show1} onHide={handleClose1}>
                     <Modal.Header closeButton>

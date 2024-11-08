@@ -7,6 +7,8 @@ import { Box, Typography } from "@mui/material";
 import { DataGrid } from '@mui/x-data-grid';
 import 'notyf/notyf.min.css';
 import axios from 'axios';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import Swal from 'sweetalert2'
 function Index({ roles }) {
   const [role, setRole] = useState('');
@@ -72,18 +74,16 @@ function Index({ roles }) {
       name: role
     }).then((res) => {
       if (res.data.check == true) {
-        notyf.open({
-          type: "success",
-          message: "Đã thêm thành công",
+        toast.success("Đã thêm thành công !", {
+          position: "top-right"
         });
         setData(res.data.data);
         setShow(false);
         setRole('')
       }else if(res.data.check==true){
-        notyf.open({
-          type: "success",
-          message: res.data.msg,
-        });
+        toast.error(response.data.msg, {
+          position: "top-right"
+      });
       }
     })
   }
@@ -105,8 +105,16 @@ function Index({ roles }) {
         if (result.isConfirmed) {
           axios.delete('/roles/'+id).then((res)=>{
             if(res.data.check==true){
-              notyf.success("Đã xóa thành công");
+              toast.success("Đã xoá thành công !", {
+                position: "top-right"
+              });
               setData(res.data.data)
+            }else if(res.data.check==false){
+              if(res.data.msg){
+                toast.error(res.data.msg, {
+                  position: "top-right"
+              });
+              }
             }
           })
         } else if (result.isDenied) {
@@ -128,17 +136,15 @@ function Index({ roles }) {
       )
       .then((res) => {
         if (res.data.check == true) {
-          notyf.open({
-            type: "success",
-            message: "Chỉnh sửa loại tài khoản thành công",
+          toast.success("Đã chỉnh sửa thành công !", {
+            position: "top-right"
           });
           setData(res.data.data);
 
         } else if (res.data.check == false) {
-          notyf.open({
-            type: "error",
-            message: res.data.msg,
-          });
+          toast.error(res.data.msg, {
+            position: "top-right"
+        });
         }
       });
     }
@@ -148,6 +154,8 @@ function Index({ roles }) {
 
     <Layout>
       <>
+      <ToastContainer />
+
         <Modal show={show} onHide={handleClose}>
           <Modal.Header closeButton>
             <Modal.Title>Tạo loại tài khoản</Modal.Title>

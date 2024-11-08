@@ -52,7 +52,9 @@ function Index({data_images,data_features}) {
         setFiles([]);
         setData(response.data.data); // Clear the files after successful upload
       } else if(response.data.check==false) {
-        alert(response.data.msg);
+        toast.error(response.data.msg, {
+          position: "top-right"
+      });
       }
     } catch (error) {
       console.error('Error uploading images:', error);
