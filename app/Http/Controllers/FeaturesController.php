@@ -51,6 +51,7 @@ class FeaturesController
         $feature = Features::create([
             'name' => $request->input('name'),
             'description' => $request->input('description'),
+            'slug'=>Str::slug($request->input('name')),
             'api_endpoint' => $request->input('api_endpoint'),
             'image' => $path,
             'model_id' => $request->input('model_id'),
@@ -90,6 +91,9 @@ class FeaturesController
     public function update(FeatureRequest $request, $id)
     {
         $data = $request->all();
+        if($request->has('name')){
+            $data['slug'] = Str::slug($request->input('name')); 
+        }
         $data['updated_at'] = now();
         Features::where('id', $id)->update($data);
         $data = Features::all();
