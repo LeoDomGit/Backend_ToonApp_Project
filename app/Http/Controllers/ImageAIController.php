@@ -317,7 +317,7 @@ class ImageAIController extends Controller
     private function storeRequest($request_type, $prompt, $modelai, $method, $url_endpoint, $postfields, $response, $id_content_category)
     {
         $request = new RequestModel();
-        $request->id_user = Auth::user()->id;
+        $request->id_user = Auth::guard('customer')->id();
         $request->request_type = $request_type;
         $request->prompt = $prompt;
         $request->code_model_ai = $modelai;
@@ -905,11 +905,11 @@ class ImageAIController extends Controller
                     $data = $response->json();
                     if (!empty($data['generations_by_pk']['generated_images'])) {
                         $firstImageUrl = $data['generations_by_pk']['generated_images'][0]['url'];
-                        $firstImageUrl = $this->uploadToCloudFlareFromCdn($firstImageUrl, 'image-' . time(), $feature->slug,Auth::user()->id.'-gen'.$generationId);
+                        $firstImageUrl = $this->uploadToCloudFlareFromCdn($firstImageUrl, 'image-' . time(), $feature->slug,Auth::guard('customer')->id().'-gen'.$generationId);
                         if($feature->remove_bg==1){
                             $image = $this->removeBackground($firstImageUrl);
                         }
-                        $image = $this->uploadToCloudFlareFromCdn($image, 'image-' . time(), $feature->slug,Auth::user()->id.'-gen'.$generationId);
+                        $image = $this->uploadToCloudFlareFromCdn($image, 'image-' . time(), $feature->slug,Auth::guard('customer')->id().'-gen'.$generationId);
                         Activities::create([
                             'customer_id' => Auth::guard('customer')->id(),
                             'photo_id' => $id_img,
