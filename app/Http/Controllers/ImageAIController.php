@@ -903,6 +903,7 @@ class ImageAIController extends Controller
                     $data = $response->json();
                     if (!empty($data['generations_by_pk']['generated_images'])) {
                         $firstImageUrl = $data['generations_by_pk']['generated_images'][0]['url'];
+                        $firstImageUrl = $this->uploadToCloudFlareFromCdn($firstImageUrl, 'image-' . time(), 'Cartoon','gen'.$generationId);
                         $image = $this->removeBackground($firstImageUrl);
                         $image = $this->uploadToCloudFlareFromCdn($image, 'image-' . time(), 'Cartoon','gen'.$generationId);
                         Activities::create([

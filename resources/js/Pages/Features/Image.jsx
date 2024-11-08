@@ -251,7 +251,7 @@ function Image({ datafeatures }) {
 
                 {/* Data Grid Displaying Feature Images */}
                 <div className="row">
-                    <div className="col-md-9">
+                    <div className="col-md">
                         {data && data.length > 0 && (
                             <div className="card border-0 shadow">
                                 <div className="card-body">

@@ -3,6 +3,7 @@
 use App\Http\Controllers\BackgroundController;
 use App\Http\Controllers\FeaturesController;
 use App\Http\Controllers\ImageAIController;
+use App\Http\Controllers\SubFeaturesController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -33,24 +34,21 @@ Route::middleware('device_login')->group(function () {
     Route::get('/logout',[CustomersController::class, 'logout']);
     Route::post('/upload_image',[ImageAIController::class,'uploadImage']);
     Route::prefix('image_ai')->group(function () {
-        Route::post('/change_background',[ImageAIController::class,'changeBackground']);
-        Route::post('/cartoon_style',[ImageAIController::class,'cartoon']);
-        Route::post('/remove_background',[ImageAIController::class,'changeBackground']);
-        Route::post('/claymation',[ImageAIController::class,'claymation']);
-        Route::post('/disney_charactors',[ImageAIController::class,'disneyCharators']);
-        Route::post('/fullbody_cartoon',[ImageAIController::class,'fullBodyCartoon']);
-        Route::post('/animal_toon',[ImageAIController::class,'animalToon']);
-        Route::post('/new_profile_pic',[ImageAIController::class,'newProfilePic']);
-        Route::post('/funny_charactors',[ImageAIController::class,'funnyCharactors']);
+        Route::post('/style',[ImageAIController::class,'cartoon']);
+        // Route::post('/remove_background',[ImageAIController::class,'changeBackground']);
+        // Route::post('/claymation',[ImageAIController::class,'claymation']);
+        // Route::post('/disney_charactors',[ImageAIController::class,'disneyCharators']);
+        // Route::post('/fullbody_cartoon',[ImageAIController::class,'fullBodyCartoon']);
+        // Route::post('/animal_toon',[ImageAIController::class,'animalToon']);
+        // Route::post('/new_profile_pic',[ImageAIController::class,'newProfilePic']);
+        // Route::post('/funny_charactors',[ImageAIController::class,'funnyCharactors']);
     });
 });
 Route::get('/backgrounds',[BackgroundController::class,'api_index']);
 
-Route::middleware('device_login')->group(function () {
-    Route::post('/user',function (Request $request) {
-        return $request->user();
-    });
-});
+Route::get('/update_feature_slug',[FeaturesController::class,'update_feature_slug']);
+Route::get('/update_sub_feature_slug',[SubFeaturesController::class,'update_feature_slug']);
+
 Route::get('/test',[ImageAIController::class,'removeBackground']);
 Route::prefix('users')->group(function () {
     Route::post('/register',[UserController::class,'register']);

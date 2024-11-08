@@ -70,7 +70,7 @@ function Layout({ children }) {
             <MenuItem icon={<CalendarTodayOutlinedIcon />}>Calendar</MenuItem> */}
 					</Menu>
 				</Sidebar>
-				<main className="p-4 w-100">{children}</main>
+				<main className="p-4 w-90">{children}</main>
 			</div>
 		</>
 	);

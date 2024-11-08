@@ -6,6 +6,7 @@ use App\Http\Requests\SubFeatureRequest;
 use App\Models\Features;
 use App\Models\SubFeatures;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 
 class SubFeaturesController
@@ -42,6 +43,16 @@ class SubFeaturesController
     /**
      * Show the form for creating a new resource.
      */
+
+     public function update_feature_slug(){
+        $result = SubFeatures::all();
+        foreach ($result as $key => $item) {
+            $item->update(attributes: ['slug' => Str::slug($item->name)]);
+        }
+    }
+        /**
+     * Show the form for creating a new resource.
+     */
     public function create()
     {
         //
@@ -63,7 +74,7 @@ class SubFeaturesController
         $subFeature->name = $request->name;
         $subFeature->description = $request->description;
         $subFeature->feature_id = $request->feature_id;
-
+        $subFeature->slug= Str::slug($request->name);
         if ($request->hasFile('image')) {
             $path = $request->file('image')->store('sub_feature_images', 'public');
             $subFeature->image = $path; // Save the path to the database
@@ -95,6 +106,9 @@ class SubFeaturesController
     public function update(SubFeatureRequest $request, $id)
     {
         $data = $request->all();
+        if($request->has('name')){
+            $data['slug']= Str::slug($request->name);
+        }
         $data['updated_at'] = now();
         SubFeatures::where('id', $id)->update($data);
         $data = SubFeatures::with('feature')->get();
