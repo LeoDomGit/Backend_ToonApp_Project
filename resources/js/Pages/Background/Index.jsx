@@ -44,7 +44,6 @@ function Index({ data_images, data_features }) {
                 headers: { "Content-Type": "multipart/form-data" },
             });
 
-
             if (response.data.check) {
                 toast.success("Đã thêm thành công !", {
                     position: "top-right",
@@ -61,26 +60,6 @@ function Index({ data_images, data_features }) {
             });
         }
     };
-
-      if (response.data.check) {
-        toast.success("Đã thêm thành công !", {
-            position: "top-right"
-          });
-        setFiles([]);
-        setData(response.data.data); // Clear the files after successful upload
-      } else if(response.data.check==false) {
-        toast.error(response.data.msg, {
-          position: "top-right"
-      });
-      }
-    } catch (error) {
-      console.error('Error uploading images:', error);
-      toast.error(error, {
-        position: "top-right"
-      });
-    }
-  };
-
 
     return (
         <div>
