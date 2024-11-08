@@ -851,6 +851,7 @@ class ImageAIController extends Controller
     public function cartoon (Request $request){
         $validator = Validator::make($request->all(), [
             'image' => 'required|mimes:png,jpg,jpeg',
+            'slug'=>'required|exists:features,slug'
         ]);
 
         if ($validator->fails()) {
@@ -861,7 +862,8 @@ class ImageAIController extends Controller
         $result=$this->uploadImage($file);
         $image_id=$result['id'];
         $routePath = $request->path();
-        $result = Features::where('api_endpoint', $routePath)->first();
+        $result = Features::where('slug', $request->slug)->first();
+        $feature=Features::where('slug', $request->slug)->first();
         $initImageId=$result->initImageId;
         $featuresId = $result->id;
         $folder = 'cartoon';
@@ -904,7 +906,9 @@ class ImageAIController extends Controller
                     if (!empty($data['generations_by_pk']['generated_images'])) {
                         $firstImageUrl = $data['generations_by_pk']['generated_images'][0]['url'];
                         $firstImageUrl = $this->uploadToCloudFlareFromCdn($firstImageUrl, 'image-' . time(), 'Cartoon','gen'.$generationId);
-                        $image = $this->removeBackground($firstImageUrl);
+                        if($feature->remove_bg==1){
+                            $image = $this->removeBackground($firstImageUrl);
+                        }
                         $image = $this->uploadToCloudFlareFromCdn($image, 'image-' . time(), 'Cartoon','gen'.$generationId);
                         Activities::create([
                             'customer_id' => Auth::guard('customer')->id(),
