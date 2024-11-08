@@ -904,12 +904,27 @@ class ImageAIController extends Controller
                 if ($response->successful()) {
                     $data = $response->json();
                     if (!empty($data['generations_by_pk']['generated_images'])) {
+                        // Get the original image URL and upload it to Cloudflare
                         $firstImageUrl = $data['generations_by_pk']['generated_images'][0]['url'];
-                        $firstImageUrl = $this->uploadToCloudFlareFromCdn($firstImageUrl, 'image-' . time(), $feature->slug,Auth::guard('customer')->id().'-gen'.$generationId);
-                        if($feature->remove_bg==1){
-                            $image = $this->removeBackground($firstImageUrl);
+                        $originalImageUrl = $this->uploadToCloudFlareFromCdn(
+                             $data['generations_by_pk']['generated_images'][0]['url'], 
+                            'image-result' . time(), 
+                            $feature->slug,
+                            Auth::guard('customer')->id() . '-gen' . $generationId
+                        );
+                        // By default, set $image to $originalImageUrl
+                        $image = $originalImageUrl;
+                        // Check if background removal is enabled
+                        if ($feature->remove_bg == 1) {
+                            $imageWithoutBg = $this->removeBackground($originalImageUrl);
+                            $image = $this->uploadToCloudFlareFromCdn(
+                                $imageWithoutBg, 
+                                'image-' . time(), 
+                                $feature->slug,
+                                Auth::guard('customer')->id() . 'result-gen' . $generationId
+                            );
                         }
-                        $image = $this->uploadToCloudFlareFromCdn($image, 'image-' . time(), $feature->slug,Auth::guard('customer')->id().'-gen'.$generationId);
+                        // Log the activity with the final image URL
                         Activities::create([
                             'customer_id' => Auth::guard('customer')->id(),
                             'photo_id' => $id_img,
@@ -917,10 +932,16 @@ class ImageAIController extends Controller
                             'image_result' => $image,
                             'image_size' => $result->width,
                             'ai_model' => 'Leo AI',
-                            'api_endpoint' =>'https://cloud.leonardo.ai/api/rest/v1/generations/',
+                            'api_endpoint' => 'https://cloud.leonardo.ai/api/rest/v1/generations/',
                         ]);
-                        return response()->json(['check' => true, 'url' => $image,'bg_url'=>$firstImageUrl]);
-                    } 
+                    
+                        // Return the JSON response with both the original and modified URLs
+                        return response()->json([
+                            'check' => true,
+                            'url' => $image,              // Final image URL (with or without background removed)
+                            'bg_url' => $originalImageUrl  // Original image URL
+                        ]);
+                    }
                 }
             }
         }else{
