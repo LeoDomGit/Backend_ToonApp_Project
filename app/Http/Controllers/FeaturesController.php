@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\FeatureRequest;
 use App\Models\Features;
+use App\Models\FeaturesSizes;
 use App\Models\ImageSize;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
