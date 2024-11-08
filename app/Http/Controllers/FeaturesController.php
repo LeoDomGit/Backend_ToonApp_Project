@@ -18,7 +18,7 @@ class FeaturesController
     {
         $features = Features::all();
         $sizes= ImageSize::all();
-        return Inertia::render('Features/Index', ['datafeatures' => $features,'sizes'=>$sizes]);
+        return Inertia::render('Features/Index', ['datafeatures' => $features,'datasizes'=>$sizes]);
     }
 
 
