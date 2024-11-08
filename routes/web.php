@@ -41,6 +41,8 @@ Route::middleware('checkLogin')->group(function () {
     Route::resource('/api_images', FeatureImageController::class);
     Route::post('/api-features-update-image/{id}', [FeatureImageController::class, 'feature_update_image']);
     Route::resource('/keys', KeyController::class);
+    Route::post('/updated_size/{id}',[FeaturesController::class,'updated_size']);
+
 });
 
 Route::post('/checkLoginEmail', [UserController::class, 'checkLoginEmailAdmin']);
