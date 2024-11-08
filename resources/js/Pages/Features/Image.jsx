@@ -7,7 +7,8 @@ import { Box } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import "notyf/notyf.min.css";
 import axios from "axios";
-
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 function Image({ datafeatures }) {
     const [images, setImages] = useState([]);
     const [apiRoute, setApiRoute] = useState("");
@@ -87,11 +88,15 @@ function Image({ datafeatures }) {
             })
             .then((res) => {
                 if (res.data.check) {
-                    notyf.success("Ảnh đã được cập nhật thành công");
+                    toast.success("Ảnh đã được cập nhật thành công",{
+                        position: "top-right"
+                      });
                     setData(res.data.data);
                     closeImageModal();
                 } else {
-                    notyf.error(res.data.msg);
+                    toast.error(res.data.msg,{
+                        position: "top-right"
+                      });
                 }
             });
     };
@@ -110,16 +115,20 @@ function Image({ datafeatures }) {
             })
             .then((res) => {
                 if (res.data.check) {
-                    notyf.success(res.data.msg);
+                    toast.success(res.data.msg);
                     setData(res.data.data);
                     resetForm();
                     setShow(false);
                 } else {
-                    notyf.error(res.data.msg);
+                    toast.error(res.data.msg,{
+                        position: "top-right"
+                      });
                 }
             })
             .catch((error) => {
-                notyf.error("An error occurred while uploading.");
+                toast.error(error,{
+                    position: "top-right"
+                  });
             });
     };
 
@@ -139,7 +148,9 @@ function Image({ datafeatures }) {
                 if (result.isConfirmed) {
                     axios.delete(`/api_images/${id}`).then((res) => {
                         if (res.data.check) {
-                            notyf.success("Đã xóa thành công");
+                            toast.success("Đã xóa thành công",{
+                                position: "top-right"
+                              });
                             setData((prevData) =>
                                 prevData.filter((item) => item.id !== id)
                             );
@@ -152,7 +163,9 @@ function Image({ datafeatures }) {
         } else {
             axios.put(`/api_images/${id}`, { [field]: value }).then((res) => {
                 if (res.data.check) {
-                    notyf.success("Chỉnh sửa thành công");
+                    toast.success("Chỉnh sửa thành công",{
+                        position: "top-right"
+                      });
                     setData((prevData) =>
                         prevData.map((item) =>
                             item.id === id ? { ...item, [field]: value } : item
@@ -166,6 +179,8 @@ function Image({ datafeatures }) {
     };
     return (
         <Layout>
+      <ToastContainer />
+
             <>
             <Modal show={showImageModal} onHide={closeImageModal}>
                     <Modal.Header closeButton>

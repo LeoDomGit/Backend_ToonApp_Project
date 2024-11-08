@@ -8,6 +8,8 @@ import { DataGrid } from "@mui/x-data-grid";
 import "notyf/notyf.min.css";
 import axios from "axios";
 import Swal from "sweetalert2";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 function SubFeatures({ dataSubFeatures, dataFeatures }) {
     const [image, setImage] = useState(null);
     const [imageMap, setImageMap] = useState({});
@@ -54,23 +56,19 @@ function SubFeatures({ dataSubFeatures, dataFeatures }) {
                                 : null,
                         }));
                     } else {
-                        notyf.open({
-                            type: "error",
-                            message: res.data.msg,
+                        toast.error(res.data.msg, {
+                            position: "top-right"
                         });
                     }
                 })
                 .catch((error) => {
-                    notyf.open({
-                        type: "error",
-                        message:
-                            "An error occurred while updating the feature.",
+                    toast.error(error, {
+                        position: "top-right"
                     });
                 });
         } else {
-            notyf.open({
-                type: "warning",
-                message: "Feature ID cannot be 0.",
+            toast.error('Id phải khác 0', {
+                position: "top-right"
             });
         }
     };
@@ -137,14 +135,14 @@ function SubFeatures({ dataSubFeatures, dataFeatures }) {
             width: 250,
             editable: true,
         },
-        { field: "slug", headerName: "Slug", width: 200},
+        { field: "slug", headerName: "Slug", width: 200 },
         {
             field: "remove_bg",
             headerName: "Remove Background",
             width: 200,
             renderCell: (params) => (
                 <input
-                key={params.row.id}
+                    key={params.row.id}
                     type="checkbox"
                     className="text-center"
                     checked={params.value}
@@ -152,9 +150,9 @@ function SubFeatures({ dataSubFeatures, dataFeatures }) {
                         const checked = event.target.checked;
                         axios.put(`/sub_feature/${params.row.id}`, {
                             remove_bg: checked,
-                        }).then((res)=>{
-                            if(res.data.check==true){
-                                setData(res.data.data); 
+                        }).then((res) => {
+                            if (res.data.check == true) {
+                                setData(res.data.data);
                             }
                         })
                     }}
@@ -231,23 +229,16 @@ function SubFeatures({ dataSubFeatures, dataFeatures }) {
             })
             .then((res) => {
                 if (res.data.check == true) {
-                    notyf.open({
-                        type: "success",
-                        message: "Đã thêm thành công",
+                    toast.success("Đã thêm thành công", {
+                        position: "top-right"
                     });
                     setData(res.data.data);
                     resetCreate();
                     setShow(false);
-                } else if (res.data.check == true) {
-                    notyf.open({
-                        type: "success",
-                        message: res.data.msg,
-                    });
                 } else if (res.data.check == false) {
                     if (res.data.msg) {
-                        notyf.open({
-                            type: "error",
-                            message: res.data.msg,
+                        toast.error(res.data.msg, {
+                            position: "top-right"
                         });
                     }
                 }
@@ -270,7 +261,9 @@ function SubFeatures({ dataSubFeatures, dataFeatures }) {
             })
             .then((res) => {
                 if (res.data.check) {
-                    notyf.success("Ảnh đã được cập nhật thành công");
+                    toast.success("Đã cập nhật ảnh thành công", {
+                        position: "top-right"
+                    });
                     setData(res.data.data);
                     closeImageModal();
                 } else {
@@ -293,7 +286,9 @@ function SubFeatures({ dataSubFeatures, dataFeatures }) {
                     if (result.isConfirmed) {
                         axios.delete("/sub_feature/" + id).then((res) => {
                             if (res.data.check == true) {
-                                notyf.success("Đã xóa thành công");
+                                toast.success("Đã xoá thành công", {
+                                    position: "top-right"
+                                });
                                 setData(res.data.data);
                             }
                         });
@@ -316,15 +311,13 @@ function SubFeatures({ dataSubFeatures, dataFeatures }) {
                     )
                     .then((res) => {
                         if (res.data.check == true) {
-                            notyf.open({
-                                type: "success",
-                                message: "Chỉnh sửa loại tài khoản thành công",
+                            toast.success("Đã sửa thành công", {
+                                position: "top-right"
                             });
                             setData(res.data.data);
                         } else if (res.data.check == false) {
-                            notyf.open({
-                                type: "error",
-                                message: res.data.msg,
+                            toast.error(res.data.msg, {
+                                position: "top-right"
                             });
                         }
                     });
@@ -345,15 +338,13 @@ function SubFeatures({ dataSubFeatures, dataFeatures }) {
                 )
                 .then((res) => {
                     if (res.data.check == true) {
-                        notyf.open({
-                            type: "success",
-                            message: "Chỉnh sửa loại tài khoản thành công",
+                        toast.success("Đã chỉnh sửa thành công", {
+                            position: "top-right"
                         });
                         setData(res.data.data);
                     } else if (res.data.check == false) {
-                        notyf.open({
-                            type: "error",
-                            message: res.data.msg,
+                        toast.error(res.data.msg, {
+                            position: "top-right"
                         });
                     }
                 });
@@ -361,8 +352,10 @@ function SubFeatures({ dataSubFeatures, dataFeatures }) {
     };
     return (
         <Layout>
+            <ToastContainer />
+
             <>
-            <Modal show={showImageModal} onHide={closeImageModal}>
+                <Modal show={showImageModal} onHide={closeImageModal}>
                     <Modal.Header closeButton>
                         <Modal.Title>Thay đổi hình ảnh</Modal.Title>
                     </Modal.Header>
@@ -426,7 +419,7 @@ function SubFeatures({ dataSubFeatures, dataFeatures }) {
                             value={description}
                             id=""
                         ></textarea>
-                         <input
+                        <input
                             type="file"
                             className="form-control mt-2"
                             accept="image/*"
