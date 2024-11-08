@@ -914,7 +914,7 @@ class ImageAIController extends Controller
                             'ai_model' => 'Leo AI',
                             'api_endpoint' =>'https://cloud.leonardo.ai/api/rest/v1/generations/',
                         ]);
-                        return response()->json(['check' => true, 'url' => $image]);
+                        return response()->json(['check' => true, 'url' => $image,'bg_url'=>$firstImageUrl]);
                     } 
                 }
             }
