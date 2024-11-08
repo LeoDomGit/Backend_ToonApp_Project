@@ -25,8 +25,8 @@ class KeyController extends Controller
     {
         // Validate the incoming data
         $validator = Validator::make($request->all(), [
-            'api' => 'required|string|max:255',
-            'key' => 'required|string|max:255',
+            'api' => 'required|string|',
+            'key' => 'required|string|',
         ]);
 
         // If validation fails, return an error response
