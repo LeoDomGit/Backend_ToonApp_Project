@@ -45,18 +45,11 @@ class ImageAIController extends Controller
         $folder = 'users-' . Auth::guard('customer')->id() . '/';
         $code_profile = 'image-' . time();
 
-        // Step 1: Upload original image to CDN
-        $originalImageUrl = $this->uploadToCloudFlareFromFile(
-            $image->getRealPath(), // Use the real path of the uploaded file
-            $code_profile,
-            $folder,
-            $filename
-        );
+        $cdn = $this->uploadToCloudFlareFromFile($image,$folder,$filename);
         $id = Photos::insertGetId([
-            'customer_id' => Auth::guard('customer')->id(),
-            'original_image_path' => $originalImageUrl,
-        ]);
-
+          'customer_id' => Auth::guard('customer')->id(),
+          'original_image_path' => $cdn,
+      ]);
         return $id;
     }
 
@@ -873,12 +866,7 @@ class ImageAIController extends Controller
         $featuresId = $result->id;
         $folder = 'cartoon';
         $filename =  pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-         $cdn = $this->uploadToCloudFlareFromFile($file,$folder,$filename);
-          $id_img = Photos::insertGetId([
-            'customer_id' => Auth::guard('customer')->id(),
-            'original_image_path' => $cdn,
-        ]);
-
+        $id_img=$this->uploadServerImage($file);
         $response = Http::withHeaders([
             'Authorization' => 'Bearer ' . $this->leo_key,
             'Accept' => 'application/json',
@@ -917,8 +905,6 @@ class ImageAIController extends Controller
                         $firstImageUrl = $data['generations_by_pk']['generated_images'][0]['url'];
                         $image = $this->removeBackground($firstImageUrl);
                         $image = $this->uploadToCloudFlareFromCdn($image, 'image-' . time(), 'Cartoon','gen'.$generationId);
- 
-                        
                         Activities::create([
                             'customer_id' => Auth::guard('customer')->id(),
                             'photo_id' => $id_img,
