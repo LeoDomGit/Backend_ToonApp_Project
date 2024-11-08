@@ -11,7 +11,14 @@ import Swal from "sweetalert2";
 import { render } from "react-dom";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-function Index({ datafeatures }) {
+import OutlinedInput from '@mui/material/OutlinedInput';
+import InputLabel from '@mui/material/InputLabel';
+import MenuItem from '@mui/material/MenuItem';
+import FormControl from '@mui/material/FormControl';
+import ListItemText from '@mui/material/ListItemText';
+import Select from '@mui/material/Select';
+import Checkbox from '@mui/material/Checkbox';
+function Index({ datafeatures, datasizes }) {
     const [image, setImage] = useState(null);
     const [feature, setFeature] = useState("");
     const [description, setDescription] = useState("");
@@ -85,6 +92,47 @@ function Index({ datafeatures }) {
             width: 200,
             editable: true,
         },
+        {
+            field: "sizes",
+            headerName: "Sizes",
+            width: 200,
+            renderCell: (params) => (
+                <FormControl sx={{ m: 1, width: 200 }}>
+                    <InputLabel>Sizes</InputLabel>
+                    <Select
+                        multiple
+                        value={params.value || []} // Set the initial value to an empty array if no sizes
+                        input={<OutlinedInput label="Sizes" />}
+                        renderValue={(selected) => selected.join(", ")}
+                        onChange={(event) => {
+                            const newSizes = event.target.value;
+                            axios.put(`/features/${params.row.id}`, {
+                                sizes: newSizes,
+                            }).then((res) => {
+                                if (res.data.check) {
+                                    toast.success("Sizes updated successfully!", {
+                                        position: "top-right",
+                                    });
+                                    setData(res.data.data); // Update data state with new response
+                                } else {
+                                    toast.error(res.data.msg, {
+                                        position: "top-right",
+                                    });
+                                }
+                            });
+                        }}
+                    >
+                        {datasizes.map((size) => (
+                            <MenuItem key={size} value={size}>
+                                <Checkbox checked={params.value.includes(size)} />
+                                <ListItemText primary={size} />
+                            </MenuItem>
+                        ))}
+                    </Select>
+                </FormControl>
+            ),
+            editable: true,
+        },
         { field: "prompt", headerName: "Prompt", width: 200, editable: true },
         {
             field: "presetStyle",
@@ -128,7 +176,7 @@ function Index({ datafeatures }) {
                             if (res.data.check == true) {
                                 toast.success("Đã sửa thành công !", {
                                     position: "top-right"
-                                  });
+                                });
                                 setData(res.data.data);
                             }
                         })
@@ -136,7 +184,7 @@ function Index({ datafeatures }) {
                 />
             ),
             editable: true,
-        },{
+        }, {
             field: "detech_face",
             headerName: "Detech Face",
             width: 200,
@@ -154,7 +202,7 @@ function Index({ datafeatures }) {
                             if (res.data.check == true) {
                                 toast.success("Đã sửa thành công !", {
                                     position: "top-right"
-                                  });
+                                });
                                 setData(res.data.data);
                             }
                         })
@@ -230,8 +278,8 @@ function Index({ datafeatures }) {
             .then((res) => {
                 if (res.data.check) {
                     toast.success("Đã thêm thành công !", {
-            position: "top-right"
-          });
+                        position: "top-right"
+                    });
 
                     setData((prevData) => [...prevData, res.data.data]);
 
@@ -274,9 +322,9 @@ function Index({ datafeatures }) {
                 if (result.isConfirmed) {
                     axios.delete(`/features/${id}`).then((res) => {
                         if (res.data.check) {
-         toast.success("Đã xóa thành công !", {
-            position: "top-right"
-          });
+                            toast.success("Đã xóa thành công !", {
+                                position: "top-right"
+                            });
                             setData((prevData) =>
                                 prevData.filter((item) => item.id !== id)
                             );
@@ -292,8 +340,8 @@ function Index({ datafeatures }) {
             axios.put(`/features/${id}`, { [field]: value }).then((res) => {
                 if (res.data.check) {
                     toast.success("Chỉnh sửa thành công !", {
-            position: "top-right"
-          });
+                        position: "top-right"
+                    });
                     setData(res.data.data);
                 } else {
                     toast.error(res.data.msg, {
@@ -321,9 +369,9 @@ function Index({ datafeatures }) {
             })
             .then((res) => {
                 if (res.data.check) {
-                   toast.success("Ảnh đã được cập nhật thành công !", {
-            position: "top-right"
-          });
+                    toast.success("Ảnh đã được cập nhật thành công !", {
+                        position: "top-right"
+                    });
                     setData(res.data.data);
                     closeImageModal();
                 } else {
@@ -336,7 +384,7 @@ function Index({ datafeatures }) {
 
     return (
         <Layout>
-      <ToastContainer />
+            <ToastContainer />
 
             <>
                 <Modal show={showImageModal} onHide={closeImageModal}>
