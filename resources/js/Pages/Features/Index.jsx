@@ -126,6 +126,35 @@ function Index({ datafeatures }) {
                             remove_bg: checked,
                         }).then((res) => {
                             if (res.data.check == true) {
+                                toast.success("Đã sửa thành công !", {
+                                    position: "top-right"
+                                  });
+                                setData(res.data.data);
+                            }
+                        })
+                    }}
+                />
+            ),
+            editable: true,
+        },{
+            field: "detech_face",
+            headerName: "Detech Face",
+            width: 200,
+            renderCell: (params) => (
+                <input
+                    key={params.row.id}
+                    type="checkbox"
+                    className="text-center"
+                    checked={params.value}
+                    onChange={(event) => {
+                        const checked = event.target.checked;
+                        axios.put(`/features/${params.row.id}`, {
+                            detech_face: checked,
+                        }).then((res) => {
+                            if (res.data.check == true) {
+                                toast.success("Đã sửa thành công !", {
+                                    position: "top-right"
+                                  });
                                 setData(res.data.data);
                             }
                         })

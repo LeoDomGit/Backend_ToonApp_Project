@@ -22,6 +22,7 @@ class Features extends Model
         'strengthType',
         'description',
         'slug',
+        'detech_face',
         'remove_bg',
         'status',
         'image',
