@@ -56,8 +56,8 @@ class KeyController extends Controller
     {
         // Validate only the fields that are passed (nullable fields)
         $validatedData = $request->validate([
-            'api' => 'nullable|string|max:255',
-            'key' => 'nullable|string|max:255',
+            'api' => 'nullable|string|',
+            'key' => 'nullable|string|',
         ]);
 
         // Update the key with the new data if present
