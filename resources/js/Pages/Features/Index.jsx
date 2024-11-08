@@ -8,7 +8,9 @@ import { DataGrid } from "@mui/x-data-grid";
 import "notyf/notyf.min.css";
 import axios from "axios";
 import Swal from "sweetalert2";
-
+import { render } from "react-dom";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 function Index({ datafeatures }) {
     const [image, setImage] = useState(null);
     const [feature, setFeature] = useState("");
@@ -76,6 +78,7 @@ function Index({ datafeatures }) {
     const columns = [
         { field: "id", headerName: "#", width: 100 },
         { field: "name", headerName: "Features", width: 200, editable: true },
+        { field: "slug", headerName: "Slug", width: 200 },
         {
             field: "model_id",
             headerName: "Model ID",
@@ -105,6 +108,59 @@ function Index({ datafeatures }) {
             field: "strengthType",
             headerName: "Strength Type",
             width: 200,
+            editable: true,
+        },
+        {
+            field: "remove_bg",
+            headerName: "Remove Background",
+            width: 200,
+            renderCell: (params) => (
+                <input
+                    key={params.row.id}
+                    type="checkbox"
+                    className="text-center"
+                    checked={params.value}
+                    onChange={(event) => {
+                        const checked = event.target.checked;
+                        axios.put(`/features/${params.row.id}`, {
+                            remove_bg: checked,
+                        }).then((res) => {
+                            if (res.data.check == true) {
+                                toast.success("Đã sửa thành công !", {
+                                    position: "top-right"
+                                  });
+                                setData(res.data.data);
+                            }
+                        })
+                    }}
+                />
+            ),
+            editable: true,
+        },{
+            field: "detech_face",
+            headerName: "Detech Face",
+            width: 200,
+            renderCell: (params) => (
+                <input
+                    key={params.row.id}
+                    type="checkbox"
+                    className="text-center"
+                    checked={params.value}
+                    onChange={(event) => {
+                        const checked = event.target.checked;
+                        axios.put(`/features/${params.row.id}`, {
+                            detech_face: checked,
+                        }).then((res) => {
+                            if (res.data.check == true) {
+                                toast.success("Đã sửa thành công !", {
+                                    position: "top-right"
+                                  });
+                                setData(res.data.data);
+                            }
+                        })
+                    }}
+                />
+            ),
             editable: true,
         },
         {
@@ -173,14 +229,18 @@ function Index({ datafeatures }) {
             })
             .then((res) => {
                 if (res.data.check) {
-                    notyf.success("Đã thêm thành công");
+                    toast.success("Đã thêm thành công !", {
+            position: "top-right"
+          });
 
                     setData((prevData) => [...prevData, res.data.data]);
 
                     resetCreate();
                     setShow(false);
                 } else {
-                    notyf.error(res.data.msg);
+                    toast.error(res.data.msg, {
+                        position: "top-right"
+                    });
                 }
             })
             .catch((err) => {
@@ -214,12 +274,16 @@ function Index({ datafeatures }) {
                 if (result.isConfirmed) {
                     axios.delete(`/features/${id}`).then((res) => {
                         if (res.data.check) {
-                            notyf.success("Đã xóa thành công");
+         toast.success("Đã xóa thành công !", {
+            position: "top-right"
+          });
                             setData((prevData) =>
                                 prevData.filter((item) => item.id !== id)
                             );
                         } else {
-                            notyf.error(res.data.msg);
+                            toast.error(res.data.msg, {
+                                position: "top-right"
+                            });
                         }
                     });
                 }
@@ -227,14 +291,14 @@ function Index({ datafeatures }) {
         } else {
             axios.put(`/features/${id}`, { [field]: value }).then((res) => {
                 if (res.data.check) {
-                    notyf.success("Chỉnh sửa thành công");
-                    setData((prevData) =>
-                        prevData.map((item) =>
-                            item.id === id ? { ...item, [field]: value } : item
-                        )
-                    );
+                    toast.success("Chỉnh sửa thành công !", {
+            position: "top-right"
+          });
+                    setData(res.data.data);
                 } else {
-                    notyf.error(res.data.msg);
+                    toast.error(res.data.msg, {
+                        position: "top-right"
+                    });
                 }
             });
         }
@@ -257,17 +321,23 @@ function Index({ datafeatures }) {
             })
             .then((res) => {
                 if (res.data.check) {
-                    notyf.success("Ảnh đã được cập nhật thành công");
+                   toast.success("Ảnh đã được cập nhật thành công !", {
+            position: "top-right"
+          });
                     setData(res.data.data);
                     closeImageModal();
                 } else {
-                    notyf.error(res.data.msg);
+                    toast.error(res.data.msg, {
+                        position: "top-right"
+                    });
                 }
             });
     };
 
     return (
         <Layout>
+      <ToastContainer />
+
             <>
                 <Modal show={showImageModal} onHide={closeImageModal}>
                     <Modal.Header closeButton>
@@ -418,12 +488,12 @@ function Index({ datafeatures }) {
                 </nav>
 
                 {/* Data Grid */}
-                <div className="row">
-                    <div className="col-md-9">
+                <div className="row w-80">
+                    <div className="col-md">
                         {data && data.length > 0 && (
                             <div className="card border-0 shadow">
                                 <div className="card-body">
-                                    <Box sx={{ height: 400, width: "100%" }}>
+                                    <Box sx={{ width: '100%', height: 400, overflowX: 'auto', overflowY: 'hidden' }}>
                                         <DataGrid
                                             rows={data}
                                             columns={columns}

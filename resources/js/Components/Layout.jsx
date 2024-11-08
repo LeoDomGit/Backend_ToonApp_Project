@@ -89,12 +89,19 @@ function Layout({ children }) {
             <MenuItem icon={<ReceiptOutlinedIcon />}>Profile</MenuItem>
             <MenuItem icon={<HelpOutlineOutlinedIcon />}>FAQ</MenuItem>
             <MenuItem icon={<CalendarTodayOutlinedIcon />}>Calendar</MenuItem> */}
+
                     </Menu>
                 </Sidebar>
                 <main className="p-4 w-100">{children}</main>
             </div>
         </>
     );
+					</Menu>
+				</Sidebar>
+				<main className="p-4 w-90">{children}</main>
+			</div>
+		</>
+	);
 }
 
 export default Layout;

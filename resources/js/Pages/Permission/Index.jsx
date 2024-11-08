@@ -10,6 +10,8 @@ import Swal from "sweetalert2";
 import FormControl from "@mui/material/FormControl";
 import Select from "@mui/material/Select";
 import axios from "axios";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 function Index({ permissions, roles }) {
     const [permission, setPermission] = useState("");
     const [data, setData] = useState(permissions);
@@ -35,10 +37,10 @@ function Index({ permissions, roles }) {
         }).then((res) => {
             console.log(res.data.check);
             if (res.data.check == true) {
-                notyf.open({
-                    type: "success",
-                    message: "Set quyền thành công",
-                });
+                toast.success("Set quyền thành công",
+                    {
+                        position: "top-right"
+                    });
                 setSelectedPermissions(res.data.permissions);
             }
         })
@@ -112,17 +114,17 @@ function Index({ permissions, roles }) {
             })
             .then((res) => {
                 if (res.data.check == true) {
-                    notyf.open({
-                        type: "success",
-                        message: "Đã thêm thành công",
-                    });
+                    toast.success("Đã thêm thành công",
+                        {
+                            position: "top-right"
+                        });
                     setData(res.data.data);
                     setShow(false);
                 } else if (res.data.check == false) {
-                    notyf.open({
-                        type: "error",
-                        message: res.data.msg,
-                    });
+                    toast.error(res.data.msg,
+                        {
+                            position: "top-right"
+                        });
                 }
             });
     };
@@ -148,15 +150,14 @@ function Index({ permissions, roles }) {
                 )
                 .then((res) => {
                     if (res.data.check == true) {
-                        notyf.open({
-                            type: "success",
-                            message: "Chỉnh sửa quyền tài khoản thành công",
-                        });
+                        toast.success("Đã chỉnh sửa thành công",
+                            {
+                                position: "top-right"
+                            });
                         setData(res.data.data);
                     } else if (res.data.check == false) {
-                        notyf.open({
-                            type: "error",
-                            message: res.data.msg,
+                        toast.error(res.data.msg, {
+                            position: "top-right"
                         });
                     }
                 });
@@ -176,15 +177,14 @@ function Index({ permissions, roles }) {
                         )
                         .then((res) => {
                             if (res.data.check == true) {
-                                notyf.open({
-                                    type: "success",
-                                    message: "Xoá quyền tài khoản thành công",
-                                });
+                                toast.success("Xoá quyền tài khoản thành công",
+                                    {
+                                        position: "top-right"
+                                    });
                                 setData(res.data.data);
                             } else if (res.data.check == false) {
-                                notyf.open({
-                                    type: "error",
-                                    message: res.data.msg,
+                                toast.error(res.data.msg, {
+                                    position: "top-right"
                                 });
                             }
                         });
@@ -195,6 +195,8 @@ function Index({ permissions, roles }) {
     };
     return (
         <Layout>
+            <ToastContainer />
+
             <>
                 <Modal show={show} onHide={handleClose}>
                     <Modal.Header closeButton>
