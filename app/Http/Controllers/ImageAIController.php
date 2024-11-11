@@ -578,8 +578,8 @@ class ImageAIController extends Controller
         $image_id = $result['id'];
         $routePath = $request->path();
         $result = Features::where('api_endpoint', $routePath)->first();
-        $initImageId = $result->initImageId;
         $result = Features::where('slug', $request->slug)->first();
+        $initImageId = $result->initImageId;
         $feature=Features::where('slug', $request->slug)->first();
         $check=FeaturesSizes::where([
             'feature_id'=>$feature->id,
