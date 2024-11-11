@@ -11,7 +11,11 @@ import MenuOutlinedIcon from "@mui/icons-material/MenuOutlined";
 import GroupIcon from "@mui/icons-material/Group";
 import BrandingWatermarkIcon from "@mui/icons-material/BrandingWatermark";
 import InventoryIcon from "@mui/icons-material/Inventory";
+import KeyIcon from '@mui/icons-material/Key';
 import LogoutIcon from "@mui/icons-material/Logout";
+import WallpaperIcon from '@mui/icons-material/Wallpaper';
+import PhotoSizeSelectActualIcon from '@mui/icons-material/PhotoSizeSelectActual';
+import FeaturedPlayListIcon from '@mui/icons-material/FeaturedPlayList';
 import "../../css/app.css";
 
 function Layout({ children }) {
@@ -49,31 +53,34 @@ function Layout({ children }) {
                                 </MenuItem>
                             </a>
                         </SubMenu>
-                        <SubMenu label="Features" icon={<GroupIcon />}>
+                        <SubMenu label="Features" icon={<FeaturedPlayListIcon />}>
                             <a href={"/features"}>
-                                <MenuItem icon={<GroupIcon />}>
+                                <MenuItem icon={<FeaturedPlayListIcon />}>
                                     Features
                                 </MenuItem>
                             </a>
                             <a href={"/sub_feature"}>
-                                <MenuItem icon={<GroupIcon />}>
+                                <MenuItem icon={<FeaturedPlayListIcon />}>
                                     Sub Features
                                 </MenuItem>
                             </a>
                             <a href={"/api_images"}>
-                                <MenuItem icon={<GroupIcon />}>
+                                <MenuItem icon={<PhotoSizeSelectActualIcon />}>
                                     API Images
                                 </MenuItem>
                             </a>
                         </SubMenu>
                         <a href={"/sizes"}>
-                            <MenuItem icon={<GroupIcon />}>Sizes</MenuItem>
+                            <MenuItem icon={<BrandingWatermarkIcon />}>Sizes</MenuItem>
                         </a>
                         <a href={"/backgrounds"}>
-                            <MenuItem icon={<GroupIcon />}>Background</MenuItem>
+                            <MenuItem icon={<WallpaperIcon />}>Background</MenuItem>
                         </a>
                         <a href={"/keys"}>
-                            <MenuItem icon={<GroupIcon />}>API key</MenuItem>
+                            <MenuItem icon={<KeyIcon />}>API key</MenuItem>
+                        </a>
+                        <a href={"/packages"}>
+                            <MenuItem icon={<InventoryIcon />}>Packages</MenuItem>
                         </a>
                         <a href={"/logout"}>
                             <MenuItem icon={<LogoutIcon />}>Log out</MenuItem>
