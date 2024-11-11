@@ -566,78 +566,113 @@ class ImageAIController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'image' => 'required|mimes:png,jpg,jpeg',
-            'reference_image' => 'required|mimes:png,jpg,jpeg',
-            'level' => 'in:l1,l2,l3,l4,l5',
+            'slug'=>'required|exists:features,slug',
+            'id_size'=>'required|exists:image_sizes,id'
         ]);
 
         if ($validator->fails()) {
-            activity('claymation')
-                ->withProperties(['error' => $validator->errors()->first()])
-                ->log('Validation failed');
-
             return response()->json(['check' => false, 'msg' => $validator->errors()->first()]);
         }
-
-        $image = $request->file('image');
-        $id_img = $this->uploadServerImage($image);
-        $referenceImage = $request->file('reference_image');
-        $level = $request->input('level', 'l5'); // Default to l5
-
-        // Log the start of the API request
-        activity('claymation')
-            ->withProperties([
-                'id_img' => $id_img,
-                'level' => $level,
-            ])
-            ->log('Sending request to Picsart API');
-
-        // Send request to Picsart API
+        $file = $request->file('image');
+        $result = $this->uploadImage($file);
+        $image_id = $result['id'];
+        $routePath = $request->path();
+        $result = Features::where('api_endpoint', $routePath)->first();
+        $initImageId = $result->initImageId;
+        $result = Features::where('slug', $request->slug)->first();
+        $feature=Features::where('slug', $request->slug)->first();
+        $check=FeaturesSizes::where([
+            'feature_id'=>$feature->id,
+            'size_id'=>$request->id_size
+        ])->first();
+        if(!$check){
+            return response()->json(['check'=>false,'msg'=>'Size này không được hỗ trợ trong feature'],400);
+        }
+        $size=ImageSize::where('id',$request->id_size)->first();
+        $height=$size->height;
+        $width=$size->width;
+        $initImageId=$result->initImageId;
+        $featuresId = $result->id;
+        $folder = 'cartoon';
+        $filename =  pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+        $id_img = $this->uploadServerImage($file);
         $response = Http::withHeaders([
-            'X-Picsart-API-Key' => $this->key,
+            'Authorization' => 'Bearer ' . $this->leo_key,
             'Accept' => 'application/json',
-        ])->attach(
-            'image',
-            file_get_contents($image->getRealPath()),
-            $image->getClientOriginalName()
-        )->attach(
-            'reference_image',
-            file_get_contents($referenceImage->getRealPath()),
-            $referenceImage->getClientOriginalName()
-        )->post('https://api.picsart.io/tools/1.0/styletransfer', [
-            [
-                'name' => 'level',
-                'contents' => $level
+        ])->post('https://cloud.leonardo.ai/api/rest/v1/generations', [
+            'height' => $height,
+            'modelId' => $result->model_id,
+            'prompt' => $result->prompt,
+            'presetStyle' => $result->presetStyle,
+            'width' => $width,
+            'num_images' => 1,
+            'alchemy' => true,
+            'controlnets' => [
+                [
+                    'initImageId' =>  $initImageId,
+                    'initImageType' => 'UPLOADED',
+                    'preprocessorId' => (int)$result->preprocessorId,
+                    'strengthType' => 'High',
+                ]
             ],
-            [
-                'name' => 'format',
-                'contents' => 'JPG'
-            ]
+            "init_image_id" => $image_id,
+            "init_strength" => 0.5,
         ]);
-
-        // Check response status and log the result
         if ($response->successful()) {
-            $data = $response->json();
-            $image_url = $data['data']['url'];
-            $filename = pathinfo($image->getClientOriginalName(), PATHINFO_FILENAME);
-            $folder = 'Styletransfer';
-            $code_profile = 'image-' . time();
-            $cdnUrl = $this->uploadToCloudFlareFromFile($image_url, $code_profile, $folder, $filename);
-            activity('claymation')
-                ->withProperties([
-                    'cdnUrl' => $cdnUrl,
-                    'size' => $image->getSize(),
-                ])
-                ->log('Image processed successfully');
-            $this->createActivities($id_img, $cdnUrl, $image->getSize(), '/api/claymation', 'https://api.picsart.io/tools/1.0/styletransfer');
-            return response()->json(['check' => true, 'url' => $cdnUrl]);
+            $data = $response->body();
+            $data = json_decode($data, true);
+            $generationId = $data['sdGenerationJob']['generationId'];
+            while (true) {
+                $response = Http::withHeaders([
+                    'accept' => 'application/json',
+                    'authorization' =>'Bearer ' . $this->leo_key,
+                ])->get('https://cloud.leonardo.ai/api/rest/v1/generations/'.$generationId);
+        
+                if ($response->successful()) {
+                    $data = $response->json();
+                    if (!empty($data['generations_by_pk']['generated_images'])) {
+                        // Get the original image URL and upload it to Cloudflare
+                        $firstImageUrl = $data['generations_by_pk']['generated_images'][0]['url'];
+                        $originalImageUrl = $this->uploadToCloudFlareFromCdn(
+                             $data['generations_by_pk']['generated_images'][0]['url'], 
+                            'image-result' . time(), 
+                            $feature->slug,
+                            Auth::guard('customer')->id() . '-gen' . $generationId
+                        );
+                        // By default, set $image to $originalImageUrl
+                        $image = $originalImageUrl;
+                        // Check if background removal is enabled
+                        if ($feature->remove_bg == 1) {
+                            $imageWithoutBg = $this->removeBackground($originalImageUrl);
+                            $image = $this->uploadToCloudFlareFromCdn(
+                                $imageWithoutBg, 
+                                'image-' . time(), 
+                                $feature->slug,
+                                Auth::guard('customer')->id() . 'result-gen' . $generationId
+                            );
+                        }
+                        // Log the activity with the final image URL
+                        Activities::create([
+                            'customer_id' => Auth::guard('customer')->id(),
+                            'photo_id' => $id_img,
+                            'features_id' => $featuresId,
+                            'image_result' => $image,
+                            'image_size' => $result->width,
+                            'ai_model' => 'Leo AI',
+                            'api_endpoint' => 'https://cloud.leonardo.ai/api/rest/v1/generations/',
+                        ]);
+                    
+                        // Return the JSON response with both the original and modified URLs
+                        return response()->json([
+                            'check' => true,
+                            'url' => $image,              // Final image URL (with or without background removed)
+                            'bg_url' => $originalImageUrl  // Original image URL
+                        ]);
+                    }
+                }
+            }
         } else {
-            activity('claymation')
-                ->withProperties([
-                    'error' => $response->body()
-                ])
-                ->log('Failed to process image');
-
-            return response()->json(['check' => false, 'msg' => 'Failed to process image', 'error' => $response->body()], 400);
+            return response()->json(['check' => false, 'msg' => 'Failed to upload image.', 'details' => $response->body()]);
         }
     }
 
