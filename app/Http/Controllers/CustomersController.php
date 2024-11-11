@@ -49,25 +49,26 @@ class CustomersController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'email' => 'required|email|exists:customers,email',
-            'password' => 'required',
+            'device_id' => 'required',
         ]);
 
         if ($validator->fails()) {
             return response()->json(['check' => false, 'msg' => $validator->errors()->first()], 400);
         }
 
-        $customer = Customers::where('email', $request->email)->first();
-
-        if (!$customer || !Hash::check($request->password, $customer->password)) {
-            return response()->json(['check' => false, 'msg' => 'Invalid email or password'], 401);
+        $customer = Customers::where('email', $request->email)->where('device_id',$request->device_id)->first();
+        if (!$customer) {
+            return response()->json(['check' => false, 'msg' => 'Invalid account'], 401);
         }
+        if(!$customer->remember_token){
+            $token = $customer->createToken('customer_token')->plainTextToken;
+            $customer->update([
+                'last_login' => now(),
+                'remember_token' => $token,
+            ]);
+        }      
 
-        $token = $customer->createToken('customer_token')->plainTextToken;
-        $customer->update([
-            'last_login' => now(),
-            'remember_token' => $token,
-        ]);
-
+        $token=$customer->remember_token;
         return response()->json(['check' => true, 'token' => $token, 'customer' => $customer], 200);
     }
 

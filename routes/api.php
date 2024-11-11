@@ -35,9 +35,7 @@ Route::middleware('device_login')->group(function () {
     Route::post('/upload_image',[ImageAIController::class,'uploadImage']);
     Route::post('/style',[ImageAIController::class,'cartoon']);
     Route::post('/claymation',[ImageAIController::class,'claymation'])->middleware('auth:sanctum');
-
     // Route::prefix('image_ai')->group(function () {
-        
     //     // Route::post('/remove_background',[ImageAIController::class,'changeBackground']);
     //     // Route::post('/disney_charactors',[ImageAIController::class,'disneyCharators']);
     //     // Route::post('/fullbody_cartoon',[ImageAIController::class,'fullBodyCartoon']);
@@ -46,12 +44,17 @@ Route::middleware('device_login')->group(function () {
     //     // Route::post('/funny_charactors',[ImageAIController::class,'funnyCharactors']);
     // });
 });
+
+
+
 Route::get('/backgrounds',[BackgroundController::class,'api_index']);
 
 Route::get('/update_feature_slug',[FeaturesController::class,'update_feature_slug']);
 Route::get('/update_sub_feature_slug',[SubFeaturesController::class,'update_feature_slug']);
 
-Route::get('/test',[ImageAIController::class,'removeBackground']);
+Route::middleware('auth:sanctum')->get('/test', function() {
+    return response()->json(Auth::user());
+});
 Route::prefix('users')->group(function () {
     Route::post('/register',[UserController::class,'register']);
     Route::post('/login',[UserController::class,'Login']);
