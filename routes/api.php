@@ -34,10 +34,11 @@ Route::middleware('device_login')->group(function () {
     Route::get('/logout',[CustomersController::class, 'logout']);
     Route::post('/upload_image',[ImageAIController::class,'uploadImage']);
     Route::post('/style',[ImageAIController::class,'cartoon']);
+    Route::post('/claymation',[ImageAIController::class,'claymation']);
+
     // Route::prefix('image_ai')->group(function () {
         
     //     // Route::post('/remove_background',[ImageAIController::class,'changeBackground']);
-    //     // Route::post('/claymation',[ImageAIController::class,'claymation']);
     //     // Route::post('/disney_charactors',[ImageAIController::class,'disneyCharators']);
     //     // Route::post('/fullbody_cartoon',[ImageAIController::class,'fullBodyCartoon']);
     //     // Route::post('/animal_toon',[ImageAIController::class,'animalToon']);
