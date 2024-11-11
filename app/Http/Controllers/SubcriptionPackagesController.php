@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\PackageRequest;
 use App\Models\SubcriptionPackage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -30,9 +31,16 @@ class SubcriptionPackagesController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(PackageRequest $request)
     {
-        //
+        if($request->validated()){
+            $data=$request->all();
+            $data['created_at']=now();
+            SubcriptionPackage::create($data);
+            $data= SubcriptionPackage::all();
+            return response()->json(['check'=>true,'data'=>$data]);
+
+        }
     }
 
     /**
@@ -54,16 +62,22 @@ class SubcriptionPackagesController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, SubcriptionPackage $subcriptionPackage)
+    public function update(PackageRequest $request, $id)
     {
-        //
+        $data=$request->all();
+            $data['updated_at']=now();
+            SubcriptionPackage::where('id',$id)->update($data);
+            $data= SubcriptionPackage::all();
+            return response()->json(['check'=>true,'data'=>$data]);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(SubcriptionPackage $subcriptionPackage)
+    public function destroy(SubcriptionPackage $subcriptionPackage,$id)
     {
-        //
+        SubcriptionPackage::where('id', $id)->delete();
+        $data = SubcriptionPackage::all();
+        return response()->json(['check' => true, 'data' => $data]);
     }
 }

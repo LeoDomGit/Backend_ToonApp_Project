@@ -23,7 +23,7 @@ class PackageRequest extends FormRequest
      */
     public function rules()
     {
-        $id =$this->route('feature');
+        $id =$this->route('package');
         if ($this->isMethod('POST')) {
             return [
                'name'=>'required',
