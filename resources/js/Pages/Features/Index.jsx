@@ -207,6 +207,7 @@ function Index({ datafeatures, datasizes }) {
                     <Select
                         value={selectedSizes}  // Set the value to the selected sizes array
                         onChange={handleSizeChange}
+                        defaultValue={params.row.sizes ? params.row.sizes.map(size => size.id) : []}
                         onBlur={() => {
                             const featureId = params.row.id;
                             var formData = new FormData();

@@ -17,7 +17,7 @@ class FeaturesController
      */
     public function index()
     {
-        $features = Features::all();
+        $features = Features::with('sizes')->get();
         $sizes= ImageSize::all();
         return Inertia::render('Features/Index', ['datafeatures' => $features,'datasizes'=>$sizes]);
     }
