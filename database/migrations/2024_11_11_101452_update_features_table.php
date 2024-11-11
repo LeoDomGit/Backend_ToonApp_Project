@@ -11,12 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (Schema::hasTable('customers')) {
-            Schema::table('customers', function (Blueprint $table) {
-                $table->string('pro_token',255)->after('remember_token')->nullable();
-                $table->dateTime('pro_token_expire')->after('pro_token')->nullable();
-            });
-        }
+        Schema::table('features', function (Blueprint $table) {
+            $table->boolean('is_pro')->after('status')->default(0);
+        });
     }
 
     /**

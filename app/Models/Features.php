@@ -24,6 +24,7 @@ class Features extends Model
         'slug',
         'detech_face',
         'remove_bg',
+        'is_pro',
         'status',
         'image',
         'created_at',

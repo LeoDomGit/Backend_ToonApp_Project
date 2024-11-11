@@ -140,7 +140,35 @@ function Index({ datafeatures, datasizes }) {
                 />
             ),
             editable: true,
-        }, {
+        },{
+            field: "is_pro",
+            headerName: "Pro Feature",
+            width: 200,
+            renderCell: (params) => (
+                <input
+                    key={params.row.id}
+                    type="checkbox"
+                    className="text-center"
+                    checked={params.value}
+                    onChange={(event) => {
+                        const checked = event.target.checked;
+                        axios.put(`/features/${params.row.id}`, {
+                            is_pro: checked,
+                        }).then((res) => {
+                            if (res.data.check == true) {
+                                toast.success("Đã sửa thành công !", {
+                                    position: "top-right"
+                                });
+                                setData(res.data.data);
+                            }
+                        })
+                    }}
+                />
+            ),
+            editable: true,
+            
+        }
+        , {
             field: "detech_face",
             headerName: "Detech Face",
             width: 200,
@@ -545,7 +573,7 @@ function Index({ datafeatures, datasizes }) {
                 </nav>
 
                 {/* Data Grid */}
-                <div className="row w-80">
+                <div className="row w-90">
                     <div className="col-md">
                         {data && data.length > 0 && (
                             <div className="card border-0 shadow">

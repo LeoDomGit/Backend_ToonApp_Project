@@ -80,7 +80,7 @@ function Layout({ children }) {
                         </a>
                     </Menu>
                 </Sidebar>
-                <main className="p-4 w-100">{children}</main>
+                <main className="p-4 w-85">{children}</main>
             </div>
         </>
     );
