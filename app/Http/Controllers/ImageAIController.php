@@ -662,12 +662,19 @@ class ImageAIController extends Controller
                             'api_endpoint' => 'https://cloud.leonardo.ai/api/rest/v1/generations/',
                         ]);
                     
-                        // Return the JSON response with both the original and modified URLs
-                        return response()->json([
-                            'check' => true,
-                            'url' => $image,              // Final image URL (with or without background removed)
-                            'bg_url' => $originalImageUrl  // Original image URL
-                        ]);
+                        if($feature->remove_bg == 1){
+                            return response()->json([
+                                'check' => true,
+                                'url' => $image,              // Final image URL (with or without background removed)
+                                'bg_url' => $originalImageUrl  // Original image URL
+                            ]);
+                        }else{
+                            return response()->json([
+                                'check' => true,
+                                'url' => $image,      
+                            ]);
+                        }
+                        
                     }
                 }
             }
@@ -991,11 +998,18 @@ class ImageAIController extends Controller
                         ]);
                     
                         // Return the JSON response with both the original and modified URLs
-                        return response()->json([
-                            'check' => true,
-                            'url' => $image,              // Final image URL (with or without background removed)
-                            'bg_url' => $originalImageUrl  // Original image URL
-                        ]);
+                        if($feature->remove_bg == 1){
+                            return response()->json([
+                                'check' => true,
+                                'url' => $image,              // Final image URL (with or without background removed)
+                                'bg_url' => $originalImageUrl  // Original image URL
+                            ]);
+                        }else{
+                            return response()->json([
+                                'check' => true,
+                                'url' => $image,      
+                            ]);
+                        }
                     }
                 }
             }
