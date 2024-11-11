@@ -8,9 +8,17 @@ import { DataGrid } from "@mui/x-data-grid";
 import "notyf/notyf.min.css";
 import axios from "axios";
 import Swal from "sweetalert2";
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import { Select, MenuItem, OutlinedInput, InputLabel, FormControl, Checkbox, ListItemText } from '@mui/material';
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import {
+    Select,
+    MenuItem,
+    OutlinedInput,
+    InputLabel,
+    FormControl,
+    Checkbox,
+    ListItemText,
+} from "@mui/material";
 function Index({ datafeatures, datasizes }) {
     const [image, setImage] = useState(null);
     const [feature, setFeature] = useState("");
@@ -30,10 +38,10 @@ function Index({ datafeatures, datasizes }) {
     const handleShow = () => setShow(true);
     const closeImageModal = () => setShowImageModal(false);
     const handleSizeChange = (e) => {
-        const selectedValues = e.target.value;  // This will be an array of selected sizes
+        const selectedValues = e.target.value; // This will be an array of selected sizes
         setSizes(selectedValues);
-      };
-    const [sizes,setSizes]= useState([]);
+    };
+    const [sizes, setSizes] = useState([]);
     const formatCreatedAt = (dateString) => {
         const date = new Date(dateString);
         return date.toLocaleString();
@@ -126,49 +134,24 @@ function Index({ datafeatures, datasizes }) {
                     checked={params.value}
                     onChange={(event) => {
                         const checked = event.target.checked;
-                        axios.put(`/features/${params.row.id}`, {
-                            remove_bg: checked,
-                        }).then((res) => {
-                            if (res.data.check == true) {
-                                toast.success("Đã sửa thành công !", {
-                                    position: "top-right"
-                                });
-                                setData(res.data.data);
-                            }
-                        })
+                        axios
+                            .put(`/features/${params.row.id}`, {
+                                remove_bg: checked,
+                            })
+                            .then((res) => {
+                                if (res.data.check == true) {
+                                    toast.success("Đã sửa thành công !", {
+                                        position: "top-right",
+                                    });
+                                    setData(res.data.data);
+                                }
+                            });
                     }}
                 />
             ),
             editable: true,
-        },{
-            field: "is_pro",
-            headerName: "Pro Feature",
-            width: 200,
-            renderCell: (params) => (
-                <input
-                    key={params.row.id}
-                    type="checkbox"
-                    className="text-center"
-                    checked={params.value}
-                    onChange={(event) => {
-                        const checked = event.target.checked;
-                        axios.put(`/features/${params.row.id}`, {
-                            is_pro: checked,
-                        }).then((res) => {
-                            if (res.data.check == true) {
-                                toast.success("Đã sửa thành công !", {
-                                    position: "top-right"
-                                });
-                                setData(res.data.data);
-                            }
-                        })
-                    }}
-                />
-            ),
-            editable: true,
-            
-        }
-        , {
+        },
+        {
             field: "detech_face",
             headerName: "Detech Face",
             width: 200,
@@ -180,16 +163,18 @@ function Index({ datafeatures, datasizes }) {
                     checked={params.value}
                     onChange={(event) => {
                         const checked = event.target.checked;
-                        axios.put(`/features/${params.row.id}`, {
-                            detech_face: checked,
-                        }).then((res) => {
-                            if (res.data.check == true) {
-                                toast.success("Đã sửa thành công !", {
-                                    position: "top-right"
-                                });
-                                setData(res.data.data);
-                            }
-                        })
+                        axios
+                            .put(`/features/${params.row.id}`, {
+                                detech_face: checked,
+                            })
+                            .then((res) => {
+                                if (res.data.check == true) {
+                                    toast.success("Đã sửa thành công !", {
+                                        position: "top-right",
+                                    });
+                                    setData(res.data.data);
+                                }
+                            });
                     }}
                 />
             ),
@@ -229,37 +214,45 @@ function Index({ datafeatures, datasizes }) {
             width: 200,
             renderCell: (params) => {
                 // Convert the sizes from params.row.sizes to an array of selected sizes
-                const selectedSizes = params.row.sizes ? params.row.sizes.map(size => size.id) : [];
-        
+                const selectedSizes = params.row.sizes
+                    ? params.row.sizes.map((size) => size.id)
+                    : [];
+
                 return (
                     <Select
-                        value={selectedSizes}  // Set the value to the selected sizes array
+                        value={selectedSizes} // Set the value to the selected sizes array
                         onChange={handleSizeChange}
-                        defaultValue={params.row.sizes ? params.row.sizes.map(size => size.id) : []}
                         onBlur={() => {
                             const featureId = params.row.id;
                             var formData = new FormData();
-                            sizes.forEach(size => {
-                                formData.append('size_id[]', size);
+                            sizes.forEach((size) => {
+                                formData.append("size_id[]", size);
                             });
-        
-                            axios.post(`/updated_size/${featureId}`, formData)
+
+                            axios
+                                .post(`/updated_size/${featureId}`, formData)
                                 .then((res) => {
                                     if (res.data.check) {
-                                        toast.success("Sizes updated successfully!", {
-                                            position: "top-right"
-                                        });
+                                        toast.success(
+                                            "Sizes updated successfully!",
+                                            {
+                                                position: "top-right",
+                                            }
+                                        );
                                         setData(res.data.data);
                                     } else {
                                         toast.error(res.data.msg, {
-                                            position: "top-right"
+                                            position: "top-right",
                                         });
                                     }
                                 })
                                 .catch((error) => {
-                                    console.error("There was an error updating sizes:", error);
+                                    console.error(
+                                        "There was an error updating sizes:",
+                                        error
+                                    );
                                     toast.error("Failed to update sizes.", {
-                                        position: "top-right"
+                                        position: "top-right",
                                     });
                                 });
                         }}
@@ -315,7 +308,7 @@ function Index({ datafeatures, datasizes }) {
             .then((res) => {
                 if (res.data.check) {
                     toast.success("Đã thêm thành công !", {
-                        position: "top-right"
+                        position: "top-right",
                     });
 
                     setData((prevData) => [...prevData, res.data.data]);
@@ -324,7 +317,7 @@ function Index({ datafeatures, datasizes }) {
                     setShow(false);
                 } else {
                     toast.error(res.data.msg, {
-                        position: "top-right"
+                        position: "top-right",
                     });
                 }
             })
@@ -360,14 +353,14 @@ function Index({ datafeatures, datasizes }) {
                     axios.delete(`/features/${id}`).then((res) => {
                         if (res.data.check) {
                             toast.success("Đã xóa thành công !", {
-                                position: "top-right"
+                                position: "top-right",
                             });
                             setData((prevData) =>
                                 prevData.filter((item) => item.id !== id)
                             );
                         } else {
                             toast.error(res.data.msg, {
-                                position: "top-right"
+                                position: "top-right",
                             });
                         }
                     });
@@ -377,12 +370,12 @@ function Index({ datafeatures, datasizes }) {
             axios.put(`/features/${id}`, { [field]: value }).then((res) => {
                 if (res.data.check) {
                     toast.success("Chỉnh sửa thành công !", {
-                        position: "top-right"
+                        position: "top-right",
                     });
                     setData(res.data.data);
                 } else {
                     toast.error(res.data.msg, {
-                        position: "top-right"
+                        position: "top-right",
                     });
                 }
             });
@@ -407,13 +400,13 @@ function Index({ datafeatures, datasizes }) {
             .then((res) => {
                 if (res.data.check) {
                     toast.success("Ảnh đã được cập nhật thành công !", {
-                        position: "top-right"
+                        position: "top-right",
                     });
                     setData(res.data.data);
                     closeImageModal();
                 } else {
                     toast.error(res.data.msg, {
-                        position: "top-right"
+                        position: "top-right",
                     });
                 }
             });
@@ -573,12 +566,19 @@ function Index({ datafeatures, datasizes }) {
                 </nav>
 
                 {/* Data Grid */}
-                <div className="row w-90">
+                <div className="row w-80">
                     <div className="col-md">
                         {data && data.length > 0 && (
                             <div className="card border-0 shadow">
                                 <div className="card-body">
-                                    <Box sx={{ width: '100%', height: 400, overflowX: 'auto', overflowY: 'hidden' }}>
+                                    <Box
+                                        sx={{
+                                            width: "100%",
+                                            height: 400,
+                                            overflowX: "auto",
+                                            overflowY: "hidden",
+                                        }}
+                                    >
                                         <DataGrid
                                             rows={data}
                                             columns={columns}

@@ -13,12 +13,24 @@ return new class extends Migration
     {
         if (Schema::hasTable('features')) {
             Schema::table('features', function (Blueprint $table) {
-                $table->string('model_id',255)->after('description')->nullable();
-                $table->string('prompt',255)->after('model_id')->nullable();
-                $table->string('presetStyle',255)->after('prompt')->nullable();
-                $table->string('initImageId',255)->after('presetStyle')->nullable();
-                $table->string('preprocessorId',255)->after('presetStyle')->nullable();
-                $table->string('strengthType',255)->after('preprocessorId')->nullable();
+                if (!Schema::hasColumn('features', 'model_id')) {
+                    $table->string('model_id', 255)->after('description')->nullable();
+                }
+                if (!Schema::hasColumn('features', 'prompt')) {
+                    $table->string('prompt', 255)->after('model_id')->nullable();
+                }
+                if (!Schema::hasColumn('features', 'presetStyle')) {
+                    $table->string('presetStyle', 255)->after('prompt')->nullable();
+                }
+                if (!Schema::hasColumn('features', 'initImageId')) {
+                    $table->string('initImageId', 255)->after('presetStyle')->nullable();
+                }
+                if (!Schema::hasColumn('features', 'preprocessorId')) {
+                    $table->string('preprocessorId', 255)->after('presetStyle')->nullable();
+                }
+                if (!Schema::hasColumn('features', 'strengthType')) {
+                    $table->string('strengthType', 255)->after('preprocessorId')->nullable();
+                }
             });
         }
     }
@@ -28,6 +40,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        //
+        Schema::table('features', function (Blueprint $table) {
+            $table->dropColumn(['model_id', 'prompt', 'presetStyle', 'initImageId', 'preprocessorId', 'strengthType']);
+        });
     }
 };

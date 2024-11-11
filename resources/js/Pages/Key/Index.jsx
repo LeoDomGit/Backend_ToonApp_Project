@@ -37,34 +37,37 @@ function Index({ datakeys }) {
             valueGetter: (params) => formatCreatedAt(params),
         },
     ];
+    const handleSubmit = async () => {
+        // Validate the form data before sending
+        if (!name || !price || !description) {
+            notyf.error("Please fill out all the fields.");
+            return;
+        }
 
-    const handleSubmit = () => {
         const formData = new FormData();
-        formData.append("api", api);
-        formData.append("key", key);
+        formData.append("name", name);
+        formData.append("price", price);
+        formData.append("description", description); // Ensure description is correct
 
-        axios
-            .post("/keys", formData, {
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                },
-            })
-            .then((res) => {
-                if (res.data.check) {
-                    toast.success("Đã thêm thành công");
-
-                    setData((prevData) => [...prevData, res.data.data]);
-
-                    setApi("");
-                    setKey("");
-                    setShow(false);
-                } else {
-                    toast.error(res.data.msg);
-                }
-            })
-            .catch((err) => {
-                toast.error("Có lỗi xảy ra. Vui lòng thử lại.");
+        try {
+            const res = await axios.post("/packages", formData, {
+                headers: { "Content-Type": "multipart/form-data" },
             });
+
+            if (res.data.check) {
+                notyf.success("Package added successfully.");
+                setData((prevData) => [...prevData, res.data.data]);
+                setName("");
+                setPrice("");
+                setDescription("");
+                setShow(false);
+            } else {
+                notyf.error(res.data.msg);
+            }
+        } catch (err) {
+            console.error("Error:", err); // Log the error for debugging
+            notyf.error("An error occurred. Please try again.");
+        }
     };
 
     const handleEdit = (id, field, value) => {
