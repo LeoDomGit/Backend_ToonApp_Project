@@ -43,7 +43,7 @@ class Customers extends Authenticatable
     {
         // Check if remember_token exists; if not, create a new one
         if (!$this->remember_token) {
-            $this->remember_token = bin2hex(random_bytes(16)); // Generate a 32-character random token
+            $this->remember_token = $this->createToken('customer_token')->plainTextToken;
         }
     
         // Update expired_at based on the duration
