@@ -208,7 +208,7 @@ function Index({ data }) {
               />
               <JoditEditor
                 value={description}
-                config={{ readonly: false }}
+                config={{ readonly: false ,height:400}}
                 tabIndex={1}
                 onBlur={(newContent) => setDescription(newContent)}
               />
@@ -226,7 +226,8 @@ function Index({ data }) {
             <Modal.Body>
               <JoditEditor
                 value={editDescription}
-                config={{ readonly: false }}
+                
+                config={{ readonly: false ,height:400}}
                 tabIndex={1}
                 onBlur={(newContent) => setEditDescription(newContent)}
               />
