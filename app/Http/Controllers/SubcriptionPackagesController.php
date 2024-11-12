@@ -10,6 +10,7 @@ use App\Models\SubscriptionHistory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Auth;
 
 class SubcriptionPackagesController extends Controller
 {
@@ -58,14 +59,10 @@ public function buyPackages(Request $request){
         if ($validator->fails()) {
             return response()->json(['check' => 'error', 'msg' => $validator->errors()->first()]);
         }
-        $customer = Customers::where('device_id', $request->device_id)->first();
+        $customer = Auth::guard('customer')->user();
         
         if (!$customer) {
             return response()->json(['error' => 'Customer not found.'], 404);
-        }
-        if (!$customer->email) {
-            $customer->email = $request->email;
-            $customer->save();
         }
         // Create the subscription history entry
         $subscriptionHistory = SubscriptionHistory::create([
