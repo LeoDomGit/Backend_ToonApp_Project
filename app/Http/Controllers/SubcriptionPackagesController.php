@@ -77,7 +77,7 @@ public function buyPackages(Request $request){
             return response()->json(['error' => 'Subscription package not found.'], 404);
         }
         $customer->updateRememberTokenAndExpiry($subscriptionPackage->duration, $request->platform);
-        return response()->json(['check' => true]);
+        return response()->json(['check' => true,'users'=>Auth::guard('customer')->user()]);
 }
     /**
      * Display the specified resource.
