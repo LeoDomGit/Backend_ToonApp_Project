@@ -143,6 +143,30 @@ function SubFeatures({ dataSubFeatures, dataFeatures }) {
         },
         { field: "slug", headerName: "Slug", width: 200 },
         {
+            field: "status",
+            headerName: "Status",
+            width: 200,
+            renderCell: (params) => (
+                <input
+                    key={params.row.id}
+                    type="checkbox"
+                    className="text-center"
+                    checked={params.value}
+                    onChange={(event) => {
+                        const checked = event.target.checked;
+                        axios.put(`/sub_feature/${params.row.id}`, {
+                            status: checked,
+                        }).then((res) => {
+                            if (res.data.check == true) {
+                                setData(res.data.data);
+                            }
+                        })
+                    }}
+                />
+            ),
+            editable: true,
+        },
+        {
             field: "remove_bg",
             headerName: "Remove Background",
             width: 200,
