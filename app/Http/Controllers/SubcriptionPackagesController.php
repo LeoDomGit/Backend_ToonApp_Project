@@ -25,9 +25,10 @@ class SubcriptionPackagesController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function getPackages()
     {
-        //
+        $result = SubcriptionPackage::active()->get();
+        return response()->json($result);
     }
 
     /**
@@ -51,24 +52,32 @@ public function buyPackages(Request $request){
             'subscription_package_id' => 'required|integer',
             'login_provider' => 'required|string',
             'auth_method' => 'required|string',
+            'email'=>'required|email'
         ]);
 
         // Find the customer_id based on the device_id
-        $customer_id = Customers::where('device_id', $request->device_id)->value('id');
+        $customer = Customers::where('device_id', $request->device_id)->first();
         
-        if (!$customer_id) {
+        if (!$customer) {
             return response()->json(['error' => 'Customer not found.'], 404);
         }
-
+        if (!$customer->email) {
+            $customer->email = $request->email;
+            $customer->save();
+        }
         // Create the subscription history entry
         $subscriptionHistory = SubscriptionHistory::create([
-            'customer_id' => $customer_id,
+            'customer_id' => $customer->id,
             'subscription_package_id' => $request->subscription_package_id,
             'login_provider' => $request->login_provider,
             'auth_method' => $request->auth_method,
         ]);
-        
-
+        $subscriptionPackage = SubcriptionPackage::find($request->subscription_package_id);
+        if (!$subscriptionPackage) {
+            return response()->json(['error' => 'Subscription package not found.'], 404);
+        }
+        $customer->updateRememberTokenAndExpiry($subscriptionPackage->duration);
+        return response()->json(['check' => true]);
 }
     /**
      * Display the specified resource.

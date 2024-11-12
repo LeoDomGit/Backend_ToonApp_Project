@@ -13,4 +13,8 @@ class SubcriptionPackage extends Model
     public function get_columns(){
         return ['id','name','price','duration','description','status','payment_method','created_at','updated_at'];
     }
+    public function scopeActive($query)
+    {
+        return $query->where('status', 1);
+    }
 }

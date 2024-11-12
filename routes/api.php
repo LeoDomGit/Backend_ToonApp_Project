@@ -3,6 +3,7 @@
 use App\Http\Controllers\BackgroundController;
 use App\Http\Controllers\FeaturesController;
 use App\Http\Controllers\ImageAIController;
+use App\Http\Controllers\SubcriptionPackagesController;
 use App\Http\Controllers\SubFeaturesController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
@@ -35,19 +36,13 @@ Route::middleware('device_login')->group(function () {
     Route::post('/upload_image',[ImageAIController::class,'uploadImage']);
     Route::post('/style',[ImageAIController::class,'cartoon']);
     Route::post('/claymation',[ImageAIController::class,'claymation'])->middleware('auth:sanctum');
-    // Route::prefix('image_ai')->group(function () {
-    //     // Route::post('/remove_background',[ImageAIController::class,'changeBackground']);
-    //     // Route::post('/disney_charactors',[ImageAIController::class,'disneyCharators']);
-    //     // Route::post('/fullbody_cartoon',[ImageAIController::class,'fullBodyCartoon']);
-    //     // Route::post('/animal_toon',[ImageAIController::class,'animalToon']);
-    //     // Route::post('/new_profile_pic',[ImageAIController::class,'newProfilePic']);
-    //     // Route::post('/funny_charactors',[ImageAIController::class,'funnyCharactors']);
-    // });
+    Route::post('/buyPackage',[SubcriptionPackagesController::class,'buyPackages']);
 });
 
 
 
 Route::get('/backgrounds',[BackgroundController::class,'api_index']);
+Route::get('/packages',[SubcriptionPackagesController::class,'getPackages']);
 
 Route::get('/update_feature_slug',[FeaturesController::class,'update_feature_slug']);
 Route::get('/update_sub_feature_slug',[SubFeaturesController::class,'update_feature_slug']);
