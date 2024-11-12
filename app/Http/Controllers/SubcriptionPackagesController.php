@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\PackageRequest;
+use App\Models\Customers;
 use App\Models\SubcriptionPackage;
+use App\Models\SubscriptionHistory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Inertia\Inertia;
@@ -42,7 +44,32 @@ class SubcriptionPackagesController extends Controller
 
         }
     }
+// ========================================================
+public function buyPackages(Request $request){
+     $request->validate([
+            'device_id' => 'required|string',
+            'subscription_package_id' => 'required|integer',
+            'login_provider' => 'required|string',
+            'auth_method' => 'required|string',
+        ]);
 
+        // Find the customer_id based on the device_id
+        $customer_id = Customers::where('device_id', $request->device_id)->value('id');
+        
+        if (!$customer_id) {
+            return response()->json(['error' => 'Customer not found.'], 404);
+        }
+
+        // Create the subscription history entry
+        $subscriptionHistory = SubscriptionHistory::create([
+            'customer_id' => $customer_id,
+            'subscription_package_id' => $request->subscription_package_id,
+            'login_provider' => $request->login_provider,
+            'auth_method' => $request->auth_method,
+        ]);
+        
+
+}
     /**
      * Display the specified resource.
      */
