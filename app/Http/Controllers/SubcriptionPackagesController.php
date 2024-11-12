@@ -47,16 +47,16 @@ class SubcriptionPackagesController extends Controller
     }
 // ========================================================
 public function buyPackages(Request $request){
-     $request->validate([
+        $validator = Validator::make($request->all(), [
             'device_id' => 'required|string',
-            'subscription_package_id' => 'required|integer',
+            'subscription_package_id' => 'required|exists:subcription_packages,id',
             'login_provider' => 'required|string',
             'auth_method' => 'required|string',
-            'email'=>'required|email',
-            'bill_id'=>'required'
+            'serverVerificationData'=>'required'
         ]);
-
-        // Find the customer_id based on the device_id
+        if ($validator->fails()) {
+            return response()->json(['check' => 'error', 'msg' => $validator->errors()->first()]);
+        }
         $customer = Customers::where('device_id', $request->device_id)->first();
         
         if (!$customer) {
@@ -72,7 +72,7 @@ public function buyPackages(Request $request){
             'subscription_package_id' => $request->subscription_package_id,
             'login_provider' => $request->login_provider,
             'auth_method' => $request->auth_method,
-            'bill_id'=>$request->bill_id
+            'serverVerificationData'=>$request->serverVerificationData
         ]);
         $subscriptionPackage = SubcriptionPackage::find($request->subscription_package_id);
         if (!$subscriptionPackage) {
@@ -84,7 +84,17 @@ public function buyPackages(Request $request){
     /**
      * Display the specified resource.
      */
-    public function show(SubcriptionPackage $subcriptionPackage)
+    public function getToken($id){
+        $result = SubscriptionHistory::where('serverVerificationData', $id)->first();
+        $customer_id=$result->customer_id;
+        $customer=Customers::where('id',$customer_id)->first();
+        $token=$customer->remember_token;
+        return response()->json(['token'=>$token]);
+    }
+        /**
+     * Display the specified resource.
+     */
+    public function Reset(Request $request)
     {
         //
     }

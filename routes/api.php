@@ -37,6 +37,7 @@ Route::middleware('device_login')->group(function () {
     Route::post('/style',[ImageAIController::class,'cartoon']);
     Route::post('/claymation',[ImageAIController::class,'claymation'])->middleware(['auth.pro']);
     Route::post('/buyPackage',[SubcriptionPackagesController::class,'buyPackages']);
+    Route::get('/token/{id}',[SubcriptionPackagesController::class,'getToken']);
 });
 
 
