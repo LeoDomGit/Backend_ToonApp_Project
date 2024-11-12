@@ -49,7 +49,7 @@ class SubcriptionPackagesController extends Controller
 // ========================================================
 public function buyPackages(Request $request){
         $validator = Validator::make($request->all(), [
-            'device_id' => 'required|string',
+            'device_id' => 'required|exists:customers,device_id',
             'subscription_package_id' => 'required|exists:subcription_packages,id',
             'login_provider' => 'required|string',
             'auth_method' => 'required|string',
