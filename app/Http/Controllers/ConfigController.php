@@ -96,7 +96,8 @@ class ConfigController extends Controller
                 'check' => false,
                 'msg' => 'Key not found.'
             ]);
-        $item->delete();
+        }
+        Configs::find($id)->delete();
         $data = Configs::all();
         return response()->json([
             'check' => true,
@@ -104,5 +105,4 @@ class ConfigController extends Controller
             'data'=> Configs::all()
         ], 200);
     }
-}
 }
