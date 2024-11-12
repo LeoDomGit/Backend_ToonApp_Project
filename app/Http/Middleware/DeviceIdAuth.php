@@ -38,7 +38,8 @@ class DeviceIdAuth
         }
 
         return response()->json([
-            'message' => 'Unauthorized: Invalid device_id or platform',
+            'status'=>'error',
+            'msg' => 'Unauthorized: Invalid device_id or platform',
         ], 401);
     }
 }

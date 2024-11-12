@@ -174,7 +174,7 @@ class UserController extends Controller
             Session::regenerateToken();
             $data = Auth::user();
             Session::put('user_session', $data);
-            return response()->json(['check' => true, 'message' => 'Đăng nhập thành công!'], 200);
+            return response()->json(['check' => true, 'msg' => 'Đăng nhập thành công!'], 200);
         } else {
             return response()->json(['check' => false, 'msg' => 'Sai email hoặc mật khẩu']);
         }
@@ -192,7 +192,7 @@ class UserController extends Controller
             Auth::login($user);
             $request->session()->regenerate();
             Session::put('user', $user);
-            return response()->json(['check' => true, 'message' => 'Đăng nhập thành công!'], 200);
+            return response()->json(['check' => true, 'msg' => 'Đăng nhập thành công!'], 200);
         } else {
             // Return failure response if no user is found
             return response()->json(['check' => false, 'msg' => 'Login failed. User not found.']);
@@ -214,7 +214,7 @@ class UserController extends Controller
                 Session::regenerateToken();
                 $data = Auth::user();
                 Session::put('user', $data);
-                return response()->json(['check' => true, 'message' => 'Đăng nhập thành công!'], 200);
+                return response()->json(['check' => true, 'msg' => 'Đăng nhập thành công!'], 200);
             } else {
                 return response()->json(['check' => false, 'msg' => 'Sai email hoặc mật khẩu']);
             }

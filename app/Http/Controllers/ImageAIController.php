@@ -67,7 +67,7 @@ class ImageAIController extends Controller
             'role.exists' => 'Mã loại tài khoản không hợp lệ',
         ]);
         if ($validator->fails()) {
-            return response()->json(['check' => false, 'msg' => $validator->errors()->first()], 400);
+            return response()->json(['check' => 'error', 'msg' => $validator->errors()->first()], 400);
         }
     }
     public function changeBackground(Request $request)
@@ -76,7 +76,7 @@ class ImageAIController extends Controller
             'image' => 'required|mimes:png,jpg,jpeg',
         ]);
         if ($validator->fails()) {
-            return response()->json(['check' => false, 'msg' => $validator->errors()->first()], 400);
+            return response()->json(['check' => 'error', 'msg' => $validator->errors()->first()], 400);
         }
         $client = $this->client;
 
@@ -167,7 +167,7 @@ class ImageAIController extends Controller
                     ->log('Image processed successfully');
                 return response()->json(['check' => true, 'url' => $cdnUrl, 'id_img' => $id_img]);
             } else {
-                return response()->json(['check' => false, 'msg' => 'Failed to process image', 'error' => $response->getBody()->getContents()], 400);
+                return response()->json(['check' => 'error', 'msg' => 'Failed to process image', 'error' => $response->getBody()->getContents()], 400);
             }
         } else {
             $image = $request->file('image');
@@ -210,7 +210,7 @@ class ImageAIController extends Controller
                     ->log('Image processed successfully');
                 return response()->json(['check' => true, 'url' => $cdnUrl, 'id_img' => $id_img]);
             } else {
-                return response()->json(['check' => false, 'msg' => 'Failed to process image', 'error' => $response->body()], 400);
+                return response()->json(['check' => 'error', 'msg' => 'Failed to process image', 'error' => $response->body()], 400);
             }
         }
     }
@@ -228,7 +228,7 @@ class ImageAIController extends Controller
                 ->withProperties(['error' => $validator->errors()->first()])
                 ->log('Validation failed');
 
-            return response()->json(['check' => false, 'msg' => $validator->errors()->first()]);
+            return response()->json(['check' => 'error', 'msg' => $validator->errors()->first()]);
         }
         $routePath = $request->path();
         $result = FeatureImage::where('api_route', $routePath)->first()->value('path');
@@ -309,14 +309,14 @@ class ImageAIController extends Controller
                     ->withProperties(['error' => $response->body()])
                     ->log('Failed to process image');
 
-                return response()->json(['check' => false, 'msg' => 'Failed to process image', 'error' => $response->body()], 400);
+                return response()->json(['check' => 'error', 'msg' => 'Failed to process image', 'error' => $response->body()], 400);
             }
         } else {
             activity('removeBackground')
                 ->withProperties(['error' => $response->body()])
                 ->log('Failed to remove background');
 
-            return response()->json(['check' => false, 'msg' => 'Failed to remove background', 'error' => $response->body()], 400);
+            return response()->json(['check' => 'error', 'msg' => 'Failed to remove background', 'error' => $response->body()], 400);
         }
     }
     private function storeRequest($request_type, $prompt, $modelai, $method, $url_endpoint, $postfields, $response, $id_content_category)
@@ -477,7 +477,7 @@ class ImageAIController extends Controller
                 ->log('Image processed successfully');
             return $processedImageUrl;
         } else {
-            return response()->json(['check' => false, 'msg' => 'Failed to process image', 'error' => $response->json()], 400);
+            return response()->json(['check' => 'error', 'msg' => 'Failed to process image', 'error' => $response->json()], 400);
         }
     }
 
@@ -488,7 +488,7 @@ class ImageAIController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['check' => false, 'msg' => $validator->errors()->first()]);
+            return response()->json(['check' => 'error', 'msg' => $validator->errors()->first()]);
         }
 
         $image = $request->file('image');
@@ -538,7 +538,7 @@ class ImageAIController extends Controller
                 ->withProperties(['error' => $response->body()])
                 ->log('Failed to process image for animal toon effect');
 
-            return response()->json(['check' => false, 'msg' => 'Failed to process image', 'error' => $response->body()], 400);
+            return response()->json(['check' => 'error', 'msg' => 'Failed to process image', 'error' => $response->body()], 400);
         }
     }
 
@@ -571,7 +571,7 @@ class ImageAIController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['check' => false, 'msg' => $validator->errors()->first()]);
+            return response()->json(['check' => 'error', 'msg' => $validator->errors()->first()]);
         }
         $file = $request->file('image');
         $result = $this->uploadImage($file);
@@ -586,7 +586,7 @@ class ImageAIController extends Controller
             'size_id'=>$request->id_size
         ])->first();
         if(!$check){
-            return response()->json(['check'=>false,'msg'=>'Size này không được hỗ trợ trong feature'],400);
+            return response()->json(['check'=>'error','msg'=>'Size này không được hỗ trợ trong feature'],400);
         }
         $size=ImageSize::where('id',$request->id_size)->first();
         $height=$size->height;
@@ -679,7 +679,7 @@ class ImageAIController extends Controller
                 }
             }
         } else {
-            return response()->json(['check' => false, 'msg' => 'Failed to upload image.', 'details' => $response->body()]);
+            return response()->json(['check' => 'error', 'msg' => 'Failed to upload image.', 'details' => $response->body()]);
         }
     }
 
@@ -692,7 +692,7 @@ class ImageAIController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['check' => false, 'msg' => $validator->errors()->first()]);
+            return response()->json(['check' => 'error', 'msg' => $validator->errors()->first()]);
         }
 
         $image = $request->file('image');
@@ -747,7 +747,7 @@ class ImageAIController extends Controller
                 ->withProperties(['error' => $response->body()])
                 ->log('Failed to process image for Disney-style transformation');
 
-            return response()->json(['check' => false, 'msg' => 'Failed to process image', 'error' => $response->body()], 400);
+            return response()->json(['check' => 'error', 'msg' => 'Failed to process image', 'error' => $response->body()], 400);
         }
     }
 
@@ -760,7 +760,7 @@ class ImageAIController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['check' => false, 'msg' => $validator->errors()->first()]);
+            return response()->json(['check' => 'error', 'msg' => $validator->errors()->first()]);
         }
 
         $image = $request->file('image');
@@ -815,7 +815,7 @@ class ImageAIController extends Controller
                 ->withProperties(['error' => $response->body()])
                 ->log('Failed to process image for Disney characters transformation');
 
-            return response()->json(['check' => false, 'msg' => 'Failed to process image', 'error' => $response->body()], 400);
+            return response()->json(['check' => 'error', 'msg' => 'Failed to process image', 'error' => $response->body()], 400);
         }
     }
 
@@ -827,7 +827,7 @@ class ImageAIController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['check' => false, 'msg' => $validator->errors()->first()]);
+            return response()->json(['check' => 'error', 'msg' => $validator->errors()->first()]);
         }
 
         $image = $request->file('image');
@@ -876,7 +876,7 @@ class ImageAIController extends Controller
             activity('fullBodyCartoon')
                 ->withProperties(['error' => $response->body()])
                 ->log('Failed to process image for full-body cartoon effect');
-            return response()->json(['check' => false, 'msg' => 'Failed to process image', 'error' => $response->body()], 400);
+            return response()->json(['check' => 'error', 'msg' => 'Failed to process image', 'error' => $response->body()], 400);
         }
     }
 
@@ -906,7 +906,7 @@ class ImageAIController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['check' => false, 'msg' => $validator->errors()->first()]);
+            return response()->json(['check' => 'error', 'msg' => $validator->errors()->first()]);
         }
         $file = $request->file('image');
         $result = $this->uploadImage($file);
@@ -921,7 +921,7 @@ class ImageAIController extends Controller
             'size_id'=>$request->id_size
         ])->first();
         if(!$check){
-            return response()->json(['check'=>false,'msg'=>'Size này không được hỗ trợ trong feature'],400);
+            return response()->json(['check'=>'error','msg'=>'Size này không được hỗ trợ trong feature'],400);
         }
         $size=ImageSize::where('id',$request->id_size)->first();
         $height=$size->height;
@@ -1014,7 +1014,7 @@ class ImageAIController extends Controller
                 }
             }
         } else {
-            return response()->json(['check' => false, 'msg' => 'Failed to upload image.', 'details' => $response->body()]);
+            return response()->json(['check' => 'error', 'msg' => 'Failed to upload image.', 'details' => $response->body()]);
         }
     }
     /**
@@ -1063,7 +1063,7 @@ class ImageAIController extends Controller
                     'id' => $id
                 ];
             } else {
-                return response()->json(['check' => false, 'msg' => 'Failed to upload image.', 'details' => $response->body()]);
+                return response()->json(['check' => 'error', 'msg' => 'Failed to upload image.', 'details' => $response->body()]);
             }
         } else {
             return $response->body();
