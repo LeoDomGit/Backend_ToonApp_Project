@@ -17,6 +17,7 @@ class SubFeatures extends Model
         'remove_bg',
         'description',
         'status',
+        'prompt',
         'image',
         'feature_id', // Make sure this matches your database column
         'created_at',

@@ -130,6 +130,12 @@ function SubFeatures({ dataSubFeatures, dataFeatures }) {
             editable: true,
         },
         {
+            field: "prompt",
+            headerName: "Prompts",
+            width: 200,
+            editable: true,
+        },
+        {
             field: "api_endpoint",
             headerName: "API Endpoint",
             width: 250,
