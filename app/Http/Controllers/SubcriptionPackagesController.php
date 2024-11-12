@@ -52,7 +52,8 @@ public function buyPackages(Request $request){
             'subscription_package_id' => 'required|integer',
             'login_provider' => 'required|string',
             'auth_method' => 'required|string',
-            'email'=>'required|email'
+            'email'=>'required|email',
+            'bill_id'=>'required'
         ]);
 
         // Find the customer_id based on the device_id
@@ -71,6 +72,7 @@ public function buyPackages(Request $request){
             'subscription_package_id' => $request->subscription_package_id,
             'login_provider' => $request->login_provider,
             'auth_method' => $request->auth_method,
+            'bill_id'=>$request->bill_id
         ]);
         $subscriptionPackage = SubcriptionPackage::find($request->subscription_package_id);
         if (!$subscriptionPackage) {
