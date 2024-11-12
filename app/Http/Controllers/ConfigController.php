@@ -17,8 +17,8 @@ class ConfigController extends Controller
     }
     public function index()
     {
-        $keys = Configs::active()->get();
-        return Inertia::render('Configs/Index', ['dataConfigs' => $keys]);
+        $data = Configs::all();
+        return Inertia::render('Configs/Index', ['dataConfigs' => $data]);
     }
 
     /**
@@ -45,10 +45,10 @@ class ConfigController extends Controller
             'domain' => $request->domain,
             'package_name' => $request->package_name,
         ]);
-
+        $data = Configs::all();
         return response()->json([
             'check' => true,
-            'data' => $key
+            'data' => $data
         ], 201);
     }
 
@@ -76,7 +76,7 @@ class ConfigController extends Controller
         }
         // Save the updated key
         $item->save();
-$data=Configs::all();
+        $data = Configs::all();
         return response()->json([
             'check' => true,
             'data' => $data
@@ -95,7 +95,7 @@ $data=Configs::all();
                 'msg' => 'Key not found.'
             ]);
         $item->delete();
-
+        $data = Configs::all();
         return response()->json([
             'check' => true,
             'msg' => 'Key deleted successfully.',
