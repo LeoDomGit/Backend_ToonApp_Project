@@ -19,7 +19,7 @@ class DeviceIdAuth
         $deviceId = $request->input('device_id');
         $platform = $request->input('platform');
 
-        if ($deviceId) {
+        if ($deviceId && $platform) {
             // Find a customer with the given device_id
             $customer = Customers::where('device_id', $deviceId)->where('platform', $platform)->first();
             if ($customer) {
@@ -38,7 +38,7 @@ class DeviceIdAuth
         }
 
         return response()->json([
-            'message' => 'Unauthorized: Invalid device_id',
+            'message' => 'Unauthorized: Invalid device_id or platform',
         ], 401);
     }
 }
