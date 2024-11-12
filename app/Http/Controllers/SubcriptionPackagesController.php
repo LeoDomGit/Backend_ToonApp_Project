@@ -76,7 +76,7 @@ public function buyPackages(Request $request){
         if (!$subscriptionPackage) {
             return response()->json(['error' => 'Subscription package not found.'], 404);
         }
-        $customer->updateRememberTokenAndExpiry($subscriptionPackage->duration);
+        $customer->updateRememberTokenAndExpiry(duration: $subscriptionPackage->duration,$request->platform);
         return response()->json(['check' => true]);
 }
     /**

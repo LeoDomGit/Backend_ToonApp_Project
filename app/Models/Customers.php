@@ -39,7 +39,7 @@ class Customers extends Authenticatable
         'last_login' => 'datetime',
     ];
 
-    public function updateRememberTokenAndExpiry($duration)
+    public function updateRememberTokenAndExpiry($duration,$platform)
     {
         // Check if remember_token exists, if not create a new one
         if (!$this->remember_token) {
@@ -53,7 +53,7 @@ class Customers extends Authenticatable
             // Set a new expiry if none exists
             $this->expired_at = Carbon::now()->addMonths($duration);
         }
-        
+        $this->platform = $platform;
         // Save the updated fields
         $this->save();
     }
