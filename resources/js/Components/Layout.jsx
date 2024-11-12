@@ -17,7 +17,7 @@ import WallpaperIcon from '@mui/icons-material/Wallpaper';
 import PhotoSizeSelectActualIcon from '@mui/icons-material/PhotoSizeSelectActual';
 import FeaturedPlayListIcon from '@mui/icons-material/FeaturedPlayList';
 import "../../css/app.css";
-
+import PermDataSettingIcon from '@mui/icons-material/PermDataSetting';
 function Layout({ children }) {
     const { collapseSidebar } = useProSidebar();
 
@@ -81,6 +81,9 @@ function Layout({ children }) {
                         </a>
                         <a href={"/packages"}>
                             <MenuItem icon={<InventoryIcon />}>Packages</MenuItem>
+                        </a>
+                        <a href={"/configs"}>
+                            <MenuItem icon={<PermDataSettingIcon />}>Configs</MenuItem>
                         </a>
                         <a href={"/logout"}>
                             <MenuItem icon={<LogoutIcon />}>Log out</MenuItem>

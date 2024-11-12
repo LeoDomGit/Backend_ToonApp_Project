@@ -9,10 +9,10 @@ import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
 import Swal from "sweetalert2";
 
-function Index({ datakeys }) {
-    const [data, setData] = useState(datakeys);
-    const [api, setApi] = useState("");
-    const [key, setKey] = useState("");
+function Index({ dataConfigs }) {
+    const [data, setData] = useState(dataConfigs);
+    const [domain, setDomain] = useState("");
+    const [packageName, setPackageName] = useState("");
     const [show, setShow] = useState(false);
 
     const formatCreatedAt = (dateString) => {
@@ -22,8 +22,34 @@ function Index({ datakeys }) {
 
     const columns = [
         { field: "id", headerName: "#", width: 100 },
-        { field: "api", headerName: "Api", width: 200, editable: true },
-        { field: "key", headerName: "Key", width: 200, editable: true },
+        { field: "domain", headerName: "Domain ", width: 200, editable: true },
+        { field: "package_name", headerName: "Package Name", width: 200, editable: true },
+        {
+            field: "status",
+            headerName: "Status",
+            width: 200,
+            renderCell: (params) => (
+                <input
+                    key={params.row.id}
+                    type="checkbox"
+                    className="text-center"
+                    checked={params.value}
+                    onChange={(event) => {
+                        const checked = event.target.checked;
+                        axios.put(`/configs/${params.row.id}`, {
+                            status: checked,
+                        }).then((res) => {
+                            if (res.data.check == true) {
+                    toast.success("Đã chỉnh sửa thành công");
+
+                                setData(res.data.data);
+                            }
+                        })
+                    }}
+                />
+            ),
+            editable: true,
+        },
         {
             field: "created_at",
             headerName: "Created at",
@@ -40,11 +66,11 @@ function Index({ datakeys }) {
 
     const handleSubmit = () => {
         const formData = new FormData();
-        formData.append("api", api);
-        formData.append("key", key);
+        formData.append("domain", domain);
+        formData.append("package_name", packageName);
 
         axios
-            .post("/keys", formData, {
+            .post("/configs", formData, {
                 headers: {
                     "Content-Type": "multipart/form-data",
                 },
@@ -53,10 +79,10 @@ function Index({ datakeys }) {
                 if (res.data.check) {
                     toast.success("Đã thêm thành công");
 
-                    setData((prevData) => [...prevData, res.data.data]);
+                    setData(res.data.data);
 
-                    setApi("");
-                    setKey("");
+                    setPackageName("");
+                    setDomain("");
                     setShow(false);
                 } else {
                     toast.error(res.data.msg);
@@ -68,22 +94,20 @@ function Index({ datakeys }) {
     };
 
     const handleEdit = (id, field, value) => {
-        if (field === "api" && value === "") {
+        if (field === "domain" && value === "") {
             Swal.fire({
                 icon: "warning",
-                text: "Bạn muốn xóa feature này?",
+                text: "Bạn muốn config này?",
                 showCancelButton: true,
                 confirmButtonText: "Có",
                 cancelButtonText: "Không",
             }).then((result) => {
                 if (result.isConfirmed) {
-                    axios.delete(`/keys/${id}`).then((res) => {
+                    axios.delete(`/configs/${id}`).then((res) => {
                         if (res.data.check) {
                             toast.success("Xóa thành công");
 
-                            setData((prev) =>
-                                prev.filter((item) => item.id !== id)
-                            );
+                            setData(res.data.data)
                         } else {
                             toast.error(res.data.msg);
                         }
@@ -91,14 +115,11 @@ function Index({ datakeys }) {
                 }
             });
         } else {
-            axios.put(`/keys/${id}`, { [field]: value }).then((res) => {
+            axios.put(`/configs/${id}`, { [field]: value }).then((res) => {
                 if (res.data.check) {
                     toast.success("Chỉnh sửa thành công");
-                    setData((prevData) =>
-                        prevData.map((item) =>
-                            item.id === id ? { ...item, [field]: value } : item
-                        )
-                    );
+                    setData(res.data.data)
+
                 } else {
                     toast.error(res.data.msg);
                 }
@@ -110,22 +131,22 @@ function Index({ datakeys }) {
         <Layout>
             <Modal show={show} onHide={() => setShow(false)}>
                 <Modal.Header closeButton>
-                    <Modal.Title>Tạo Key</Modal.Title>
+                    <Modal.Title>Tạo config</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     <input
                         type="text"
                         className="form-control"
-                        placeholder="Nhập API..."
-                        value={api}
-                        onChange={(e) => setApi(e.target.value)}
+                        placeholder="Nhập Domain..."
+                        value={domain}
+                        onChange={(e) => setDomain(e.target.value)}
                     />
                     <textarea
                         className="form-control mt-2"
                         rows={3}
-                        placeholder="Nhập key..."
-                        value={key}
-                        onChange={(e) => setKey(e.target.value)}
+                        placeholder="Nhập Package name..."
+                        value={packageName}
+                        onChange={(e) => setPackageName(e.target.value)}
                     />
                 </Modal.Body>
                 <Modal.Footer>
@@ -135,7 +156,7 @@ function Index({ datakeys }) {
                     <Button
                         variant="primary"
                         onClick={handleSubmit}
-                        disabled={!api || !key}
+                        disabled={!packageName || !domain}
                     >
                         Tạo mới
                     </Button>

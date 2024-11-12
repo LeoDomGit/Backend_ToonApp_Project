@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\BackgroundController;
+use App\Http\Controllers\ConfigController;
 use App\Http\Controllers\FeaturesController;
 use App\Http\Controllers\ImageAIController;
 use App\Http\Controllers\SubcriptionPackagesController;
@@ -40,6 +41,7 @@ Route::middleware('device_login')->group(function () {
     Route::get('/token/{id}',[SubcriptionPackagesController::class,'getToken']);
 });
 
+Route::get('/configs',[ConfigController::class,'api_index']);
 
 
 Route::get('/backgrounds',[BackgroundController::class,'api_index']);

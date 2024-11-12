@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\BackgroundController;
+use App\Http\Controllers\ConfigController;
 use App\Http\Controllers\FeatureImageController;
 use App\Http\Controllers\FeaturesController;
 use App\Http\Controllers\ImageSizeController;
@@ -46,6 +47,7 @@ Route::middleware('checkLogin')->group(function () {
     Route::resource('/keys', KeyController::class);
     Route::post('/updated_size/{id}',[FeaturesController::class,'updated_size']);
     Route::resource('/packages',SubcriptionPackagesController::class);
+    Route::resource('/configs',ConfigController::class);
 
 });
 
