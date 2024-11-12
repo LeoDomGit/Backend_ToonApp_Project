@@ -22,6 +22,7 @@ class Customers extends Authenticatable
         'place_of_birth',
         'country',
         'city',
+        'platform',
         'last_login',
         'device_id',
         'expired_at',

@@ -21,6 +21,7 @@ class CustomersController extends Controller
             'email' => 'required|email|unique:customers,email',
             'password' => 'required|min:8',
             'fullname' => 'nullable|string',
+            'platform'=>'required',
             'age' => 'nullable|integer',
             'gender' => 'nullable|string',
             'place_of_birth' => 'nullable|string',
@@ -49,6 +50,7 @@ class CustomersController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'email' => 'required|email|exists:customers,email',
+            'platform' => 'required',
             'device_id' => 'required',
         ]);
 

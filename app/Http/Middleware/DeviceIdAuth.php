@@ -17,15 +17,18 @@ class DeviceIdAuth
     public function handle(Request $request, Closure $next): Response
     {
         $deviceId = $request->input('device_id');
+        $platform = $request->input('platform');
+
         if ($deviceId) {
             // Find a customer with the given device_id
-            $customer = Customers::where('device_id', $deviceId)->first();
+            $customer = Customers::where('device_id', $deviceId)->where('platform', $platform)->first();
             if ($customer) {
                 // Log the customer in for this request
                 Auth::guard('customer')->setUser($customer);
             }else{
                 $customer = Customers::create([
                     'device_id' => $deviceId,
+                    'platform' => $platform,
                     'created_at' => now(),
                 ]);
                 Auth::guard('customer')->setUser($customer);
