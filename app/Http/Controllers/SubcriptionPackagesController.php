@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\PackageRequest;
 use App\Models\Customers;
 use App\Models\SubcriptionPackage;
+use Carbon\Carbon;
 use App\Models\SubscriptionHistory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -88,6 +89,10 @@ public function buyPackages(Request $request){
         $result = SubscriptionHistory::where('serverVerificationData', $id)->first();
         $customer_id=$result->customer_id;
         $customer=Customers::where('id',$customer_id)->first();
+        if ($customer->expired_at && Carbon::parse($customer->expired_at)->isPast()) {
+            Customers::where('id', $customer_id)->update(['remember_token' => null,'updated_at'=>now()]);
+            return response()->json(['token'=>'Expired']);
+        }
         Customers::where('id',$customer_id)->update(['device_id'=>$request->device_id,'updated_at'=>now()]);
         $token=$customer->remember_token;
         return response()->json(['token'=>$token]);
