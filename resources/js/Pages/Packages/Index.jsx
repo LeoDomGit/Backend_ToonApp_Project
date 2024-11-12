@@ -178,7 +178,7 @@ function Index({ data }) {
         <ToastContainer />
         <div className="row">
           <div className="col-md">
-            <button className='btn btn-outline-primary' onClick={resetCreate}>Create</button>
+            <button className='btn btn-outline-primary mb-3' onClick={resetCreate}>Create</button>
           </div>
           <Modal show={show} onHide={handleClose}>
             <Modal.Header closeButton>
