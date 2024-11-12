@@ -84,10 +84,11 @@ public function buyPackages(Request $request){
     /**
      * Display the specified resource.
      */
-    public function getToken($id){
+    public function getToken(Request $request,$id){
         $result = SubscriptionHistory::where('serverVerificationData', $id)->first();
         $customer_id=$result->customer_id;
         $customer=Customers::where('id',$customer_id)->first();
+        Customers::where('id',$customer_id)->update(['device_id'=>$request->device_id,'updated_at'=>now()]);
         $token=$customer->remember_token;
         return response()->json(['token'=>$token]);
     }
