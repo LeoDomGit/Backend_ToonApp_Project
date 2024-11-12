@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Configs;
-use Config;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Validator;
@@ -14,7 +13,7 @@ class ConfigController extends Controller
      * Display a listing of the resource.
      */
     public function api_index(){
-        $data= Config::active()->get();
+        $data= Configs::active()->get();
         return response()->json($data);
     }
     public function index()
