@@ -8,8 +8,8 @@ import { DataGrid } from "@mui/x-data-grid";
 import "notyf/notyf.min.css";
 import axios from "axios";
 import Swal from "sweetalert2";
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 function SubFeatures({ dataSubFeatures, dataFeatures }) {
     const [image, setImage] = useState(null);
     const [imageMap, setImageMap] = useState({});
@@ -22,7 +22,18 @@ function SubFeatures({ dataSubFeatures, dataFeatures }) {
     const [showImageModal, setShowImageModal] = useState(false);
     const [selectedRowId, setSelectedRowId] = useState(null);
     const closeImageModal = () => setShowImageModal(false);
-
+    const [apiEndpoint, setApiEndpoint] = useState("");
+    const [modelId, setModelId] = useState("");
+    const [prompt, setPrompt] = useState("");
+    const [presetStyle, setPresetStyle] = useState("");
+    const [initImageId, setInitImageId] = useState("");
+    const [preprocessorId, setPreprocessorId] = useState("");
+    const [strengthType, setStrengthType] = useState("");
+    // const handleSizeChange = (e) => {
+    //     const selectedValues = e.target.value; // This will be an array of selected sizes
+    //     setSizes(selectedValues);
+    // };
+    const [sizes, setSizes] = useState([]);
     const handleClose = () => setShow(false);
     const handleShow = () => setShow(true);
     const api = "http://localhost:8000/api/";
@@ -57,18 +68,18 @@ function SubFeatures({ dataSubFeatures, dataFeatures }) {
                         }));
                     } else {
                         toast.error(res.data.msg, {
-                            position: "top-right"
+                            position: "top-right",
                         });
                     }
                 })
                 .catch((error) => {
                     toast.error(error, {
-                        position: "top-right"
+                        position: "top-right",
                     });
                 });
         } else {
-            toast.error('Id phải khác 0', {
-                position: "top-right"
+            toast.error("Id phải khác 0", {
+                position: "top-right",
             });
         }
     };
@@ -122,10 +133,11 @@ function SubFeatures({ dataSubFeatures, dataFeatures }) {
             width: 100,
             renderCell: (params) => params.rowIndex,
         },
-        { field: "name", headerName: "Features", width: 200, editable: true },
+        { field: "name", headerName: "Sub Features", width: 200, editable: true },
+        { field: "slug", headerName: "Slug", width: 200 },
         {
-            field: "description",
-            headerName: "Description",
+            field: "model_id",
+            headerName: "Model ID",
             width: 200,
             editable: true,
         },
@@ -136,14 +148,14 @@ function SubFeatures({ dataSubFeatures, dataFeatures }) {
             editable: true,
         },
         {
-            field: "model_id",
-            headerName: "Model ID",
+            field: "presetStyle",
+            headerName: "Preset Style",
             width: 200,
             editable: true,
         },
         {
-            field: "presetStyle",
-            headerName: "presetStyle",
+            field: "initImageId",
+            headerName: "initImage Id",
             width: 200,
             editable: true,
         },
@@ -160,37 +172,6 @@ function SubFeatures({ dataSubFeatures, dataFeatures }) {
             editable: true,
         },
         {
-            field: "initImageId",
-            headerName: "initImage Id",
-            width: 200,
-            editable: true,
-        },{
-            field: "detech_face",
-            headerName: "Detch Face",
-            width: 200,
-            renderCell: (params) => (
-                <input
-                    key={params.row.id}
-                    type="checkbox"
-                    className="text-center"
-                    checked={params.value}
-                    onChange={(event) => {
-                        const checked = event.target.checked;
-                        axios.put(`/sub_feature/${params.row.id}`, {
-                            detech_face: checked,
-                        }).then((res) => {
-                            if (res.data.check == true) {
-                                toast.success("Đã sửa thành công !", {
-                                    position: "top-right"
-                                });
-                                setData(res.data.data);
-                            }
-                        })
-                    }}
-                />
-            ),
-            editable: true,
-        },{
             field: "status",
             headerName: "Status",
             width: 200,
@@ -202,52 +183,20 @@ function SubFeatures({ dataSubFeatures, dataFeatures }) {
                     checked={params.value}
                     onChange={(event) => {
                         const checked = event.target.checked;
-                        axios.put(`/sub_feature/${params.row.id}`, {
-                            status: checked,
-                        }).then((res) => {
-                            if (res.data.check == true) {
-                                setData(res.data.data);
-                            }
-                        })
-                    }}
-                />
-            ),
-            editable: true,
-        },{
-            field: "is_pro",
-            headerName: "Is Pro",
-            width: 200,
-            renderCell: (params) => (
-                <input
-                    key={params.row.id}
-                    type="checkbox"
-                    className="text-center"
-                    checked={params.value}
-                    onChange={(event) => {
-                        const checked = event.target.checked;
-                        axios.put(`/sub_feature/${params.row.id}`, {
-                            is_pro: checked,
-                        }).then((res) => {
-                            if (res.data.check == true) {
-                                toast.success("Đã sửa thành công !", {
-                                    position: "top-right"
-                                });
-                                setData(res.data.data);
-                            }
-                        })
+                        axios
+                            .put(`/sub_feature/${params.row.id}`, {
+                                status: checked,
+                            })
+                            .then((res) => {
+                                if (res.data.check == true) {
+                                    setData(res.data.data);
+                                }
+                            });
                     }}
                 />
             ),
             editable: true,
         },
-        {
-            field: "api_endpoint",
-            headerName: "API Endpoint",
-            width: 250,
-            editable: true,
-        },
-        { field: "slug", headerName: "Slug", width: 200 },
-
         {
             field: "remove_bg",
             headerName: "Remove Background",
@@ -260,18 +209,172 @@ function SubFeatures({ dataSubFeatures, dataFeatures }) {
                     checked={params.value}
                     onChange={(event) => {
                         const checked = event.target.checked;
-                        axios.put(`/sub_feature/${params.row.id}`, {
-                            remove_bg: checked,
-                        }).then((res) => {
-                            if (res.data.check == true) {
-                                setData(res.data.data);
-                            }
-                        })
+                        axios
+                            .put(`/sub_feature/${params.row.id}`, {
+                                remove_bg: checked,
+                            })
+                            .then((res) => {
+                                if (res.data.check == true) {
+                                    setData(res.data.data);
+                                }
+                            });
                     }}
                 />
             ),
             editable: true,
         },
+        {
+            field: "is_pro",
+            headerName: "Is Pro",
+            width: 200,
+            renderCell: (params) => (
+                <input
+                    key={params.row.id}
+                    type="checkbox"
+                    className="text-center"
+                    checked={params.value}
+                    onChange={(event) => {
+                        const checked = event.target.checked;
+                        axios
+                            .put(`/sub_feature/${params.row.id}`, {
+                                is_pro: checked,
+                            })
+                            .then((res) => {
+                                if (res.data.check == true) {
+                                    toast.success("Đã sửa thành công !", {
+                                        position: "top-right",
+                                    });
+                                    setData(res.data.data);
+                                }
+                            });
+                    }}
+                />
+            ),
+            editable: true,
+        },
+        {
+            field: "detech_face",
+            headerName: "Detech Face",
+            width: 200,
+            renderCell: (params) => (
+                <input
+                    key={params.row.id}
+                    type="checkbox"
+                    className="text-center"
+                    checked={params.value}
+                    onChange={(event) => {
+                        const checked = event.target.checked;
+                        axios
+                            .put(`/sub_feature/${params.row.id}`, {
+                                detech_face: checked,
+                            })
+                            .then((res) => {
+                                if (res.data.check == true) {
+                                    toast.success("Đã sửa thành công !", {
+                                        position: "top-right",
+                                    });
+                                    setData(res.data.data);
+                                }
+                            });
+                    }}
+                />
+            ),
+            editable: true,
+        },
+        {
+            field: "description",
+            headerName: "Description",
+            width: 200,
+            editable: true,
+        },
+        {
+            field: "image",
+            headerName: "Image",
+            width: 100,
+            renderCell: (params) => (
+                <img
+                    src={
+                        params.value
+                            ? `/storage/${params.value}`
+                            : "/default-image.jpg"
+                    }
+                    alt="Sub Feature"
+                    style={{
+                        width: "50px",
+                        height: "50px",
+                        objectFit: "cover",
+                        cursor: "pointer",
+                    }}
+                    onClick={() => openImageModal(params.row.id)} // Open modal when image is clicked
+                />
+            ),
+        },
+        // {
+        //     field: "sizes",
+        //     headerName: "Sizes",
+        //     width: 200,
+        //     renderCell: (params) => {
+        //         // Convert the sizes from params.row.sizes to an array of selected sizes
+        //         const selectedSizes = params.row.sizes
+        //             ? params.row.sizes.map((size) => size.id)
+        //             : [];
+
+        //         return (
+        //             <Select
+        //                 value={selectedSizes} // Set the value to the selected sizes array
+        //                 onChange={handleSizeChange}
+        //                 defaultValue={
+        //                     params.row.sizes
+        //                         ? params.row.sizes.map((size) => size.id)
+        //                         : []
+        //                 }
+        //                 onBlur={() => {
+        //                     const featureId = params.row.id;
+        //                     var formData = new FormData();
+        //                     sizes.forEach((size) => {
+        //                         formData.append("size_id[]", size);
+        //                     });
+
+        //                     axios
+        //                         .post(`/updated_size/${featureId}`, formData)
+        //                         .then((res) => {
+        //                             if (res.data.check) {
+        //                                 toast.success(
+        //                                     "Sizes updated successfully!",
+        //                                     {
+        //                                         position: "top-right",
+        //                                     }
+        //                                 );
+        //                                 setData(res.data.data);
+        //                             } else {
+        //                                 toast.error(res.data.msg, {
+        //                                     position: "top-right",
+        //                                 });
+        //                             }
+        //                         })
+        //                         .catch((error) => {
+        //                             console.error(
+        //                                 "There was an error updating sizes:",
+        //                                 error
+        //                             );
+        //                             toast.error("Failed to update sizes.", {
+        //                                 position: "top-right",
+        //                             });
+        //                         });
+        //                 }}
+        //                 multiple={true}
+        //                 fullWidth
+        //             >
+        //                 {datasizes.map((size) => (
+        //                     <MenuItem key={size.id} value={size.id}>
+        //                         {size.size}
+        //                     </MenuItem>
+        //                 ))}
+        //             </Select>
+        //         );
+        //     },
+        //     editable: true,
+        // },
         {
             field: "feature_id",
             headerName: "Nhóm feature",
@@ -296,43 +399,34 @@ function SubFeatures({ dataSubFeatures, dataFeatures }) {
             ),
         },
         {
-            field: "image",
-            headerName: "Image",
-            width: 100,
-            renderCell: (params) => (
-                <img
-                    src={
-                        params.value
-                            ? `/storage/${params.value}`
-                            : "/default-image.jpg"
-                    }
-                    alt="Feature"
-                    style={{
-                        width: "50px",
-                        height: "50px",
-                        objectFit: "cover",
-                        cursor: "pointer",
-                    }}
-                    onClick={() => openImageModal(params.row.id)} // Open modal when image is clicked
-                />
-            ),
-        },
-        {
             field: "created_at",
             headerName: "Created at",
             width: 200,
             valueGetter: (params) => formatCreatedAt(params),
         },
+        {
+            field: "api_endpoint",
+            headerName: "API Endpoint",
+            width: 250,
+            editable: true,
+        }
     ];
     const submitSubFeature = () => {
         const formData = new FormData();
         formData.append("name", feature);
         formData.append("description", description);
-        formData.append("description", description);
+
         formData.append("feature_id", featureId);
         if (image) {
             formData.append("image", image);
         }
+        formData.append("api_endpoint", apiEndpoint);
+        formData.append("model_id", modelId);
+        formData.append("prompt", prompt);
+        formData.append("presetStyle", presetStyle);
+        formData.append("initImageId", initImageId);
+        formData.append("preprocessorId", preprocessorId);
+        formData.append("strengthType", strengthType);
         axios
             .post("/sub_feature", formData, {
                 headers: {
@@ -342,7 +436,7 @@ function SubFeatures({ dataSubFeatures, dataFeatures }) {
             .then((res) => {
                 if (res.data.check == true) {
                     toast.success("Đã thêm thành công", {
-                        position: "top-right"
+                        position: "top-right",
                     });
                     setData(res.data.data);
                     resetCreate();
@@ -350,7 +444,7 @@ function SubFeatures({ dataSubFeatures, dataFeatures }) {
                 } else if (res.data.check == false) {
                     if (res.data.msg) {
                         toast.error(res.data.msg, {
-                            position: "top-right"
+                            position: "top-right",
                         });
                     }
                 }
@@ -359,6 +453,14 @@ function SubFeatures({ dataSubFeatures, dataFeatures }) {
     const resetCreate = () => {
         setFeature("");
         setDescription("");
+        setApiEndpoint("");
+        setModelId("");
+        setPrompt("");
+        setPresetStyle("");
+        setInitImageId("");
+        setPreprocessorId("");
+        setStrengthType("");
+        setImage(null);
         setShow(true);
     };
     const updateImage = () => {
@@ -374,7 +476,7 @@ function SubFeatures({ dataSubFeatures, dataFeatures }) {
             .then((res) => {
                 if (res.data.check) {
                     toast.success("Đã cập nhật ảnh thành công", {
-                        position: "top-right"
+                        position: "top-right",
                     });
                     setData(res.data.data);
                     closeImageModal();
@@ -399,7 +501,7 @@ function SubFeatures({ dataSubFeatures, dataFeatures }) {
                         axios.delete("/sub_feature/" + id).then((res) => {
                             if (res.data.check == true) {
                                 toast.success("Đã xoá thành công", {
-                                    position: "top-right"
+                                    position: "top-right",
                                 });
                                 setData(res.data.data);
                             }
@@ -424,12 +526,12 @@ function SubFeatures({ dataSubFeatures, dataFeatures }) {
                     .then((res) => {
                         if (res.data.check == true) {
                             toast.success("Đã sửa thành công", {
-                                position: "top-right"
+                                position: "top-right",
                             });
                             setData(res.data.data);
                         } else if (res.data.check == false) {
                             toast.error(res.data.msg, {
-                                position: "top-right"
+                                position: "top-right",
                             });
                         }
                     });
@@ -451,12 +553,12 @@ function SubFeatures({ dataSubFeatures, dataFeatures }) {
                 .then((res) => {
                     if (res.data.check == true) {
                         toast.success("Đã chỉnh sửa thành công", {
-                            position: "top-right"
+                            position: "top-right",
                         });
                         setData(res.data.data);
                     } else if (res.data.check == false) {
                         toast.error(res.data.msg, {
-                            position: "top-right"
+                            position: "top-right",
                         });
                     }
                 });
@@ -520,22 +622,72 @@ function SubFeatures({ dataSubFeatures, dataFeatures }) {
                             </option>
                             {features.length > 0 &&
                                 features.map((item, index) => (
-                                    <option value={item.id}>{item.name}</option>
+                                    <option key={index} value={item.id}>{item.name}</option>
                                 ))}
                         </select>
                         <textarea
                             name=""
                             className="form-control mt-2"
-                            rows={10}
+                            placeholder="Nhập mô tả cho sub feature..."
+                            rows={3}
                             onChange={(e) => setDescription(e.target.value)}
                             value={description}
                             id=""
                         ></textarea>
                         <input
+                            type="text"
+                            className="form-control mt-2"
+                            placeholder="Nhập API Endpoint . . ."
+                            value={apiEndpoint}
+                            onChange={(e) => setApiEndpoint(e.target.value)}
+                        />
+                        <input
                             type="file"
                             className="form-control mt-2"
                             accept="image/*"
                             onChange={(e) => setImage(e.target.files[0])}
+                        />
+                        <input
+                            type="text"
+                            className="form-control mt-2"
+                            placeholder="Nhập Model ID . . ."
+                            value={modelId}
+                            onChange={(e) => setModelId(e.target.value)}
+                        />
+                        <input
+                            type="text"
+                            className="form-control mt-2"
+                            placeholder="Nhập Prompt . . ."
+                            value={prompt}
+                            onChange={(e) => setPrompt(e.target.value)}
+                        />
+                        <input
+                            type="text"
+                            className="form-control mt-2"
+                            placeholder="Nhập Preset Style . . ."
+                            value={presetStyle}
+                            onChange={(e) => setPresetStyle(e.target.value)}
+                        />
+                        <input
+                            type="text"
+                            className="form-control mt-2"
+                            placeholder="Nhập Init Image ID . . ."
+                            value={initImageId}
+                            onChange={(e) => setInitImageId(e.target.value)}
+                        />
+                        <input
+                            type="text"
+                            className="form-control mt-2"
+                            placeholder="Nhập Preprocessor ID . . ."
+                            value={preprocessorId}
+                            onChange={(e) => setPreprocessorId(e.target.value)}
+                        />
+                        <input
+                            type="text"
+                            className="form-control mt-2"
+                            placeholder="Nhập Strength Type . . ."
+                            value={strengthType}
+                            onChange={(e) => setStrengthType(e.target.value)}
                         />
                     </Modal.Body>
                     <Modal.Footer>
