@@ -21,6 +21,7 @@ use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Auth;
 use Spatie\Activitylog\Models\Activity;
 use Illuminate\Support\Facades\Storage;
+use App\Models\Customers;
 
 class ImageAIController extends Controller
 {
@@ -29,7 +30,7 @@ class ImageAIController extends Controller
     protected $client;
     protected $aws_secret_key;
     protected $aws_access_key;
-
+    protected $pro_account;
 
     /**
      * Display a listing of the resource.
@@ -44,6 +45,13 @@ class ImageAIController extends Controller
         $this->aws_secret_key = 'b52dcdbea046cc2cc13a5b767a1c71ea8acbe96422b3e45525d3678ce2b5ed3e';
         $this->aws_access_key = 'cbb3e2fea7c7f3e7af09b67eeec7d62c';
         $this->client = new Client();
+        $guard = Auth::guard('customer');
+        $user = $guard->user();
+        if ($user->expired_at && !Carbon::parse($user->expired_at)->isPast()) {
+            $this->pro_account = true;
+        } else {
+            $this->pro_account = false;
+        }
     }
     private function uploadServerImage($image)
     {
@@ -534,6 +542,9 @@ class ImageAIController extends Controller
         if ($validator->fails()) {
             return response()->json(['check' => 'error', 'msg' => $validator->errors()->first()]);
         }
+        if($result->is_pro==1 && $this->pro_account==false){
+            return response()->json(['check'=>false,'error'=>'Not accepted']);
+        }
         $file = $request->file('image');
         $result = $this->uploadImage($file);
         $image_id = $result['id'];
@@ -975,6 +986,9 @@ class ImageAIController extends Controller
         if(!$result){
             $result =SubFeatures::where('slug', $request->slug)->first();
             $feature=SubFeatures::where('slug', $request->slug)->first();
+        }
+        if($result->is_pro==1 && $this->pro_account==false){
+            return response()->json(['check'=>false,'error'=>'Not accepted']);
         }
         $initImageId = $result->initImageId;
         if($request->has('id_size')){
