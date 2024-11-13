@@ -970,7 +970,7 @@ class ImageAIController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'image' => 'required|mimes:png,jpg,jpeg',
-            'slug'=>'required|exists:features,slug',
+            'slug'=>'required',
             'id_size'=>'nullable|exists:image_sizes,id'
         ]);
 
