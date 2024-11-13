@@ -72,10 +72,10 @@ class BackgroundController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'images.*' => 'required|file|mimes:png,jpg,jpeg|max:2048', // Validate each file
+            'images.*' => 'required|file|mimes:png,jpg,jpeg,webp|max:2048', // Validate each file
             'feature_id'=>'required|exists:features,id'
         ]);
-    
+
         if ($validator->fails()) {
             return response()->json(['check' => false, 'msg' => $validator->errors()->first()], 400);
         }
@@ -142,7 +142,7 @@ class BackgroundController extends Controller
         $background = Background::where('id',$id)->first();
         $filePath = storage_path('app/public/' . $background->path);
         if (file_exists($filePath)) {
-            unlink($filePath); 
+            unlink($filePath);
         }
         Background::where('id',$id)->delete();
         $data = Background::where('feature_id',$feature_id)->get();
