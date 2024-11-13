@@ -75,6 +75,13 @@ class SubFeaturesController
         $subFeature->description = $request->description;
         $subFeature->feature_id = $request->feature_id;
         $subFeature->slug= Str::slug($request->name);
+        $subFeature->api_endpoint = $request->api_endpoint;
+        $subFeature->model_id = $request->model_id;
+        $subFeature->prompt = $request->prompt;
+        $subFeature->presetStyle = $request->presetStyle;
+        $subFeature->initImageId = $request->initImageId;
+        $subFeature->preprocessorId = $request->preprocessorId;
+        $subFeature->strengthType = $request->strengthType;
         if ($request->hasFile('image')) {
             $path = $request->file('image')->store('sub_feature_images', 'public');
             $subFeature->image = $path; // Save the path to the database

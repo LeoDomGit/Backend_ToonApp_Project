@@ -194,7 +194,7 @@ function Index({ datafeatures, datasizes }) {
                 />
             ),
             editable: true,
-            
+
         }
         , {
             field: "detech_face",
@@ -258,7 +258,7 @@ function Index({ datafeatures, datasizes }) {
             renderCell: (params) => {
                 // Convert the sizes from params.row.sizes to an array of selected sizes
                 const selectedSizes = params.row.sizes ? params.row.sizes.map(size => size.id) : [];
-        
+
                 return (
                     <Select
                         value={selectedSizes}  // Set the value to the selected sizes array
@@ -270,7 +270,7 @@ function Index({ datafeatures, datasizes }) {
                             sizes.forEach(size => {
                                 formData.append('size_id[]', size);
                             });
-        
+
                             axios.post(`/updated_size/${featureId}`, formData)
                                 .then((res) => {
                                     if (res.data.check) {
@@ -481,20 +481,20 @@ function Index({ datafeatures, datasizes }) {
                 {/* Existing modal and data grid setup */}
                 <Modal show={show} onHide={handleClose}>
                     <Modal.Header closeButton>
-                        <Modal.Title>Tạo loại tài khoản</Modal.Title>
+                        <Modal.Title>Tạo Feature</Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
                         <input
                             type="text"
                             className="form-control"
-                            placeholder="Hãy nhập features . . . "
+                            placeholder="Hãy nhập feature . . . "
                             value={feature}
                             onChange={(e) => setFeature(e.target.value)}
                         />
                         <textarea
                             className="form-control mt-2"
                             rows={3}
-                            placeholder="Hãy nhập mô tả . . ."
+                            placeholder="Hãy nhập mô tả cho feature . . ."
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
                         ></textarea>
