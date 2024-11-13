@@ -17,6 +17,7 @@ return new class extends Migration
                 $table->dropColumn('edit_image_path');
             }
             if (Schema::hasColumn('photos', 'image_size')) {
+                $table->dropForeign(['image_size']);
                 $table->dropColumn('image_size');
             }
         });
