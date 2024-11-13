@@ -589,7 +589,9 @@ class ImageAIController extends Controller
         $image_id = $result['id'];
         $result = Features::where('slug', $request->slug)->first();
         $feature=Features::where('slug', $request->slug)->first();
+        if($result){
         $id_feature=$feature->id;
+        }
         if(!$result){
             $result =SubFeatures::where('slug', $request->slug)->first();
             $feature=SubFeatures::where('slug', $request->slug)->first();
