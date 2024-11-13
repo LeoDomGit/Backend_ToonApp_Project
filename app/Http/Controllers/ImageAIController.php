@@ -6,6 +6,7 @@ use App\Models\Activities;
 use App\Models\Background;
 use App\Models\FeatureImage;
 use App\Models\Features;
+use App\Models\SubFeatures;
 use App\Models\FeaturesSizes;
 use App\Models\ImageSize;
 use App\Models\Key;
@@ -576,10 +577,13 @@ class ImageAIController extends Controller
         $file = $request->file('image');
         $result = $this->uploadImage($file);
         $image_id = $result['id'];
-        $routePath = $request->path();
-        $result = Features::where('api_endpoint', $routePath)->first();
-        $result = Features::where('slug', $request->slug)->first();
-        $feature = Features::where('slug', $request->slug)->first();
+        $$result = Features::where('slug', $request->slug)->first();
+        $feature=Features::where('slug', $request->slug)->first();
+        if(!$result){
+            $result =SubFeatures::where('slug', $request->slug)->first();
+            $feature=SubFeatures::where('slug', $request->slug)->first();
+        }
+        $initImageId = $result->initImageId;
         if($request->has('id_size')){
             $check=FeaturesSizes::where([
                 'feature_id'=>$feature->id,
@@ -627,15 +631,15 @@ class ImageAIController extends Controller
                         'accept' => 'application/json',
                         'authorization' =>'Bearer ' . $this->leo_key,
                     ])->get('https://cloud.leonardo.ai/api/rest/v1/generations/'.$generationId);
-            
+
                     if ($response->successful()) {
                         $data = $response->json();
                         if (!empty($data['generations_by_pk']['generated_images'])) {
                             // Get the original image URL and upload it to Cloudflare
                             $firstImageUrl = $data['generations_by_pk']['generated_images'][0]['url'];
                             $originalImageUrl = $this->uploadToCloudFlareFromCdn(
-                                 $data['generations_by_pk']['generated_images'][0]['url'], 
-                                'image-result' . time(), 
+                                 $data['generations_by_pk']['generated_images'][0]['url'],
+                                'image-result' . time(),
                                 $feature->slug,
                                 Auth::guard('customer')->id() . '-gen' . $generationId
                             );
@@ -645,8 +649,8 @@ class ImageAIController extends Controller
                             if ($feature->remove_bg == 1) {
                                 $imageWithoutBg = $this->removeBackground($originalImageUrl);
                                 $image = $this->uploadToCloudFlareFromCdn(
-                                    $imageWithoutBg, 
-                                    'image-' . time(), 
+                                    $imageWithoutBg,
+                                    'image-' . time(),
                                     $feature->slug,
                                     Auth::guard('customer')->id() . 'result-gen' . $generationId
                                 );
@@ -661,7 +665,7 @@ class ImageAIController extends Controller
                                 'ai_model' => 'Leo AI',
                                 'api_endpoint' => 'https://cloud.leonardo.ai/api/rest/v1/generations/',
                             ]);
-                        
+
                             // Return the JSON response with both the original and modified URLs
                             if($feature->remove_bg == 1){
                                 return response()->json([
@@ -672,7 +676,7 @@ class ImageAIController extends Controller
                             }else{
                                 return response()->json([
                                     'check' => true,
-                                    'url' => $image,      
+                                    'url' => $image,
                                 ]);
                             }
                         }
@@ -716,15 +720,15 @@ class ImageAIController extends Controller
                         'accept' => 'application/json',
                         'authorization' =>'Bearer ' . $this->leo_key,
                     ])->get('https://cloud.leonardo.ai/api/rest/v1/generations/'.$generationId);
-            
+
                     if ($response->successful()) {
                         $data = $response->json();
                         if (!empty($data['generations_by_pk']['generated_images'])) {
                             // Get the original image URL and upload it to Cloudflare
                             $firstImageUrl = $data['generations_by_pk']['generated_images'][0]['url'];
                             $originalImageUrl = $this->uploadToCloudFlareFromCdn(
-                                 $data['generations_by_pk']['generated_images'][0]['url'], 
-                                'image-result' . time(), 
+                                 $data['generations_by_pk']['generated_images'][0]['url'],
+                                'image-result' . time(),
                                 $feature->slug,
                                 Auth::guard('customer')->id() . '-gen' . $generationId
                             );
@@ -734,8 +738,8 @@ class ImageAIController extends Controller
                             if ($feature->remove_bg == 1) {
                                 $imageWithoutBg = $this->removeBackground($originalImageUrl);
                                 $image = $this->uploadToCloudFlareFromCdn(
-                                    $imageWithoutBg, 
-                                    'image-' . time(), 
+                                    $imageWithoutBg,
+                                    'image-' . time(),
                                     $feature->slug,
                                     Auth::guard('customer')->id() . 'result-gen' . $generationId
                                 );
@@ -750,7 +754,7 @@ class ImageAIController extends Controller
                                 'ai_model' => 'Leo AI',
                                 'api_endpoint' => 'https://cloud.leonardo.ai/api/rest/v1/generations/',
                             ]);
-                        
+
                             // Return the JSON response with both the original and modified URLs
                             if($feature->remove_bg == 1){
                                 return response()->json([
@@ -761,7 +765,7 @@ class ImageAIController extends Controller
                             }else{
                                 return response()->json([
                                     'check' => true,
-                                    'url' => $image,      
+                                    'url' => $image,
                                 ]);
                             }
                         }
@@ -1002,10 +1006,13 @@ class ImageAIController extends Controller
         $result = $this->uploadImage($file);
         $image_id = $result['id'];
         $routePath = $request->path();
-        $result = Features::where('api_endpoint', $routePath)->first();
-        $initImageId = $result->initImageId;
         $result = Features::where('slug', $request->slug)->first();
         $feature=Features::where('slug', $request->slug)->first();
+        if(!$result){
+            $result =SubFeatures::where('slug', $request->slug)->first();
+            $feature=SubFeatures::where('slug', $request->slug)->first();
+        }
+        $initImageId = $result->initImageId;
         if($request->has('id_size')){
             $check=FeaturesSizes::where([
                 'feature_id'=>$feature->id,
@@ -1053,15 +1060,15 @@ class ImageAIController extends Controller
                         'accept' => 'application/json',
                         'authorization' =>'Bearer ' . $this->leo_key,
                     ])->get('https://cloud.leonardo.ai/api/rest/v1/generations/'.$generationId);
-            
+
                     if ($response->successful()) {
                         $data = $response->json();
                         if (!empty($data['generations_by_pk']['generated_images'])) {
                             // Get the original image URL and upload it to Cloudflare
                             $firstImageUrl = $data['generations_by_pk']['generated_images'][0]['url'];
                             $originalImageUrl = $this->uploadToCloudFlareFromCdn(
-                                 $data['generations_by_pk']['generated_images'][0]['url'], 
-                                'image-result' . time(), 
+                                 $data['generations_by_pk']['generated_images'][0]['url'],
+                                'image-result' . time(),
                                 $feature->slug,
                                 Auth::guard('customer')->id() . '-gen' . $generationId
                             );
@@ -1071,8 +1078,8 @@ class ImageAIController extends Controller
                             if ($feature->remove_bg == 1) {
                                 $imageWithoutBg = $this->removeBackground($originalImageUrl);
                                 $image = $this->uploadToCloudFlareFromCdn(
-                                    $imageWithoutBg, 
-                                    'image-' . time(), 
+                                    $imageWithoutBg,
+                                    'image-' . time(),
                                     $feature->slug,
                                     Auth::guard('customer')->id() . 'result-gen' . $generationId
                                 );
@@ -1087,7 +1094,7 @@ class ImageAIController extends Controller
                                 'ai_model' => 'Leo AI',
                                 'api_endpoint' => 'https://cloud.leonardo.ai/api/rest/v1/generations/',
                             ]);
-                        
+
                             // Return the JSON response with both the original and modified URLs
                             if($feature->remove_bg == 1){
                                 return response()->json([
@@ -1098,7 +1105,7 @@ class ImageAIController extends Controller
                             }else{
                                 return response()->json([
                                     'check' => true,
-                                    'url' => $image,      
+                                    'url' => $image,
                                 ]);
                             }
                         }
@@ -1142,15 +1149,15 @@ class ImageAIController extends Controller
                         'accept' => 'application/json',
                         'authorization' =>'Bearer ' . $this->leo_key,
                     ])->get('https://cloud.leonardo.ai/api/rest/v1/generations/'.$generationId);
-            
+
                     if ($response->successful()) {
                         $data = $response->json();
                         if (!empty($data['generations_by_pk']['generated_images'])) {
                             // Get the original image URL and upload it to Cloudflare
                             $firstImageUrl = $data['generations_by_pk']['generated_images'][0]['url'];
                             $originalImageUrl = $this->uploadToCloudFlareFromCdn(
-                                 $data['generations_by_pk']['generated_images'][0]['url'], 
-                                'image-result' . time(), 
+                                 $data['generations_by_pk']['generated_images'][0]['url'],
+                                'image-result' . time(),
                                 $feature->slug,
                                 Auth::guard('customer')->id() . '-gen' . $generationId
                             );
@@ -1160,8 +1167,8 @@ class ImageAIController extends Controller
                             if ($feature->remove_bg == 1) {
                                 $imageWithoutBg = $this->removeBackground($originalImageUrl);
                                 $image = $this->uploadToCloudFlareFromCdn(
-                                    $imageWithoutBg, 
-                                    'image-' . time(), 
+                                    $imageWithoutBg,
+                                    'image-' . time(),
                                     $feature->slug,
                                     Auth::guard('customer')->id() . 'result-gen' . $generationId
                                 );
@@ -1176,7 +1183,7 @@ class ImageAIController extends Controller
                                 'ai_model' => 'Leo AI',
                                 'api_endpoint' => 'https://cloud.leonardo.ai/api/rest/v1/generations/',
                             ]);
-                        
+
                             // Return the JSON response with both the original and modified URLs
                             if($feature->remove_bg == 1){
                                 return response()->json([
@@ -1187,7 +1194,7 @@ class ImageAIController extends Controller
                             }else{
                                 return response()->json([
                                     'check' => true,
-                                    'url' => $image,      
+                                    'url' => $image,
                                 ]);
                             }
                         }
