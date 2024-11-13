@@ -86,8 +86,6 @@ class ImageAIController extends Controller
         if ($request->hasFile('image') && $request->has('background')) {
             $image = $request->file('image');
             $id_img = $this->uploadServerImage($image);
-            $background = Background::where('id', $request->background)->first();
-            $bg_url = config('app.image_url') . $background->path;
             $response = $client->request('POST', 'https://api.picsart.io/tools/1.0/removebg', [
                 'multipart' => [
                     [
@@ -144,7 +142,7 @@ class ImageAIController extends Controller
                     ],
                     [
                         'name' => 'bg_image_url',
-                        'contents' => $bg_url
+                        'contents' => $request->background
                     ]
                 ],
                 'headers' => [
