@@ -136,13 +136,61 @@ function SubFeatures({ dataSubFeatures, dataFeatures }) {
             editable: true,
         },
         {
-            field: "api_endpoint",
-            headerName: "API Endpoint",
-            width: 250,
+            field: "model_id",
+            headerName: "Model ID",
+            width: 200,
             editable: true,
         },
-        { field: "slug", headerName: "Slug", width: 200 },
         {
+            field: "presetStyle",
+            headerName: "presetStyle",
+            width: 200,
+            editable: true,
+        },
+        {
+            field: "preprocessorId",
+            headerName: "Preprocessor Id",
+            width: 200,
+            editable: true,
+        },
+        {
+            field: "strengthType",
+            headerName: "Strength Type",
+            width: 200,
+            editable: true,
+        },
+        {
+            field: "initImageId",
+            headerName: "initImage Id",
+            width: 200,
+            editable: true,
+        },{
+            field: "detech_face",
+            headerName: "Detch Face",
+            width: 200,
+            renderCell: (params) => (
+                <input
+                    key={params.row.id}
+                    type="checkbox"
+                    className="text-center"
+                    checked={params.value}
+                    onChange={(event) => {
+                        const checked = event.target.checked;
+                        axios.put(`/sub_feature/${params.row.id}`, {
+                            detech_face: checked,
+                        }).then((res) => {
+                            if (res.data.check == true) {
+                                toast.success("Đã sửa thành công !", {
+                                    position: "top-right"
+                                });
+                                setData(res.data.data);
+                            }
+                        })
+                    }}
+                />
+            ),
+            editable: true,
+        },{
             field: "status",
             headerName: "Status",
             width: 200,
@@ -165,7 +213,41 @@ function SubFeatures({ dataSubFeatures, dataFeatures }) {
                 />
             ),
             editable: true,
+        },{
+            field: "is_pro",
+            headerName: "Is Pro",
+            width: 200,
+            renderCell: (params) => (
+                <input
+                    key={params.row.id}
+                    type="checkbox"
+                    className="text-center"
+                    checked={params.value}
+                    onChange={(event) => {
+                        const checked = event.target.checked;
+                        axios.put(`/sub_feature/${params.row.id}`, {
+                            is_pro: checked,
+                        }).then((res) => {
+                            if (res.data.check == true) {
+                                toast.success("Đã sửa thành công !", {
+                                    position: "top-right"
+                                });
+                                setData(res.data.data);
+                            }
+                        })
+                    }}
+                />
+            ),
+            editable: true,
         },
+        {
+            field: "api_endpoint",
+            headerName: "API Endpoint",
+            width: 250,
+            editable: true,
+        },
+        { field: "slug", headerName: "Slug", width: 200 },
+
         {
             field: "remove_bg",
             headerName: "Remove Background",
