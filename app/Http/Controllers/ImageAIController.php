@@ -87,6 +87,9 @@ class ImageAIController extends Controller
         if ($validator->fails()) {
             return response()->json(['check' => 'error', 'msg' => $validator->errors()->first()], 400);
         }
+        if($result->is_pro==1 && $this->pro_account==false){
+            return response()->json(['check'=>false,'error'=>'Not accepted'],401);
+        }
         $image=$request->file('image');
         $imageContent = file_get_contents($image);
         $tempFilePath = storage_path('app/public/anime/temp_image.jpg');
@@ -543,7 +546,7 @@ class ImageAIController extends Controller
             return response()->json(['check' => 'error', 'msg' => $validator->errors()->first()]);
         }
         if($result->is_pro==1 && $this->pro_account==false){
-            return response()->json(['check'=>false,'error'=>'Not accepted']);
+            return response()->json(['check'=>false,'error'=>'Not accepted'],401);
         }
         $file = $request->file('image');
         $result = $this->uploadImage($file);
@@ -988,7 +991,7 @@ class ImageAIController extends Controller
             $feature=SubFeatures::where('slug', $request->slug)->first();
         }
         if($result->is_pro==1 && $this->pro_account==false){
-            return response()->json(['check'=>false,'error'=>'Not accepted']);
+            return response()->json(['check'=>false,'error'=>'Not accepted'],401);
         }
         $initImageId = $result->initImageId;
         if($request->has('id_size')){
