@@ -47,7 +47,7 @@ class ImageAIController extends Controller
         $this->client = new Client();
         $guard = Auth::guard('customer');
         $user = $guard->user();
-        if ($user->expired_at && !Carbon::parse($user->expired_at)->isPast()) {
+        if ($user->expired_at && $user->expired_at &&!Carbon::parse($user->expired_at)->isPast()) {
             $this->pro_account = true;
         } else {
             $this->pro_account = false;
