@@ -870,7 +870,7 @@ class ImageAIController extends Controller
             }
         }
     }
-
+    }
     public function disneyToon(Request $request)
     {
         $validator = Validator::make($request->all(), [
