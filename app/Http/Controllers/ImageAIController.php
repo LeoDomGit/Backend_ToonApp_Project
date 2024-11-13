@@ -164,7 +164,7 @@ class ImageAIController extends Controller
                     $feature->slug,
                     Auth::guard('customer')->id() . 'result-gen-profile'
                 );
-                $this->createActivities($id_img, $cdnUrl, $image->getSize(), '/api/remove_background', 'https://api.picsart.io/tools/1.0/removebg');
+                $this->createActivities($id_img, $cdnUrl, $image->getSize(), $routePath, 'https://api.picsart.io/tools/1.0/removebg');
                 activity('remove_background')
                     ->withProperties([
                         'cdnUrl' => $cdnUrl,
@@ -212,7 +212,7 @@ class ImageAIController extends Controller
                     $feature->slug,
                     Auth::guard('customer')->id() . 'result-gen-profile'
                 );
-                $this->createActivities($id_img, $cdnUrl, $image->getSize(), 'api/image_ai/new_profile_pic', 'https://api.picsart.io/tools/1.0/removebg');
+                $this->createActivities($id_img, $cdnUrl, $image->getSize(), $routePath, 'https://api.picsart.io/tools/1.0/removebg');
                 activity('remove_background')
                     ->withProperties([
                         'cdnUrl' => $cdnUrl,
