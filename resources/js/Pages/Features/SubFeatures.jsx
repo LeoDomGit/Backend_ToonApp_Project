@@ -732,7 +732,7 @@ function SubFeatures({ dataSubFeatures, dataFeatures }) {
                     </div>
                 </nav>
                 <div className="row">
-                    <div className="col mx-auto">
+                    <div className="col-md">
                         {data && data.length > 0 && (
                             <div class="card border-0 shadow">
                                 <div class="card-body">
