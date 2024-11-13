@@ -732,11 +732,11 @@ function SubFeatures({ dataSubFeatures, dataFeatures }) {
                     </div>
                 </nav>
                 <div className="row">
-                    <div className="col-md-9">
+                    <div className="col mx-auto">
                         {data && data.length > 0 && (
                             <div class="card border-0 shadow">
                                 <div class="card-body">
-                                    <Box sx={{ height: 400, width: "100%" }}>
+                                    <Box sx={{ height: 400, width: "80vh" }}>
                                         <DataGrid
                                             rows={data}
                                             columns={columns}
