@@ -29,7 +29,7 @@ Route::prefix('customers')->group(function () {
     Route::post('/login', [CustomersController::class, 'login']);
     Route::post('/forget', [CustomersController::class, 'forget_password']);
     Route::post('/social_login', [CustomersController::class, 'social_login']);
-   
+
 });
 Route::middleware('device_login')->group(function () {
     Route::put('/customers', [CustomersController::class, 'update']);
@@ -39,6 +39,7 @@ Route::middleware('device_login')->group(function () {
     Route::post('/claymation',[ImageAIController::class,'claymation'])->middleware(['auth.pro']);
     Route::post('/buyPackage',[SubcriptionPackagesController::class,'buyPackages']);
     Route::get('/token/{id}',[SubcriptionPackagesController::class,'getToken']);
+    Route::post('/profile',[ImageAIController::class,'changeBackground']);
 });
 
 Route::get('/configs',[ConfigController::class,'api_index']);
