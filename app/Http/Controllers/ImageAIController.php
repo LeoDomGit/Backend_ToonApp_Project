@@ -577,7 +577,7 @@ class ImageAIController extends Controller
         $file = $request->file('image');
         $result = $this->uploadImage($file);
         $image_id = $result['id'];
-        $$result = Features::where('slug', $request->slug)->first();
+        $result = Features::where('slug', $request->slug)->first();
         $feature=Features::where('slug', $request->slug)->first();
         if(!$result){
             $result =SubFeatures::where('slug', $request->slug)->first();
