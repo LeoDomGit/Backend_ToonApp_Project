@@ -601,12 +601,12 @@ function Index({ datafeatures, datasizes }) {
                 </nav>
 
                 {/* Data Grid */}
-                <div className="row w-90">
-                    <div className="col-md">
+                <div className="row">
+                    <div className="col mx-auto">
                         {data && data.length > 0 && (
                             <div className="card border-0 shadow">
                                 <div className="card-body">
-                                    <Box sx={{ width: '100%', height: 400, overflowX: 'auto', overflowY: 'hidden' }}>
+                                    <Box sx={{ width: '100%', height: '80vh', overflowX: 'auto', overflowY: 'hidden' }}>
                                         <DataGrid
                                             rows={data}
                                             columns={columns}
