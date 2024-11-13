@@ -36,7 +36,7 @@ Route::middleware('device_login')->group(function () {
     Route::get('/logout',[CustomersController::class, 'logout']);
     Route::post('/upload_image',[ImageAIController::class,'uploadImage']);
     Route::post('/style',[ImageAIController::class,'cartoon']);
-    Route::post('/claymation',[ImageAIController::class,'claymation'])->middleware(['auth.pro']);
+    Route::post('/claymation',[ImageAIController::class,'claymation']);
     Route::post('/buyPackage',[SubcriptionPackagesController::class,'buyPackages']);
     Route::get('/token/{id}',[SubcriptionPackagesController::class,'getToken']);
     Route::post('/profile',[ImageAIController::class,'changeBackground']);
