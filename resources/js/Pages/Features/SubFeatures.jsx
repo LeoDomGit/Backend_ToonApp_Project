@@ -736,7 +736,7 @@ function SubFeatures({ dataSubFeatures, dataFeatures }) {
                         {data && data.length > 0 && (
                             <div class="card border-0 shadow">
                                 <div class="card-body">
-                                    <Box sx={{ height: 400, width: "80vh" }}>
+                                    <Box sx={{ height: 400 }}>
                                         <DataGrid
                                             rows={data}
                                             columns={columns}
