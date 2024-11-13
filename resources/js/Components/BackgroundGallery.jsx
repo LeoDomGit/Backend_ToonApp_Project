@@ -14,7 +14,7 @@ function BackgroundGallery({ backgroundImages, onDelete }) {
             onClick={() => onDelete(image.id)}
             className="btn btn-danger btn-sm position-absolute top-0 end-0 m-2 me-4"
           >
-            X
+            X - {image.id}
           </button>
         </div>
       ))}
