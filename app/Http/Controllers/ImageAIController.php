@@ -73,6 +73,7 @@ class ImageAIController extends Controller
     }
     public function changeBackground(Request $request)
     {
+
         $validator = Validator::make($request->all(), [
             'image' => 'required|mimes:png,jpg,jpeg',
         ]);
@@ -80,7 +81,8 @@ class ImageAIController extends Controller
             return response()->json(['check' => 'error', 'msg' => $validator->errors()->first()], 400);
         }
         $client = $this->client;
-
+        $routePath = $request->path();
+        $feature=Features::where('api_endpoint',$routePath)->first();
         if ($request->hasFile('image') && $request->has('background')) {
             $image = $request->file('image');
             $id_img = $this->uploadServerImage($image);
@@ -158,7 +160,12 @@ class ImageAIController extends Controller
                 $filename = pathinfo($image->getClientOriginalName(), PATHINFO_FILENAME);
                 $folder = 'RemoveBackground';
                 $code_profile = 'image-' . time();
-                $cdnUrl = $this->uploadToCloudFlareFromFile($image_url, $code_profile, $folder, $filename);
+                $cdnUrl = $this->uploadToCloudFlareFromCdn(
+                    $image_url,
+                    'image-' . time(),
+                    $feature->slug,
+                    Auth::guard('customer')->id() . 'result-gen-profile'
+                );
                 $this->createActivities($id_img, $cdnUrl, $image->getSize(), '/api/remove_background', 'https://api.picsart.io/tools/1.0/removebg');
                 activity('remove_background')
                     ->withProperties([
@@ -201,7 +208,12 @@ class ImageAIController extends Controller
                 $filename = pathinfo($image->getClientOriginalName(), PATHINFO_FILENAME);
                 $folder = 'RemoveBackground';
                 $code_profile = 'image-' . time();
-                $cdnUrl = $this->uploadToCloudFlareFromFile($image_url, $code_profile, $folder, $filename);
+                $cdnUrl = $this->uploadToCloudFlareFromCdn(
+                    $image_url,
+                    'image-' . time(),
+                    $feature->slug,
+                    Auth::guard('customer')->id() . 'result-gen-profile'
+                );
                 $this->createActivities($id_img, $cdnUrl, $image->getSize(), 'api/image_ai/new_profile_pic', 'https://api.picsart.io/tools/1.0/removebg');
                 activity('remove_background')
                     ->withProperties([
