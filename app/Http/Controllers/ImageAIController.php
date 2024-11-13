@@ -202,7 +202,7 @@ class ImageAIController extends Controller
                 $folder = 'RemoveBackground';
                 $code_profile = 'image-' . time();
                 $cdnUrl = $this->uploadToCloudFlareFromFile($image_url, $code_profile, $folder, $filename);
-                $this->createActivities($id_img, $cdnUrl, $image->getSize(), '/api/remove_background', 'https://api.picsart.io/tools/1.0/removebg');
+                $this->createActivities($id_img, $cdnUrl, $image->getSize(), 'api/image_ai/new_profile_pic', 'https://api.picsart.io/tools/1.0/removebg');
                 activity('remove_background')
                     ->withProperties([
                         'cdnUrl' => $cdnUrl,
