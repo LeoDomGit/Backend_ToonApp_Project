@@ -73,118 +73,70 @@ class ImageAIController extends Controller
     }
     public function changeBackground(Request $request)
     {
-
         $validator = Validator::make($request->all(), [
             'image' => 'required|mimes:png,jpg,jpeg',
         ]);
         if ($validator->fails()) {
             return response()->json(['check' => 'error', 'msg' => $validator->errors()->first()], 400);
         }
-        $client = $this->client;
+        $image=$request->file('image');
+        $imageContent = file_get_contents($image);
+        $tempFilePath = storage_path('app/public/anime/temp_image.jpg');
+        file_put_contents($tempFilePath, $imageContent);
         $routePath = $request->path();
-        $feature=Features::where('api_endpoint',$routePath)->first();
-        if ($request->hasFile('image') && $request->has('background')) {
-            $image = $request->file('image');
-            $id_img = $this->uploadServerImage($image);
-            $response = $client->request('POST', 'https://api.picsart.io/tools/1.0/removebg', [
-                'multipart' => [
-                    [
-                        'name' => 'output_type',
-                        'contents' => 'cutout'
-                    ],
-                    [
-                        'name' => 'bg_blur',
-                        'contents' => '0'
-                    ],
-                    [
-                        'name' => 'scale',
-                        'contents' => 'fit'
-                    ],
-                    [
-                        'name' => 'auto_center',
-                        'contents' => 'false'
-                    ],
-                    [
-                        'name' => 'stroke_size',
-                        'contents' => '0'
-                    ],
-                    [
-                        'name' => 'stroke_color',
-                        'contents' => 'FFFFFF'
-                    ],
-                    [
-                        'name' => 'stroke_opacity',
-                        'contents' => '100'
-                    ],
-                    [
-                        'name' => 'shadow',
-                        'contents' => 'disabled'
-                    ],
-                    [
-                        'name' => 'shadow_opacity',
-                        'contents' => '20'
-                    ],
-                    [
-                        'name' => 'shadow_blur',
-                        'contents' => '50'
-                    ],
-                    [
-                        'name' => 'format',
-                        'contents' => 'PNG'
-                    ],
-                    [
-                        'name' => 'image',
-                        'filename' => $image->getClientOriginalName(),
-                        'contents' => fopen($image->getPathname(), 'r'),
-                        'headers' => [
-                            'Content-Type' => 'image'
-                        ]
-                    ],
-                    [
-                        'name' => 'bg_image_url',
-                        'contents' => $request->background
-                    ]
-                ],
-                'headers' => [
-                    'X-Picsart-API-Key' => $this->key,
-                    'accept' => 'application/json',
-                ],
-            ]);
-
-            // Fetch response body
-            if ($response->getStatusCode() === 200) {
-                $data = json_decode($response->getBody(), true);
-                $image_url = $data['data']['url'];
-                $filename = pathinfo($image->getClientOriginalName(), PATHINFO_FILENAME);
-                $folder = 'RemoveBackground';
-                $code_profile = 'image-' . time();
-                $cdnUrl = $this->uploadToCloudFlareFromCdn(
-                    $image_url,
-                    'image-' . time(),
-                    $feature->slug,
-                    Auth::guard('customer')->id() . 'result-gen-profile'
-                );
-                $this->createActivities($id_img, $cdnUrl, $image->getSize(), $routePath, 'https://api.picsart.io/tools/1.0/removebg');
-                activity('remove_background')
-                    ->withProperties([
-                        'cdnUrl' => $cdnUrl,
-                        'size' => $image->getSize(),
-                    ])
-                    ->log('Image processed successfully');
-                return response()->json(['check' => true, 'url' => $cdnUrl, 'id_img' => $id_img]);
-            } else {
-                return response()->json(['check' => 'error', 'msg' => 'Failed to process image', 'error' => $response->getBody()->getContents()], 400);
-            }
-        } else {
-            $image = $request->file('image');
-            $id_img = $this->uploadServerImage($image);
+        $feature=Features::where('api_endpoint', $routePath)->first();
+        if($request->has('background')){
             $response = Http::withHeaders([
                 'X-Picsart-API-Key' => $this->key,
                 'Accept' => 'application/json',
             ])->attach(
                 'image',
-                file_get_contents($image->getRealPath()),
-                $image->getClientOriginalName()
+                file_get_contents($tempFilePath),
+                'temp_image.jpg'
+            )->post('https://api.picsart.io/tools/1.0/removebg', [
+                'output_type' => 'cutout',
+                'bg_blur' => '0',
+                'scale' => 'fit',
+                'auto_center' => 'false',
+                'stroke_size' => '0',
+                'stroke_color' => 'FFFFFF',
+                'stroke_opacity' => '100',
+                'shadow' => 'disabled',
+                'shadow_opacity' => '20',
+                'shadow_blur' => '50',
+                'format' => 'PNG',
+                'bg_image_url'=>$request->background
+            ]);
+
+            // Check response status
+            if ($response->successful()) {
+                $data = $response->json();
+                $processedImageUrl = $data['data']['url'];
+
+                activity('remove_background')
+                    ->withProperties([
+                        'cdnUrl' => $processedImageUrl,
+                        'sourceUrl' => $image,
+                    ])
+                    ->log('Image processed successfully');
+                    $image = $this->uploadToCloudFlareFromCdn(
+                        $processedImageUrl,
+                        'image-' . time(),
+                        $feature->slug,
+                        Auth::guard('customer')->id() . 'result-gen'.time()
+                    );
+                    return response()->json(['url'=>$image]);
+            } else {
+                return response()->json(['check' => 'error', 'msg' => 'Failed to process image', 'error' => $response->json()], 400);
+            }
+        }else{
+            $response = Http::withHeaders([
+                'X-Picsart-API-Key' => $this->key,
+                'Accept' => 'application/json',
+            ])->attach(
+                'image',
+                file_get_contents($tempFilePath),
+                'temp_image.jpg'
             )->post('https://api.picsart.io/tools/1.0/removebg', [
                 'output_type' => 'cutout',
                 'bg_blur' => '0',
@@ -202,28 +154,26 @@ class ImageAIController extends Controller
             // Check response status
             if ($response->successful()) {
                 $data = $response->json();
-                $image_url = $data['data']['url'];
-                $filename = pathinfo($image->getClientOriginalName(), PATHINFO_FILENAME);
-                $folder = 'RemoveBackground';
-                $code_profile = 'image-' . time();
-                $cdnUrl = $this->uploadToCloudFlareFromCdn(
-                    $image_url,
-                    'image-' . time(),
-                    $feature->slug,
-                    Auth::guard('customer')->id() . 'result-gen-profile'
-                );
-                $this->createActivities($id_img, $cdnUrl, $image->getSize(), $routePath, 'https://api.picsart.io/tools/1.0/removebg');
+                $processedImageUrl = $data['data']['url'];
+
                 activity('remove_background')
                     ->withProperties([
-                        'cdnUrl' => $cdnUrl,
-                        'size' => $image->getSize(),
+                        'cdnUrl' => $processedImageUrl,
+                        'sourceUrl' => $image,
                     ])
                     ->log('Image processed successfully');
-                return response()->json(['check' => true, 'url' => $cdnUrl, 'id_img' => $id_img]);
+                    $image = $this->uploadToCloudFlareFromCdn(
+                        $processedImageUrl,
+                        'image-' . time(),
+                        $feature->slug,
+                        Auth::guard('customer')->id() . 'result-gen'.time()
+                    );
+                    return response()->json(['url'=>$image]);
             } else {
-                return response()->json(['check' => 'error', 'msg' => 'Failed to process image', 'error' => $response->body()], 400);
+                return response()->json(['check' => 'error', 'msg' => 'Failed to process image', 'error' => $response->json()], 400);
             }
         }
+
     }
 
 
