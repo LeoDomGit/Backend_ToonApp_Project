@@ -1052,9 +1052,58 @@ class ImageAIController extends Controller
         return response()->json(['status' => 'develop']);
     }
 
-    public function funnyCharactors(Request $request)
+    public function createEffect(Request $request)
     {
-        return response()->json(['status' => 'develop']);
+        $validator = Validator::make($request->all(), [
+            'image' => 'required',
+            'effect' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['status' => 'error', 'message' => $validator->errors()->first()]);
+        }
+        $response = Http::withHeaders([
+            'X-Picsart-API-Key' => $this->key,
+            'Accept' => 'application/json',
+        ])->asMultipart()->post('https://api.picsart.io/tools/1.0/effects', [
+            [
+                'name' => 'effect_name',
+                'contents' => $request->effect,
+            ],
+            [
+                'name' => 'format',
+                'contents' => 'JPG',
+            ],
+            [
+                'name' => 'image_url',
+                'contents' => $request->image,
+            ],
+        ]);
+
+        if ($response->successful()) {
+            $data = $response->json();
+            if (isset($data['data']['url'])) {
+                $feature = Features::where('slug', 'new-profile-picture')->first();
+                $imageWithoutBg = $data['data']['url'];
+
+                $image = $this->uploadToCloudFlareFromCdn(
+                    $imageWithoutBg,
+                    'image-' . time(),
+                    $feature->slug,
+                    Auth::guard('customer')->id() . 'result-gen-profile'
+                );
+
+                return response()->json(['status' => 'success', 'image_url' => $image]);
+            } else {
+                return response()->json(['error' => 'No data found in response.'], 404);
+            }
+        } else {
+            return response()->json([
+                'error' => 'Failed to retrieve effects from Picsart API.',
+                'details' => $response->json(),
+                'status' => $response->status()
+            ], $response->status());
+        }
     }
     /**
      * Show the form for creating a new resource.
