@@ -27,6 +27,9 @@ function Index({ dataConfigs }) {
         { field: "id", headerName: "#", width: 100 },
         { field: "domain", headerName: "Domain ", width: 200, editable: true },
         { field: "package_name", headerName: "Package Name", width: 200, editable: true },
+        { field: "policy", headerName: "Policy", width: 200, editable: true },
+        { field: "term", headerName: "Term", width: 200, editable: true },
+        { field: "support", headerName: "Support", width: 200, editable: true },
         {
             field: "status",
             headerName: "Status",
