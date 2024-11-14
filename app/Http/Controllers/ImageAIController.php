@@ -79,11 +79,23 @@ class ImageAIController extends Controller
         $response = Http::withHeaders([
             'X-Picsart-API-Key' => $this->key,
             'Accept' => 'application/json',
-        ])->post('https://api.picsart.io/tools/1.0/effects');
+        ])->get('https://api.picsart.io/tools/1.0/effects');
+
         if ($response->successful()) {
             $data = $response->json();
-            $data = $data['data'];
-            return response()->json($data);
+            if (isset($data['data'])) {
+                // Return only the effect names
+                $effectNames = array_column($data['data'], 'name');
+                return response()->json($effectNames);
+            } else {
+                return response()->json(['error' => 'No data found in response.'], 404);
+            }
+        } else {
+            return response()->json([
+                'error' => 'Failed to retrieve effects from Picsart API.',
+                'details' => $response->json(),
+                'status' => $response->status()
+            ], $response->status());
         }
     }
         /**
