@@ -46,13 +46,8 @@ class Features extends Model
             return $attributes['image'] ? asset('storage/' . $attributes['image']) : null;
         });
     }
-    public function sizes()
-    {
-        return $this->belongsToMany(ImageSize::class, 'features_sizes', 'feature_id', 'size_id')
-                    ->withPivot(['model_id', 'prompt', 'presetStyle', 'preprocessorId', 'strengthType', 'initImageId'])
-                    ->as('features_sizes')
-                    ->wherePivot('model_id', '!=', null) // Optional: only if you want to retrieve with filters
-                    ->select('id', 'size'); // Only include selected fields in query to hide
+    public function sizes() {
+        return $this->belongsToMany(ImageSize::class, 'features_sizes', 'feature_id', 'size_id');
     }
     public function scopeActive($query)
     {
