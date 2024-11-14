@@ -95,7 +95,7 @@ class FeaturesController
      public function updated_size(Request $request,$id)
     {
         $validator = Validator::make($request->all(), [
-            'size_id' => 'required|array',
+            'size_id' => 'nullable|array',
             'size_id.*'=>'exists:image_sizes,id'
         ]);
         if ($validator->fails()) {
@@ -103,12 +103,14 @@ class FeaturesController
         }
         $arr=$request->size_id;
         FeaturesSizes::where('feature_id',$id)->delete();
-        foreach ($arr as $key => $value) {
-           FeaturesSizes::create([
-            'feature_id'=>$id,
-            'size_id'=>$value,
-            'created_at'=>now()
-           ]);
+        if(count($arr)!=0){
+            foreach ($arr as $key => $value) {
+                FeaturesSizes::create([
+                 'feature_id'=>$id,
+                 'size_id'=>$value,
+                 'created_at'=>now()
+                ]);
+             }
         }
         $data = Features::with('sizes')->get();
         return response()->json(['check'=>true,'data'=>$data]);
@@ -117,7 +119,7 @@ class FeaturesController
     {
         $data = $request->all();
         if($request->has('name')){
-            $data['slug'] = Str::slug($request->input('name')); 
+            $data['slug'] = Str::slug($request->input('name'));
         }
         $data['updated_at'] = now();
         Features::where('id', $id)->update($data);
