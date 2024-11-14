@@ -224,12 +224,12 @@ class ImageAIController extends Controller
             'image' => 'required|mimes:png,jpg,jpeg',
             'level' => 'in:l1,l2,l3,l4,l5',
         ]);
-        
+
         if ($validator->fails()) {
             activity('claymation')
                 ->withProperties(['error' => $validator->errors()->first()])
                 ->log('Validation failed');
-        
+
             return response()->json(['check' => false, 'msg' => $validator->errors()->first()]);
         }
         $routePath = $request->path();
@@ -237,11 +237,11 @@ class ImageAIController extends Controller
         $image_url= config('app.image_url').$result;
         $image = $request->file('image');
         $id_img = $this->uploadServerImage($image);
-        $level = $request->input('level', 'l5'); 
+        $level = $request->input('level', 'l5');
         activity('removeBackground')
             ->withProperties(['id_img' => $id_img])
             ->log('Removing background from image');
-        
+
         // Send request to Picsart API to remove the background
         $response = Http::withHeaders([
             'X-Picsart-API-Key' => $this->key,
@@ -263,7 +263,7 @@ class ImageAIController extends Controller
             'shadow_blur' => '50',
             'format' => 'PNG',
         ]);
-        
+
         // Check response status for background removal
         if ($response->successful()) {
             $data = $response->json();
@@ -288,7 +288,7 @@ class ImageAIController extends Controller
                     'contents' => $image_url
                 ]
             ]);
-        
+
             // Check response status for style transfer
             if ($response->successful()) {
                 $data = $response->json();
@@ -309,17 +309,17 @@ class ImageAIController extends Controller
                 activity('claymation')
                     ->withProperties(['error' => $response->body()])
                     ->log('Failed to process image');
-        
+
                 return response()->json(['check' => false, 'msg' => 'Failed to process image', 'error' => $response->body()],400);
             }
         } else {
             activity('removeBackground')
                 ->withProperties(['error' => $response->body()])
                 ->log('Failed to remove background');
-        
+
             return response()->json(['check' => false, 'msg' => 'Failed to remove background', 'error' => $response->body()],400);
         }
-        
+
     }
     private function storeRequest($request_type, $prompt, $modelai, $method, $url_endpoint, $postfields, $response, $id_content_category)
     {
@@ -412,7 +412,7 @@ class ImageAIController extends Controller
             $secretKey = $this->aws_secret_key;
             $region = 'auto';
             $endpoint = "https://$accountid.r2.cloudflarestorage.com";
-    
+
             // Set up the S3 client with Cloudflare's endpoint
             $s3Client = new S3Client([
                 'version' => 'latest',
@@ -424,19 +424,19 @@ class ImageAIController extends Controller
                 'endpoint' => $endpoint,
                 'use_path_style_endpoint' => true,
             ]);
-    
+
             // Step 2: Stream image directly from CDN
             $imageData = file_get_contents($image_url);
-    
+
             if ($imageData === false) {
                 // Handle download error
                 Log::error('Failed to retrieve image from CDN URL: ' . $image_url);
                 return 'error';
             }
-    
+
             // Step 3: Define the object path and name in R2
             $r2object = $folder . '/' . $filename . '.jpg';
-    
+
             // Step 4: Upload the file to Cloudflare R2
             try {
                 $result = $s3Client->putObject([
@@ -445,7 +445,7 @@ class ImageAIController extends Controller
                     'Body' => $imageData,  // Pass the image content directly from CDN
                     'ContentType' => 'image/jpeg',
                 ]);
-    
+
                 // Generate the CDN URL using the custom domain
                 $cdnUrl = "https://artapp.promptme.info/$folder/$filename.jpg";
                 return $cdnUrl;
@@ -456,6 +456,60 @@ class ImageAIController extends Controller
         } catch (\Throwable $th) {
             Log::error($th->getMessage());
             return 'error';
+        }
+    }
+
+    private function uploadToCloudFlareFromFile1($imageFile, $code_profile, $folder, $filename)
+    {
+        try {
+            // Step 1: Check if the file exists
+            if (!file_exists($imageFile)) {
+                Log::error('File does not exist: ' . $imageFile);
+                return 'error: file does not exist';
+            }
+
+            // Step 2: Prepare Cloudflare R2 credentials and settings
+            $accountid = '453d5dc9390394015b582d09c1e82365';
+            $r2bucket = 'artapp';  // Updated bucket name
+            $accessKey = $this->aws_access_key;
+            $secretKey = $this->aws_secret_key;
+            $region = 'auto';
+            $endpoint = "https://$accountid.r2.cloudflarestorage.com";
+
+            // Set up the S3 client with Cloudflare's endpoint
+            $s3Client = new S3Client([
+                'version' => 'latest',
+                'region' => $region,
+                'credentials' => [
+                    'key' => $accessKey,
+                    'secret' => $secretKey,
+                ],
+                'endpoint' => $endpoint,
+                'use_path_style_endpoint' => true,
+            ]);
+
+            // Step 3: Define the object path and name in R2
+            $r2object = $folder . '/' . $filename . '.jpg';
+
+            // Step 4: Upload the file to Cloudflare R2
+            try {
+                $result = $s3Client->putObject([
+                    'Bucket' => $r2bucket,
+                    'Key' => $r2object,
+                    'Body' => fopen($imageFile, 'rb'), // Open the file as a binary stream
+                    'ContentType' => 'image/jpeg',
+                ]);
+
+                // Generate the CDN URL using the custom domain
+                $cdnUrl = "https://artapp.promptme.info/$folder/$filename.jpg";
+                return $cdnUrl;
+            } catch (S3Exception $e) {
+                Log::error("Error uploading file: " . $e->getMessage());
+                return 'error: ' . $e->getMessage();
+            }
+        } catch (\Throwable $th) {
+            Log::error($th->getMessage());
+            return 'error: ' . $th->getMessage();
         }
     }
     public function removeBackground($image)
@@ -481,12 +535,12 @@ class ImageAIController extends Controller
             'shadow_blur' => '50',
             'format' => 'PNG',
         ]);
-        
+
         // Check response status
         if ($response->successful()) {
             $data = $response->json();
             $processedImageUrl = $data['data']['url'];
-        
+
             activity('remove_background')
                 ->withProperties([
                     'cdnUrl' => $processedImageUrl,
@@ -903,7 +957,7 @@ class ImageAIController extends Controller
                     [
                         'initImageId' =>  $initImageId,
                         'initImageType' => 'UPLOADED',
-                        'preprocessorId' => (int)$result->preprocessorId, 
+                        'preprocessorId' => (int)$result->preprocessorId,
                         'strengthType' => 'High',
                     ]
                 ],
@@ -919,7 +973,7 @@ class ImageAIController extends Controller
                     'accept' => 'application/json',
                     'authorization' =>'Bearer ' . $this->leo_key,
                 ])->get('https://cloud.leonardo.ai/api/rest/v1/generations/'.$generationId);
-        
+
                 if ($response->successful()) {
                     $data = $response->json();
                     if (!empty($data['generations_by_pk']['generated_images'])) {
@@ -928,7 +982,7 @@ class ImageAIController extends Controller
                         $image = $this->removeBackground($firstImageUrl);
                         $image = $this->uploadToCloudFlareFromCdn($image, 'image-' . time(), 'Cartoon','gen'.$generationId);
                         return response()->json(['check' => true, 'url' => $image]);
-                    } 
+                    }
                 }
             }
         }else{
@@ -938,7 +992,7 @@ class ImageAIController extends Controller
      /**
      * Show the form for creating a new resource.
      */
-    
+
     public function uploadImage($file)
     {
         $this->uploadServerImage($file);
@@ -974,7 +1028,7 @@ class ImageAIController extends Controller
                 ['name' => 'X-Amz-Signature', 'contents' => $signature],
                 ['name' => 'file', 'contents' => fopen($file->getPathname(), 'r'), 'filename' => $file->getClientOriginalName()],
             ]);
-            
+
             if ($response->status() === 204) {
                 return [
                     'url'=>$this->get_leo_image_url($id),

@@ -9,5 +9,5 @@ class Background extends Model
 {
     use HasFactory;
     protected $table='background';
-    protected $fillable=['id','path','feature_id','status','created_at','updated_at'];
+    protected $fillable=['id','path','feature_id','is_front','status','created_at','updated_at'];
 }
