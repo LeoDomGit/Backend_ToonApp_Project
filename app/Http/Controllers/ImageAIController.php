@@ -675,14 +675,16 @@ class ImageAIController extends Controller
                 'width' => $width,
                 'num_images' => 1,
                 'alchemy' => true,
-                'controlnets' => [
-                    [
-                        'initImageId' =>  $initImageId,
-                        'initImageType' => 'UPLOADED',
-                        'preprocessorId' => (int)$result->preprocessorId,
-                        'strengthType' => 'High',
+                isset($initImageId) && $initImageId !== null ? [
+                    'controlnets' => [
+                        [
+                            'initImageId' => $initImageId,
+                            'initImageType' => 'UPLOADED',
+                            'preprocessorId' => (int) $result->preprocessorId,
+                            'strengthType' => 'High',
+                        ]
                     ]
-                ],
+                ] : [],
                 "init_image_id" => $image_id,
                 "init_strength" => 0.5,
             ]);
@@ -764,14 +766,16 @@ class ImageAIController extends Controller
                 'presetStyle' => $result->presetStyle,
                 'num_images' => 1,
                 'alchemy' => true,
-                'controlnets' => [
-                    [
-                        'initImageId' =>  $initImageId,
-                        'initImageType' => 'UPLOADED',
-                        'preprocessorId' => (int)$result->preprocessorId,
-                        'strengthType' => 'High',
+                isset($initImageId) && $initImageId !== null ? [
+                    'controlnets' => [
+                        [
+                            'initImageId' => $initImageId,
+                            'initImageType' => 'UPLOADED',
+                            'preprocessorId' => (int) $result->preprocessorId,
+                            'strengthType' => 'High',
+                        ]
                     ]
-                ],
+                ] : [],
                 "init_image_id" => $image_id,
                 "init_strength" => 0.5,
             ]);
@@ -1099,14 +1103,16 @@ class ImageAIController extends Controller
                     'presetStyle' => $result->presetStyle,
                     'num_images' => 1,
                     'alchemy' => true,
-                    'controlnets' => [
-                        [
-                            'initImageId' =>  $initImageId,
-                            'initImageType' => 'UPLOADED',
-                            'preprocessorId' => (int)$result->preprocessorId,
-                            'strengthType' => 'High',
+                    isset($initImageId) && $initImageId !== null ? [
+                        'controlnets' => [
+                            [
+                                'initImageId' => $initImageId,
+                                'initImageType' => 'UPLOADED',
+                                'preprocessorId' => (int) $result->preprocessorId,
+                                'strengthType' => 'High',
+                            ]
                         ]
-                    ],
+                    ] : [],
                     "init_image_id" => $image_id,
                     "init_strength" => 0.5,
                 ]);
@@ -1192,14 +1198,16 @@ class ImageAIController extends Controller
                     'width' => $width,
                     'num_images' => 1,
                     'alchemy' => true,
-                    'controlnets' => [
-                        [
-                            'initImageId' =>  $initImageId,
-                            'initImageType' => 'UPLOADED',
-                            'preprocessorId' => (int)$result->preprocessorId,
-                            'strengthType' => 'High',
+                    isset($initImageId) && $initImageId !== null ? [
+                        'controlnets' => [
+                            [
+                                'initImageId' => $initImageId,
+                                'initImageType' => 'UPLOADED',
+                                'preprocessorId' => (int) $result->preprocessorId,
+                                'strengthType' => 'High',
+                            ]
                         ]
-                    ],
+                    ] : [],
                     "init_image_id" => $image_id,
                     "init_strength" => 0.5,
                 ]);
@@ -1283,14 +1291,16 @@ class ImageAIController extends Controller
                 'presetStyle' => $result->presetStyle,
                 'num_images' => 1,
                 'alchemy' => true,
-                'controlnets' => [
-                    [
-                        'initImageId' =>  $initImageId,
-                        'initImageType' => 'UPLOADED',
-                        'preprocessorId' => (int)$result->preprocessorId,
-                        'strengthType' => 'High',
+                isset($initImageId) && $initImageId !== null ? [
+                    'controlnets' => [
+                        [
+                            'initImageId' => $initImageId,
+                            'initImageType' => 'UPLOADED',
+                            'preprocessorId' => (int) $result->preprocessorId,
+                            'strengthType' => 'High',
+                        ]
                     ]
-                ],
+                ] : [],
                 "init_image_id" => $image_id,
                 "init_strength" => 0.5,
             ]);
