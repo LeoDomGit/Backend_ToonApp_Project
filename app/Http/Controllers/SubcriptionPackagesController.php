@@ -21,7 +21,7 @@ class SubcriptionPackagesController extends Controller
     {
         $subcriptionPackages = SubcriptionPackage::all();
         return Inertia::render('Packages/Index', ['data' => $subcriptionPackages]);
-        
+
     }
 
     /**
@@ -60,7 +60,7 @@ public function buyPackages(Request $request){
             return response()->json(['check' => 'error', 'msg' => $validator->errors()->first()]);
         }
         $customer = Auth::guard('customer')->user();
-        
+
         if (!$customer) {
             return response()->json(['error' => 'Customer not found.'], 404);
         }
@@ -77,7 +77,10 @@ public function buyPackages(Request $request){
             return response()->json(['error' => 'Subscription package not found.'], 404);
         }
         $customer->updateRememberTokenAndExpiry($subscriptionPackage->duration, $request->platform);
-        return response()->json(['check' => true,'users'=>Auth::guard('customer')->user()]);
+        $rememberToken = $customer->fresh()->remember_token;
+        // UAT ENV
+        $config=config('app.access_token');
+        return response()->json(['check' => true,'token' => $config]);
 }
     /**
      * Display the specified resource.
