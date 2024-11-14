@@ -19,6 +19,7 @@ use Aws\S3\Exception\S3Exception;
 use Illuminate\Support\Facades\Log;
 use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 use Spatie\Activitylog\Models\Activity;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Customers;
@@ -545,9 +546,6 @@ class ImageAIController extends Controller
         if ($validator->fails()) {
             return response()->json(['check' => 'error', 'msg' => $validator->errors()->first()]);
         }
-        if($result->is_pro==1 && $this->pro_account==false){
-            return response()->json(['check'=>false,'error'=>'Not accepted'],401);
-        }
         $file = $request->file('image');
         $result = $this->uploadImage($file);
         $image_id = $result['id'];
@@ -560,6 +558,9 @@ class ImageAIController extends Controller
             $result =SubFeatures::where('slug', $request->slug)->first();
             $feature=SubFeatures::where('slug', $request->slug)->first();
             $id_feature=$feature->feature_id;
+        }
+        if($result->is_pro==1 && $this->pro_account==false){
+            return response()->json(['check'=>false,'error'=>'Not accepted'],401);
         }
         $initImageId = $result->initImageId;
         if($request->has('id_size')){
