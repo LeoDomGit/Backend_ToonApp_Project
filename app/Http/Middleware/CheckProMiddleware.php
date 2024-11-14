@@ -18,6 +18,32 @@ class CheckProMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
+        // $guard = Auth::guard('customer');
+
+        // if (!$guard->check()) {
+        //     return response()->json(['Authorization' => 'Unauthorized'], 401);
+        // }
+
+        // $user = $guard->user();
+
+        // if (!$user->remember_token) {
+        //     return response()->json(['Authorization' => 'Not Accepted'], 401);
+        // }
+
+        // if ($user->expired_at && Carbon::parse($user->expired_at)->isPast()) {
+        //     Customers::where('id', $user->id)->update(['remember_token' => null,'updated_at'=>now()]);
+        //     return response()->json(['Authorization' => 'Expired'], 401);
+        // }
+        // return $next($request);
+
+        // UAT
+        $barrierToken = $request->header('Authorization');
+        $configAccessToken = config('app.access_token');
+
+        if ($barrierToken !== 'Bearer ' . $configAccessToken) {
+            return response()->json(['Authorization' => 'Forbidden'], 403);
+        }
+
         $guard = Auth::guard('customer');
 
         if (!$guard->check()) {
@@ -31,9 +57,10 @@ class CheckProMiddleware
         }
 
         if ($user->expired_at && Carbon::parse($user->expired_at)->isPast()) {
-            Customers::where('id', $user->id)->update(['remember_token' => null,'updated_at'=>now()]);
+            Customers::where('id', $user->id)->update(['remember_token' => null, 'updated_at' => now()]);
             return response()->json(['Authorization' => 'Expired'], 401);
         }
+
         return $next($request);
     }
 }

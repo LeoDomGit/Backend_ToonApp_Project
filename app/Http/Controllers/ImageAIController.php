@@ -37,7 +37,7 @@ class ImageAIController extends Controller
      * Display a listing of the resource.
      */
 
-    public function __construct()
+    public function __construct(Request $request)
     {
         $result = Key::where('api', 'picsart')->orderBy('id', 'asc')->first();
         $this->key = $result->key;
@@ -48,9 +48,14 @@ class ImageAIController extends Controller
         $this->client = new Client();
         $guard = Auth::guard('customer');
         $user = $guard->user();
-        if ($user &&$user->expired_at &&!Carbon::parse($user->expired_at)->isPast()) {
+        $bearerToken = $request->bearerToken();
+        if ($bearerToken && $bearerToken === config('app.access_token')) {
             $this->pro_account = true;
-        } else {
+        }
+        // elseif ($user && $user->expired_at && !Carbon::parse($user->expired_at)->isPast()) {
+        //     $this->pro_account = true;
+        // }
+        else {
             $this->pro_account = false;
         }
     }
@@ -77,7 +82,7 @@ class ImageAIController extends Controller
             'role.exists' => 'Mã loại tài khoản không hợp lệ',
         ]);
         if ($validator->fails()) {
-            return response()->json(['check' => 'error', 'msg' => $validator->errors()->first()], 400);
+            return response()->json(['status' => 'error', 'message' => $validator->errors()->first()], 400);
         }
     }
     public function changeBackground(Request $request)
@@ -86,10 +91,10 @@ class ImageAIController extends Controller
             'image' => 'required|mimes:png,jpg,jpeg',
         ]);
         if ($validator->fails()) {
-            return response()->json(['check' => 'error', 'msg' => $validator->errors()->first()], 400);
+            return response()->json(['status' => 'error', 'message' => $validator->errors()->first()], 400);
         }
         if($result->is_pro==1 && $this->pro_account==false){
-            return response()->json(['check'=>false,'error'=>'Not accepted'],401);
+            return response()->json(['status'=>false,'error'=>'Not accepted'],401);
         }
         $image=$request->file('image');
         $imageContent = file_get_contents($image);
@@ -139,7 +144,7 @@ class ImageAIController extends Controller
                     );
                     return response()->json(['url'=>$image]);
             } else {
-                return response()->json(['check' => 'error', 'msg' => 'Failed to process image', 'error' => $response->json()], 400);
+                return response()->json(['status' => 'error', 'message' => 'Failed to process image', 'error' => $response->json()], 400);
             }
         }else{
             $response = Http::withHeaders([
@@ -182,7 +187,7 @@ class ImageAIController extends Controller
                     );
                     return response()->json(['url'=>$image]);
             } else {
-                return response()->json(['check' => 'error', 'msg' => 'Failed to process image', 'error' => $response->json()], 400);
+                return response()->json(['status' => 'error', 'message' => 'Failed to process image', 'error' => $response->json()], 400);
             }
         }
 
@@ -201,7 +206,7 @@ class ImageAIController extends Controller
                 ->withProperties(['error' => $validator->errors()->first()])
                 ->log('Validation failed');
 
-            return response()->json(['check' => 'error', 'msg' => $validator->errors()->first()]);
+            return response()->json(['status' => 'error', 'message' => $validator->errors()->first()]);
         }
         $routePath = $request->path();
         $result = FeatureImage::where('api_route', $routePath)->first()->value('path');
@@ -276,20 +281,20 @@ class ImageAIController extends Controller
                     ])
                     ->log('Image processed successfully');
                 $this->createActivities($id_img, $cdnUrl, $image->getSize(), '/api/claymation', 'https://api.picsart.io/tools/1.0/styletransfer');
-                return response()->json(['check' => true, 'url' => $cdnUrl]);
+                return response()->json(['status' => true, 'url' => $cdnUrl]);
             } else {
                 activity('claymation')
                     ->withProperties(['error' => $response->body()])
                     ->log('Failed to process image');
 
-                return response()->json(['check' => 'error', 'msg' => 'Failed to process image', 'error' => $response->body()], 400);
+                return response()->json(['status' => 'error', 'message' => 'Failed to process image', 'error' => $response->body()], 400);
             }
         } else {
             activity('removeBackground')
                 ->withProperties(['error' => $response->body()])
                 ->log('Failed to remove background');
 
-            return response()->json(['check' => 'error', 'msg' => 'Failed to remove background', 'error' => $response->body()], 400);
+            return response()->json(['status' => 'error', 'message' => 'Failed to remove background', 'error' => $response->body()], 400);
         }
     }
     private function storeRequest($request_type, $prompt, $modelai, $method, $url_endpoint, $postfields, $response, $id_content_category)
@@ -450,7 +455,7 @@ class ImageAIController extends Controller
                 ->log('Image processed successfully');
             return $processedImageUrl;
         } else {
-            return response()->json(['check' => 'error', 'msg' => 'Failed to process image', 'error' => $response->json()], 400);
+            return response()->json(['status' => 'error', 'message' => 'Failed to process image', 'error' => $response->json()], 400);
         }
     }
 
@@ -461,7 +466,7 @@ class ImageAIController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['check' => 'error', 'msg' => $validator->errors()->first()]);
+            return response()->json(['status' => 'error', 'message' => $validator->errors()->first()]);
         }
 
         $image = $request->file('image');
@@ -504,14 +509,14 @@ class ImageAIController extends Controller
                 ])
                 ->log('Processed image for animal toon effect');
             $this->createActivities($id_img, $cdnUrl, $image->getSize(), '/api/animal_toon', 'https://api.picsart.io/tools/1.0/effects/ai');
-            return response()->json(['check' => true, 'url' => $cdnUrl]);
+            return response()->json(['status' => true, 'url' => $cdnUrl]);
         } else {
             // Log activity on failure
             activity('animalToon')
                 ->withProperties(['error' => $response->body()])
                 ->log('Failed to process image for animal toon effect');
 
-            return response()->json(['check' => 'error', 'msg' => 'Failed to process image', 'error' => $response->body()], 400);
+            return response()->json(['status' => 'error', 'message' => 'Failed to process image', 'error' => $response->body()], 400);
         }
     }
     private function uploadToCloudFlareFromFile1($imageFile, $code_profile, $folder, $filename)
@@ -596,7 +601,7 @@ class ImageAIController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['check' => 'error', 'msg' => $validator->errors()->first()]);
+            return response()->json(['status' => 'error', 'message' => $validator->errors()->first()]);
         }
         $file = $request->file('image');
         $result = $this->uploadImage($file);
@@ -612,7 +617,7 @@ class ImageAIController extends Controller
             $id_feature=$feature->feature_id;
         }
         if($result->is_pro==1 && $this->pro_account==false){
-            return response()->json(['check'=>false,'error'=>'Not accepted'],401);
+            return response()->json(['status'=>false,'error'=>'Not accepted'],401);
         }
         $initImageId = $result->initImageId;
         if($request->has('id_size')){
@@ -621,7 +626,7 @@ class ImageAIController extends Controller
                 'size_id'=>$request->id_size
             ])->first();
             if(!$check){
-                return response()->json(['check'=>'error','msg'=>'Size này không được hỗ trợ trong feature'],400);
+                return response()->json(['status'=>'error','message'=>'Size này không được hỗ trợ trong feature'],400);
             }
             $size=ImageSize::where('id',$request->id_size)->first();
             $height=$size->height;
@@ -700,13 +705,13 @@ class ImageAIController extends Controller
                             // Return the JSON response with both the original and modified URLs
                             if($feature->remove_bg == 1){
                                 return response()->json([
-                                    'check' => true,
+                                    'status' => true,
                                     'url' => $image,              // Final image URL (with or without background removed)
                                     'bg_url' => $originalImageUrl  // Original image URL
                                 ]);
                             }else{
                                 return response()->json([
-                                    'check' => true,
+                                    'status' => true,
                                     'url' => $image,
                                 ]);
                             }
@@ -714,7 +719,7 @@ class ImageAIController extends Controller
                     }
                 }
             } else {
-                return response()->json(['check' => 'error', 'msg' => 'Failed to upload image.', 'details' => $response->body()]);
+                return response()->json(['status' => 'error', 'message' => 'Failed to upload image.', 'details' => $response->body()]);
             }
         }else{
             $initImageId=$result->initImageId;
@@ -789,13 +794,13 @@ class ImageAIController extends Controller
                             // Return the JSON response with both the original and modified URLs
                             if($feature->remove_bg == 1){
                                 return response()->json([
-                                    'check' => true,
+                                    'status' => true,
                                     'url' => $image,              // Final image URL (with or without background removed)
                                     'bg_url' => $originalImageUrl  // Original image URL
                                 ]);
                             }else{
                                 return response()->json([
-                                    'check' => true,
+                                    'status' => true,
                                     'url' => $image,
                                 ]);
                             }
@@ -803,7 +808,7 @@ class ImageAIController extends Controller
                     }
                 }
             } else {
-                return response()->json(['check' => 'error', 'msg' => 'Failed to upload image.', 'details' => $response->body()]);
+                return response()->json(['status' => 'error', 'message' => 'Failed to upload image.', 'details' => $response->body()]);
             }
         }
     }
@@ -817,7 +822,7 @@ class ImageAIController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['check' => 'error', 'msg' => $validator->errors()->first()]);
+            return response()->json(['status' => 'error', 'message' => $validator->errors()->first()]);
         }
 
         $image = $request->file('image');
@@ -865,14 +870,14 @@ class ImageAIController extends Controller
                 ])
                 ->log('Processed image for Disney-style transformation');
             $this->createActivities($id_img, $cdnUrl, $image->getSize(), '/api/claymation', 'https://api.picsart.io/tools/1.0/styletransfer');
-            return response()->json(['check' => true, 'url' => $cdnUrl]);
+            return response()->json(['status' => true, 'url' => $cdnUrl]);
         } else {
             // Log failed activity attempt
             activity('disneyToon')
                 ->withProperties(['error' => $response->body()])
                 ->log('Failed to process image for Disney-style transformation');
 
-            return response()->json(['check' => 'error', 'msg' => 'Failed to process image', 'error' => $response->body()], 400);
+            return response()->json(['status' => 'error', 'message' => 'Failed to process image', 'error' => $response->body()], 400);
         }
     }
 
@@ -885,7 +890,7 @@ class ImageAIController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['check' => 'error', 'msg' => $validator->errors()->first()]);
+            return response()->json(['status' => 'error', 'message' => $validator->errors()->first()]);
         }
 
         $image = $request->file('image');
@@ -933,14 +938,14 @@ class ImageAIController extends Controller
                 ])
                 ->log('Processed image for Disney characters transformation');
             $this->createActivities($id_img, $cdnUrl, $image->getSize(), '/api/disney_charactors', 'https://api.picsart.io/tools/1.0/styletransfer');
-            return response()->json(['check' => true, 'url' => $cdnUrl]);
+            return response()->json(['status' => true, 'url' => $cdnUrl]);
         } else {
             // Log activity on failure
             activity('disneyCharators')
                 ->withProperties(['error' => $response->body()])
                 ->log('Failed to process image for Disney characters transformation');
 
-            return response()->json(['check' => 'error', 'msg' => 'Failed to process image', 'error' => $response->body()], 400);
+            return response()->json(['status' => 'error', 'message' => 'Failed to process image', 'error' => $response->body()], 400);
         }
     }
 
@@ -952,7 +957,7 @@ class ImageAIController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['check' => 'error', 'msg' => $validator->errors()->first()]);
+            return response()->json(['status' => 'error', 'message' => $validator->errors()->first()]);
         }
 
         $image = $request->file('image');
@@ -995,13 +1000,13 @@ class ImageAIController extends Controller
                 ])
                 ->log('Processed image for full-body cartoon effect');
             $this->createActivities($id_img, $cdnUrl, $image->getSize(), '/api/fullbody_cartoon', 'https://api.picsart.io/tools/1.0/effects/ai');
-            return response()->json(['check' => true, 'url' => $cdnUrl]);
+            return response()->json(['status' => true, 'url' => $cdnUrl]);
         } else {
             // Log activity on failure
             activity('fullBodyCartoon')
                 ->withProperties(['error' => $response->body()])
                 ->log('Failed to process image for full-body cartoon effect');
-            return response()->json(['check' => 'error', 'msg' => 'Failed to process image', 'error' => $response->body()], 400);
+            return response()->json(['status' => 'error', 'message' => 'Failed to process image', 'error' => $response->body()], 400);
         }
     }
 
@@ -1031,7 +1036,7 @@ class ImageAIController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['check' => 'error', 'msg' => $validator->errors()->first()]);
+            return response()->json(['status' => 'error', 'message' => $validator->errors()->first()]);
         }
         $file = $request->file('image');
         $result = $this->uploadImage($file);
@@ -1044,7 +1049,7 @@ class ImageAIController extends Controller
             $feature=SubFeatures::where('slug', $request->slug)->first();
         }
         if($result->is_pro==1 && $this->pro_account==false){
-            return response()->json(['check'=>false,'error'=>'Not accepted'],401);
+            return response()->json(['status'=>false,'error'=>'Not accepted'],401);
         }
         $initImageId = $result->initImageId;
         if($request->has('id_size')){
@@ -1124,13 +1129,13 @@ class ImageAIController extends Controller
                                 // Return the JSON response with both the original and modified URLs
                                 if($feature->remove_bg == 1){
                                     return response()->json([
-                                        'check' => true,
+                                        'status' => true,
                                         'url' => $image,              // Final image URL (with or without background removed)
                                         'bg_url' => $originalImageUrl  // Original image URL
                                     ]);
                                 }else{
                                     return response()->json([
-                                        'check' => true,
+                                        'status' => true,
                                         'url' => $image,
                                     ]);
                                 }
@@ -1138,7 +1143,7 @@ class ImageAIController extends Controller
                         }
                     }
                 } else {
-                    return response()->json(['check' => 'error', 'msg' => 'Failed to upload image.', 'details' => $response->body()]);
+                    return response()->json(['status' => 'error', 'message' => 'Failed to upload image.', 'details' => $response->body()]);
                 }
             }else{
                 $size=ImageSize::where('id',$request->id_size)->first();
@@ -1217,13 +1222,13 @@ class ImageAIController extends Controller
                                 // Return the JSON response with both the original and modified URLs
                                 if($feature->remove_bg == 1){
                                     return response()->json([
-                                        'check' => true,
+                                        'status' => true,
                                         'url' => $image,              // Final image URL (with or without background removed)
                                         'bg_url' => $originalImageUrl  // Original image URL
                                     ]);
                                 }else{
                                     return response()->json([
-                                        'check' => true,
+                                        'status' => true,
                                         'url' => $image,
                                     ]);
                                 }
@@ -1231,7 +1236,7 @@ class ImageAIController extends Controller
                         }
                     }
                 } else {
-                    return response()->json(['check' => 'error', 'msg' => 'Failed to upload image.', 'details' => $response->body()]);
+                    return response()->json(['status' => 'error', 'message' => 'Failed to upload image.', 'details' => $response->body()]);
                 }
             }
 
@@ -1308,13 +1313,13 @@ class ImageAIController extends Controller
                             // Return the JSON response with both the original and modified URLs
                             if($feature->remove_bg == 1){
                                 return response()->json([
-                                    'check' => true,
+                                    'status' => true,
                                     'url' => $image,              // Final image URL (with or without background removed)
                                     'bg_url' => $originalImageUrl  // Original image URL
                                 ]);
                             }else{
                                 return response()->json([
-                                    'check' => true,
+                                    'status' => true,
                                     'url' => $image,
                                 ]);
                             }
@@ -1322,7 +1327,7 @@ class ImageAIController extends Controller
                     }
                 }
             } else {
-                return response()->json(['check' => 'error', 'msg' => 'Failed to upload image.', 'details' => $response->body()]);
+                return response()->json(['status' => 'error', 'message' => 'Failed to upload image.', 'details' => $response->body()]);
             }
         }
     }
@@ -1372,7 +1377,7 @@ class ImageAIController extends Controller
                     'id' => $id
                 ];
             } else {
-                return response()->json(['check' => 'error', 'msg' => 'Failed to upload image.', 'details' => $response->body()]);
+                return response()->json(['status' => 'error', 'message' => 'Failed to upload image.', 'details' => $response->body()]);
             }
         } else {
             return $response->body();
