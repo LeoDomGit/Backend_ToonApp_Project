@@ -103,7 +103,7 @@ class FeaturesController
         }
         $arr=$request->size_id;
         FeaturesSizes::where('feature_id',$id)->delete();
-        if($arr==null){
+        if($arr!=null){
             foreach ($arr as $key => $value) {
                 FeaturesSizes::create([
                  'feature_id'=>$id,
