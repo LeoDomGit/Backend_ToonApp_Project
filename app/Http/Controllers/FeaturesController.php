@@ -80,7 +80,7 @@ class FeaturesController
      */
     public function api_index(Features $features)
     {
-        $features = Features::with(['subFeatures','sizes'])->get();
+        $features = Features::with(['subFeatures','sizes'])->active()->get();
         return response()->json($features);
     }
     public function api_detail(Features $features, $id)

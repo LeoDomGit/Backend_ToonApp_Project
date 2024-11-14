@@ -36,7 +36,7 @@ class Features extends Model
     // Định nghĩa mối quan hệ với model SubFeatures
     public function subFeatures()
     {
-        return $this->hasMany(SubFeatures::class, 'feature_id', 'id');
+        return $this->hasMany(SubFeatures::class, 'feature_id', 'id')->where('status', 1);
     }
 
     // Thêm accessor để trả về URL đầy đủ của ảnh
@@ -48,5 +48,9 @@ class Features extends Model
     }
     public function sizes() {
         return $this->belongsToMany(ImageSize::class, 'features_sizes', 'feature_id', 'size_id');
+    }
+    public function scopeActive($query)
+    {
+        return $query->where('status', 1);
     }
 }
