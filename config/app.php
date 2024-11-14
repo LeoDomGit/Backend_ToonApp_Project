@@ -162,7 +162,7 @@ return [
     | this array to grant expanded functionality to your applications.
     |
     */
-
+    'access_token'=>'17|H74VEWOFg1WxkknCWbOZnXurP8c2vilhZPwHD7pg8bdd8',
     'providers' => [
 
         /*

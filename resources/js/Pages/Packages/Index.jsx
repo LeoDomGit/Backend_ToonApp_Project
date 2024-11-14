@@ -61,6 +61,18 @@ function Index({ data }) {
       ),
     },
     {
+        field: "product_id_and",
+        headerName: "Product ID on Google Play",
+        width: 200,
+        editable: true,
+    },
+    {
+        field: "product_id_ios",
+        headerName: "Product ID on App Store",
+        width: 200,
+        editable: true,
+    },
+    {
       field: "status",
       headerName: "Status",
       width: 200,
@@ -186,25 +198,25 @@ function Index({ data }) {
             </Modal.Header>
             <Modal.Body>
               <label>Name</label>
-              <input 
-                type="text" 
-                value={name} 
-                className='form-control mb-3' 
-                onChange={(e) => setName(e.target.value)} 
+              <input
+                type="text"
+                value={name}
+                className='form-control mb-3'
+                onChange={(e) => setName(e.target.value)}
               />
               <label>Price</label>
-              <input 
-                type="number" 
-                value={price} 
-                className='form-control mb-3' 
-                onChange={(e) => setPrice(e.target.value)} 
+              <input
+                type="number"
+                value={price}
+                className='form-control mb-3'
+                onChange={(e) => setPrice(e.target.value)}
               />
               <label>Duration</label>
-              <input 
-                type="number" 
-                value={duration} 
-                className='form-control mb-3' 
-                onChange={(e) => setDuration(e.target.value)} 
+              <input
+                type="number"
+                value={duration}
+                className='form-control mb-3'
+                onChange={(e) => setDuration(e.target.value)}
               />
               <JoditEditor
                 value={description}
@@ -212,7 +224,7 @@ function Index({ data }) {
                 tabIndex={1}
                 onBlur={(newContent) => setDescription(newContent)}
               />
-            </Modal.Body> 
+            </Modal.Body>
             <Modal.Footer>
               <Button variant="secondary" onClick={handleClose}>Close</Button>
               <Button variant="primary" onClick={submitPackage}>Save</Button>
@@ -226,7 +238,7 @@ function Index({ data }) {
             <Modal.Body>
               <JoditEditor
                 value={editDescription}
-                
+
                 config={{ readonly: false ,height:400}}
                 tabIndex={1}
                 onBlur={(newContent) => setEditDescription(newContent)}

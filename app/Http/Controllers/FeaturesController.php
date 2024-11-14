@@ -81,15 +81,21 @@ class FeaturesController
     public function api_index(Features $features)
     {
         $features = Features::with(['subFeatures', 'sizes'])->active()->get();
-        $features->each->makeHidden(['model_id', 'prompt', 'presetStyle', 'preprocessorId', 'strengthType', 'initImageId']);
+        $features->each(function ($feature) {
+            $feature->makeHidden(['model_id', 'prompt', 'presetStyle', 'preprocessorId', 'strengthType', 'initImageId']);
+            $feature->subFeatures->each->makeHidden(['model_id', 'prompt', 'presetStyle', 'preprocessorId', 'strengthType', 'initImageId']);
+        });
         return response()->json($features);
     }
     public function api_detail(Features $features, $id)
     {
         $features = Features::with(['subFeatures', 'sizes'])->where('id', $id)->active()->first();
+
         if ($features) {
             $features->makeHidden(['model_id', 'prompt', 'presetStyle', 'preprocessorId', 'strengthType', 'initImageId']);
+            $features->subFeatures->each->makeHidden(['model_id', 'prompt', 'presetStyle', 'preprocessorId', 'strengthType', 'initImageId']);
         }
+
         return response()->json($features);
     }
     /**
