@@ -985,7 +985,8 @@ class ImageAIController extends Controller
         $validator = Validator::make($request->all(), [
             'image' => 'required|mimes:png,jpg,jpeg',
             'id_size'=>'nullable',
-            'effect'=>'nullable'
+            'effect'=>'nullable',
+            'slug'=>'required'
         ]);
 
         if ($validator->fails()) {
