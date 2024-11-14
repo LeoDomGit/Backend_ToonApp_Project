@@ -39,8 +39,7 @@ Route::middleware('device_login')->group(function () {
     Route::get('/token/{id}',[SubcriptionPackagesController::class,'getToken']);
     Route::post('/profile',[ImageAIController::class,'changeBackground']);
     Route::get('/effects',[ImageAIController::class,'getEffect']);
-    Route::post('/effect',[ImageAIController::class,'createEffect']);
-
+    Route::post('/effect',[ImageAIController::class,'setup_profile_picture']);
 //=================================================
     Route::get('/features',[FeaturesController::class,'api_index']);
     Route::get('/features/{id}',[FeaturesController::class,'api_detail']);
