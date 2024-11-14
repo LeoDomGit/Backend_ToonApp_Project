@@ -79,20 +79,12 @@ class ImageAIController extends Controller
         $response = Http::withHeaders([
             'X-Picsart-API-Key' => $this->key,
             'Accept' => 'application/json',
-        ])->post('https://api.picsart.io/tools/1.0/removebg', [
-            'output_type' => 'cutout',
-            'bg_blur' => '0',
-            'scale' => 'fit',
-            'auto_center' => 'false',
-            'stroke_size' => '0',
-            'stroke_color' => 'FFFFFF',
-            'stroke_opacity' => '100',
-            'shadow' => 'disabled',
-            'shadow_opacity' => '20',
-            'shadow_blur' => '50',
-            'format' => 'PNG',
-            'bg_image_url'=>$request->background
-        ]);
+        ])->post('https://api.picsart.io/tools/1.0/effects');
+        if ($response->successful()) {
+            $data = $response->json();
+            $data = $data['data'];
+            return response()->json($data);
+        }
     }
         /**
      * Store a newly created resource in storage.
