@@ -31,6 +31,10 @@ class ConfigController extends Controller
         $validator = Validator::make($request->all(), [
             'domain' => 'required|string|unique:configs,domain',
             'package_name' => 'required|string|unique:configs,package_name',
+            'policy'=>'required|string',
+            'term'=>'required|string',
+            'support'=>'required|string',
+
         ]);
 
         // If validation fails, return an error response

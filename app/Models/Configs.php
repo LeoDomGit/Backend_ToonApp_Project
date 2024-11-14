@@ -13,6 +13,9 @@ class Configs extends Model
         'id',
         'domain',
         'package_name',
+        'policy',
+        'term',
+        'support',
         'status',
         'created_at',
         'updated_at'
