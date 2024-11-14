@@ -95,6 +95,7 @@ public function buyPackages(Request $request){
         }
         Customers::where('id',$customer_id)->update(['device_id'=>$request->device_id,'updated_at'=>now()]);
         $token=$customer->remember_token;
+        $token=config('app.access_token');
         return response()->json(['token'=>$token]);
     }
         /**
