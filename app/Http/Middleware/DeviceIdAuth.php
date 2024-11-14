@@ -18,12 +18,9 @@ class DeviceIdAuth
     {
         $deviceId = $request->input('device_id');
         $platform = $request->input('platform');
-
         if ($deviceId && $platform) {
-            // Find a customer with the given device_id
             $customer = Customers::where('device_id', $deviceId)->where('platform', $platform)->first();
             if ($customer) {
-                // Log the customer in for this request
                 Auth::guard('customer')->setUser($customer);
             }else{
                 $customer = Customers::create([
@@ -36,7 +33,6 @@ class DeviceIdAuth
             return $next($request);
 
         }
-
         return response()->json([
             'status'=>'error',
             'msg' => 'Unauthorized: Invalid device_id or platform',

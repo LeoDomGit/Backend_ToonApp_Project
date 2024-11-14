@@ -21,7 +21,7 @@ class SubcriptionPackagesController extends Controller
     {
         $subcriptionPackages = SubcriptionPackage::all();
         return Inertia::render('Packages/Index', ['data' => $subcriptionPackages]);
-        
+
     }
 
     /**
@@ -60,7 +60,7 @@ public function buyPackages(Request $request){
             return response()->json(['check' => 'error', 'msg' => $validator->errors()->first()]);
         }
         $customer = Auth::guard('customer')->user();
-        
+
         if (!$customer) {
             return response()->json(['error' => 'Customer not found.'], 404);
         }
@@ -77,21 +77,31 @@ public function buyPackages(Request $request){
             return response()->json(['error' => 'Subscription package not found.'], 404);
         }
         $customer->updateRememberTokenAndExpiry($subscriptionPackage->duration, $request->platform);
-        return response()->json(['check' => true,'users'=>Auth::guard('customer')->user()]);
+        $rememberToken = $customer->fresh()->remember_token;
+        // UAT ENV
+        $config=config('app.access_token');
+        return response()->json(['check' => true,'token' => $config]);
 }
     /**
      * Display the specified resource.
      */
     public function getToken(Request $request,$id){
         $result = SubscriptionHistory::where('serverVerificationData', $id)->first();
+        if(!$result){
+            return response()->json(['status'=>'error','message'=>'No subscription'],400);
+        }
+        if(!$request->has('platform')){
+            return response()->json(['status'=>'error','message'=>'Platform is required'],400);
+        }
         $customer_id=$result->customer_id;
-        $customer=Customers::where('id',$customer_id)->first();
+        $customer=Customers::where('id',$customer_id)->where('platform',$request->has('platform'))->first();
         if ($customer->expired_at && Carbon::parse($customer->expired_at)->isPast()) {
             Customers::where('id', $customer_id)->update(['remember_token' => null,'updated_at'=>now()]);
             return response()->json(['token'=>'Expired']);
         }
         Customers::where('id',$customer_id)->update(['device_id'=>$request->device_id,'updated_at'=>now()]);
         $token=$customer->remember_token;
+        $token=config('app.access_token');
         return response()->json(['token'=>$token]);
     }
         /**
