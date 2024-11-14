@@ -38,7 +38,7 @@ Route::middleware('device_login')->group(function () {
     Route::post('/buyPackage',[SubcriptionPackagesController::class,'buyPackages']);
     Route::get('/token/{id}',[SubcriptionPackagesController::class,'getToken']);
     Route::post('/profile',[ImageAIController::class,'changeBackground']);
-    Route::post('/effects',[ImageAIController::class,'getEffect']);
+    Route::get('/effects',[ImageAIController::class,'getEffect']);
 //=================================================
     Route::get('/features',[FeaturesController::class,'api_index']);
     Route::get('/features/{id}',[FeaturesController::class,'api_detail']);
