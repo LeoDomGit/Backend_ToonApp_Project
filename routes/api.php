@@ -21,15 +21,13 @@ use App\Http\Controllers\CustomersController;
 | be assigned to the "api" middleware group. Make something great!
 |
 */
-Route::get('/features',[FeaturesController::class,'api_index']);
-Route::get('/features/{id}',[FeaturesController::class,'api_detail']);
+
 
 Route::prefix('customers')->group(function () {
     Route::post('/register', [CustomersController::class, 'register']);
     Route::post('/login', [CustomersController::class, 'login']);
     Route::post('/forget', [CustomersController::class, 'forget_password']);
     Route::post('/social_login', [CustomersController::class, 'social_login']);
-
 });
 Route::middleware('device_login')->group(function () {
     Route::put('/customers', [CustomersController::class, 'update']);
@@ -40,13 +38,18 @@ Route::middleware('device_login')->group(function () {
     Route::post('/buyPackage',[SubcriptionPackagesController::class,'buyPackages']);
     Route::get('/token/{id}',[SubcriptionPackagesController::class,'getToken']);
     Route::post('/profile',[ImageAIController::class,'changeBackground']);
+    Route::post('/effects',[ImageAIController::class,'getEffect']);
+//=================================================
+    Route::get('/features',[FeaturesController::class,'api_index']);
+    Route::get('/features/{id}',[FeaturesController::class,'api_detail']);
+    Route::get('/configs',[ConfigController::class,'api_index']);
+    Route::get('/backgrounds',[BackgroundController::class,'api_index']);
+    Route::get('/packages',[SubcriptionPackagesController::class,'getPackages']);
 });
 
-Route::get('/configs',[ConfigController::class,'api_index']);
 
 
-Route::get('/backgrounds',[BackgroundController::class,'api_index']);
-Route::get('/packages',[SubcriptionPackagesController::class,'getPackages']);
+
 
 Route::get('/update_feature_slug',[FeaturesController::class,'update_feature_slug']);
 Route::get('/update_sub_feature_slug',[SubFeaturesController::class,'update_feature_slug']);

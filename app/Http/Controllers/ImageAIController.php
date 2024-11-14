@@ -72,7 +72,23 @@ class ImageAIController extends Controller
         ]);
         return $id;
     }
-
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function getEffect(Request $request){
+        $response = Http::withHeaders([
+            'X-Picsart-API-Key' => $this->key,
+            'Accept' => 'application/json',
+        ])->post('https://api.picsart.io/tools/1.0/effects');
+        if ($response->successful()) {
+            $data = $response->json();
+            $data = $data['data'];
+            return response()->json($data);
+        }
+    }
+        /**
+     * Store a newly created resource in storage.
+     */
     public function ai_cartoon(Request $request)
     {
         $validator = Validator::make($request->all(), [
