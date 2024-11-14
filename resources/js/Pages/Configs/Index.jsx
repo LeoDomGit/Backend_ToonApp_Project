@@ -12,6 +12,9 @@ import Swal from "sweetalert2";
 function Index({ dataConfigs }) {
     const [data, setData] = useState(dataConfigs);
     const [domain, setDomain] = useState("");
+    const [policy, setPolicy] = useState("");
+    const [term, setTerm] = useState("");
+    const [support, setSupport] = useState("");
     const [packageName, setPackageName] = useState("");
     const [show, setShow] = useState(false);
 
@@ -68,7 +71,9 @@ function Index({ dataConfigs }) {
         const formData = new FormData();
         formData.append("domain", domain);
         formData.append("package_name", packageName);
-
+        formData.append("policy", policy);
+        formData.append("term", term);
+        formData.append("support", support);
         axios
             .post("/configs", formData, {
                 headers: {
@@ -140,6 +145,27 @@ function Index({ dataConfigs }) {
                         placeholder="Nhập Domain..."
                         value={domain}
                         onChange={(e) => setDomain(e.target.value)}
+                    />
+                    <input
+                        type="text"
+                        className="form-control"
+                        placeholder="Nhập policy..."
+                        value={domain}
+                        onChange={(e) => setPolicy(e.target.value)}
+                    />
+                    <input
+                        type="text"
+                        className="form-control"
+                        placeholder="Nhập term..."
+                        value={domain}
+                        onChange={(e) => setTerm(e.target.value)}
+                    />
+                    <input
+                        type="text"
+                        className="form-control"
+                        placeholder="Nhập support..."
+                        value={domain}
+                        onChange={(e) => setSupport(e.target.value)}
                     />
                     <textarea
                         className="form-control mt-2"
