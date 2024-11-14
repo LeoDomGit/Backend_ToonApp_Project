@@ -87,8 +87,14 @@ public function buyPackages(Request $request){
      */
     public function getToken(Request $request,$id){
         $result = SubscriptionHistory::where('serverVerificationData', $id)->first();
+        if(!$result){
+            return response()->json(['status'=>'error','message'=>'No subscription'],400);
+        }
+        if(!$request->has('platform')){
+            return response()->json(['status'=>'error','message'=>'Platform is required'],400);
+        }
         $customer_id=$result->customer_id;
-        $customer=Customers::where('id',$customer_id)->first();
+        $customer=Customers::where('id',$customer_id)->where('platform',$request->has('platform'))->first();
         if ($customer->expired_at && Carbon::parse($customer->expired_at)->isPast()) {
             Customers::where('id', $customer_id)->update(['remember_token' => null,'updated_at'=>now()]);
             return response()->json(['token'=>'Expired']);
