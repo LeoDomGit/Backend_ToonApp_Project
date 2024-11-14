@@ -23,6 +23,9 @@ use App\Http\Controllers\CustomersController;
 */
 
 
+Route::get('/features', [FeaturesController::class, 'api_index']);
+Route::get('/features/{id}', [FeaturesController::class, 'api_detail']);
+
 Route::prefix('customers')->group(function () {
     Route::post('/register', [CustomersController::class, 'register']);
     Route::post('/login', [CustomersController::class, 'login']);
@@ -48,21 +51,23 @@ Route::middleware('device_login')->group(function () {
     Route::get('/packages',[SubcriptionPackagesController::class,'getPackages']);
 });
 
+Route::get('/configs', [ConfigController::class, 'api_index']);
 
 
+Route::get('/backgrounds', [BackgroundController::class, 'api_index']);
+Route::get('/packages', [SubcriptionPackagesController::class, 'getPackages']);
 
+Route::get('/update_feature_slug', [FeaturesController::class, 'update_feature_slug']);
+Route::get('/update_sub_feature_slug', [SubFeaturesController::class, 'update_feature_slug']);
 
-Route::get('/update_feature_slug',[FeaturesController::class,'update_feature_slug']);
-Route::get('/update_sub_feature_slug',[SubFeaturesController::class,'update_feature_slug']);
-
-Route::middleware('auth:sanctum')->get('/test', function() {
+Route::middleware('auth:sanctum')->get('/test', function () {
     return response()->json(Auth::user());
 });
 Route::prefix('users')->group(function () {
-    Route::post('/register',[UserController::class,'register']);
-    Route::post('/login',[UserController::class,'Login']);
-    Route::post('/register-with-email',[UserController::class,'RegisterWithEmail']);
-    Route::post('/login-with-email',[UserController::class,'LoginWithEmail']);
+    Route::post('/register', [UserController::class, 'register']);
+    Route::post('/login', [UserController::class, 'Login']);
+    Route::post('/register-with-email', [UserController::class, 'RegisterWithEmail']);
+    Route::post('/login-with-email', [UserController::class, 'LoginWithEmail']);
 });
 
 Route::post('/upload-zip', [BackgroundController::class, 'uploadAndUnzip']);
