@@ -11,6 +11,9 @@ function Index({ data_images, data_features }) {
     const [features, setFeatures] = useState(data_features);
     const [data, setData] = useState(data_images);
     const [feature_id, setFeatureId] = useState(0);
+    const [groupBackgrounds, setGroupBackgrounds] = useState([]); // Store selected groups
+    const [newGroup, setNewGroup] = useState("");
+    const [allGroups, setAllGroups] = useState([]); // List of available groups
 
     const updateFiles = (incomingFiles) => {
         setFiles(incomingFiles);
@@ -20,7 +23,7 @@ function Index({ data_images, data_features }) {
         try {
             const res = await axios.delete("/backgrounds/" + id);
             if (res.data.check) {
-                toast.success("Đã xóa thành công !", {
+                toast.success("Image deleted successfully!", {
                     position: "top-right",
                 });
                 setData(res.data.data);
@@ -32,28 +35,119 @@ function Index({ data_images, data_features }) {
         }
     };
 
-    // Load background images based on selected feature_id
+    useEffect(() => {
+        if (feature_id !== 0 && groupBackgrounds.length > 0) {
+            axios
+                .get(
+                    `/backgrounds/${feature_id}?group=${groupBackgrounds.join(
+                        ","
+                    )}`
+                )
+                .then((res) => {
+                    setData(res.data);
+                })
+                .catch((error) => {
+                    console.error("Error fetching background images:", error);
+                });
+        }
+    }, [feature_id, groupBackgrounds]); // Fetch data when feature or group changes
+
     useEffect(() => {
         if (feature_id !== 0) {
-            axios.get("/backgrounds/" + feature_id).then((res) => {
-                setData(res.data);
+            axios.get(`/groups/${feature_id}`).then((res) => {
+                if (res.data) {
+                    setAllGroups(res.data);
+                }
             });
         }
-    }, [feature_id]);
+    }, [feature_id]); // Fetch groups only when feature_id changes
+
+    const handleAddGroup = async () => {
+        if (newGroup.trim() !== "") {
+            if (!groupBackgrounds.includes(newGroup.trim())) {
+                setGroupBackgrounds((prevGroups) => [
+                    ...prevGroups,
+                    newGroup.trim(),
+                ]);
+
+                try {
+                    const res = await axios.post("/save-group-backgrounds", {
+                        group_backgrounds: [
+                            ...groupBackgrounds,
+                            newGroup.trim(),
+                        ],
+                        feature_id: feature_id,
+                    });
+
+                    if (res.data.status) {
+                        toast.success("Group added successfully!", {
+                            position: "top-right",
+                        });
+                        setNewGroup(""); // Reset input field after success
+                    } else {
+                        toast.error("Error adding group.", {
+                            position: "top-right",
+                        });
+                    }
+                } catch (error) {
+                    console.error("Error adding group:", error);
+                    toast.error("Error adding group.", {
+                        position: "top-right",
+                    });
+                }
+            } else {
+                toast.warning("This group already exists!", {
+                    position: "top-right",
+                });
+            }
+        }
+    };
+
+    const handleRemoveGroup = async (groupName) => {
+        try {
+            const res = await axios.post("/remove-group", {
+                group_name: groupName,
+                feature_id: feature_id,
+            });
+            if (res.data.status) {
+                toast.success("Group removed successfully!", {
+                    position: "top-right",
+                });
+
+                setGroupBackgrounds(
+                    groupBackgrounds.filter((group) => group !== groupName)
+                );
+
+                const updatedGroups = await axios.get(`/groups/${feature_id}`);
+                if (updatedGroups.data) {
+                    setAllGroups(updatedGroups.data);
+                }
+            }
+        } catch (error) {
+            toast.error("Error removing group!", {
+                position: "top-right",
+            });
+        }
+    };
 
     const handleSubmit = async () => {
         if (feature_id === 0 || files.length === 0) {
             toast.warning(
                 "Please select a feature and upload at least one image.",
-                {
-                    position: "top-right",
-                }
+                { position: "top-right" }
             );
             return;
         }
 
         const formData = new FormData();
         formData.append("feature_id", feature_id);
+
+        // Add selected groups to the form data for image association
+        groupBackgrounds.forEach((group) => {
+            formData.append("group_backgrounds[]", group);
+        });
+
+        // Add files (images) to the form data
         files.forEach((file) => {
             formData.append("images[]", file.file);
         });
@@ -64,13 +158,13 @@ function Index({ data_images, data_features }) {
             });
 
             if (response.data.check) {
-                toast.success("Đã thêm thành công !", {
+                toast.success("Images uploaded successfully!", {
                     position: "top-right",
                 });
-                setFiles([]); // Clear the files after successful upload
-                setData(response.data.data);
+                setFiles([]); // Clear the files
+                setData(response.data.data); // Update displayed images
             } else {
-                alert(response.data.msg);
+                throw new Error("Image upload failed");
             }
         } catch (error) {
             console.error("Error uploading images:", error);
@@ -80,6 +174,12 @@ function Index({ data_images, data_features }) {
         }
     };
 
+    // Update the feature_id and clear selected groups when a new feature is chosen
+    const handleFeatureChange = (e) => {
+        setFeatureId(e.target.value);
+        setGroupBackgrounds([]); // Clear selected groups
+    };
+
     return (
         <div>
             <Layout>
@@ -87,17 +187,15 @@ function Index({ data_images, data_features }) {
                 <div className="row">
                     <div className="col-md-4">
                         <div className="row">
-                            <div className="col-md mb-3">
+                            <div className="col-md-12 mb-3">
                                 <label htmlFor="">Feature</label>
                                 <select
-                                    value={feature_id} // Use value for controlled input
+                                    value={feature_id}
                                     className="form-control"
-                                    onChange={(e) =>
-                                        setFeatureId(e.target.value)
-                                    }
+                                    onChange={handleFeatureChange} // Use updated handler
                                 >
                                     <option value={0} disabled>
-                                        Chọn một feature
+                                        Select a feature
                                     </option>
                                     {features.map((feature) => (
                                         <option
@@ -109,13 +207,87 @@ function Index({ data_images, data_features }) {
                                     ))}
                                 </select>
                             </div>
+
+                            <div className="col-md-12 mb-3">
+                                <label htmlFor="">Group Background</label>
+                                <div className="d-flex mb-2">
+                                    <input
+                                        type="text"
+                                        className="form-control mr-2"
+                                        value={newGroup}
+                                        onChange={(e) =>
+                                            setNewGroup(e.target.value)
+                                        }
+                                        placeholder="Enter new group name"
+                                    />
+                                    <button
+                                        type="button"
+                                        className="btn btn-success"
+                                        onClick={handleAddGroup}
+                                    >
+                                        Add Group
+                                    </button>
+                                </div>
+
+                                <ul className="list-group mb-3">
+                                    {groupBackgrounds.map((group, index) => (
+                                        <li key={index} className="group-item">
+                                            {/* File Icon */}
+                                            <div className="file-icon"></div>
+
+                                            {/* Group Name */}
+                                            <div className="group-name">
+                                                {group}
+                                            </div>
+
+                                            {/* Remove Button */}
+                                            <button
+                                                type="button"
+                                                className="btn-remove"
+                                                onClick={() =>
+                                                    handleRemoveGroup(group)
+                                                }
+                                            >
+                                                Remove
+                                            </button>
+                                        </li>
+                                    ))}
+                                </ul>
+
+                                <select
+                                    className="form-control"
+                                    onChange={(e) => {
+                                        const selectedGroup = e.target.value;
+                                        if (
+                                            selectedGroup &&
+                                            !groupBackgrounds.includes(
+                                                selectedGroup
+                                            )
+                                        ) {
+                                            setGroupBackgrounds((prev) => [
+                                                ...prev,
+                                                selectedGroup,
+                                            ]);
+                                        }
+                                    }}
+                                >
+                                    <option value="">
+                                        Select an existing group
+                                    </option>
+                                    {allGroups.map((group, index) => (
+                                        <option key={index} value={group.name}>
+                                            {group.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
                         </div>
 
                         <Dropzone
                             onChange={updateFiles}
                             value={files}
                             accept="image/*"
-                            maxFiles={10} // Set maximum number of files
+                            maxFiles={10}
                         >
                             {files.map((file) => (
                                 <FileMosaic
@@ -133,7 +305,6 @@ function Index({ data_images, data_features }) {
                                 />
                             ))}
                         </Dropzone>
-
                         <button
                             onClick={handleSubmit}
                             className="btn btn-primary mt-3"
