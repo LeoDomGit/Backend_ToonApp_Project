@@ -85,7 +85,7 @@ class FeaturesController
     }
     public function api_detail(Features $features, $id)
     {
-        $features = Features::with(['subFeatures','sizes'])->where('id', $id)->first();
+        $features = Features::with(['subFeatures','sizes'])->where('id', $id)->active()->first();
         return response()->json($features);
     }
     /**
