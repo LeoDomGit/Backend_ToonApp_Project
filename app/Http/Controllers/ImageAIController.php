@@ -981,7 +981,130 @@ class ImageAIController extends Controller
         }
     }
 
+    public function setup_profile_picture(Request $request){
+        $validator = Validator::make($request->all(), [
+            'image' => 'required|mimes:png,jpg,jpeg',
+            'id_size'=>'nullable',
+            'effect'=>'nullable'
+        ]);
 
+        if ($validator->fails()) {
+            return response()->json(['status' => 'error', 'message' => $validator->errors()->first()]);
+        }
+        $file = $request->file('image');
+        $result = $this->uploadImage($file);
+        $image_id = $result['id'];
+        $routePath = $request->path();
+        $result = Features::where('slug', $request->slug)->first();
+        $feature=Features::where('slug', $request->slug)->first();
+        if(!$result){
+            $result =SubFeatures::where('slug', $request->slug)->first();
+            $feature=SubFeatures::where('slug',$request->slug)->first();
+        }
+        if($result->is_pro==1 && $this->pro_account==false){
+            return response()->json(['status'=>false,'error'=>'Not accepted'],401);
+        }
+        $initImageId = $result->initImageId;
+        if($request->has('id_size')){
+            $check=FeaturesSizes::where([
+                'feature_id'=>$feature->id,
+                'size_id'=>$request->id_size
+            ])->first();
+            if(!$check){
+                $featuresId = $result->id;
+                $folder = 'cartoon';
+                $filename =  pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+                $id_img = $this->uploadServerImage($file);
+                $response = Http::withHeaders([
+                    'Authorization' => 'Bearer ' . $this->leo_key,
+                    'Accept' => 'application/json',
+                ])->post('https://cloud.leonardo.ai/api/rest/v1/generations', [
+                    'modelId' => $result->model_id,
+                    'prompt' => $result->prompt,
+                    'presetStyle' => $result->presetStyle,
+                    'num_images' => 1,
+                    'alchemy' => true,
+                    isset($initImageId) && $initImageId !== null ? [
+                        'controlnets' => [
+                            [
+                                'initImageId' => $initImageId,
+                                'initImageType' => 'UPLOADED',
+                                'preprocessorId' => (int) $result->preprocessorId,
+                                'strengthType' => 'High',
+                            ]
+                        ]
+                    ] : [],
+                    "init_image_id" => $image_id,
+                    "init_strength" => 0.5,
+                ]);
+                if ($response->successful()) {
+                    $data = $response->body();
+                    $data = json_decode($data, true);
+                    $generationId = $data['sdGenerationJob']['generationId'];
+                    while (true) {
+                        $response = Http::withHeaders([
+                            'accept' => 'application/json',
+                            'authorization' =>'Bearer ' . $this->leo_key,
+                        ])->get('https://cloud.leonardo.ai/api/rest/v1/generations/'.$generationId);
+
+                        if ($response->successful()) {
+                            $data = $response->json();
+                            if (!empty($data['generations_by_pk']['generated_images'])) {
+                                // Get the original image URL and upload it to Cloudflare
+                                $firstImageUrl = $data['generations_by_pk']['generated_images'][0]['url'];
+                                $originalImageUrl = $this->uploadToCloudFlareFromCdn(
+                                     $data['generations_by_pk']['generated_images'][0]['url'],
+                                    'image-result' . time(),
+                                    $feature->slug,
+                                    Auth::guard('customer')->id() . '-gen' . $generationId
+                                );
+                                // By default, set $image to $originalImageUrl
+                                $image = $originalImageUrl;
+                                // Check if background removal is enabled
+                                if ($feature->remove_bg == 1) {
+                                    $imageWithoutBg = $this->removeBackground($originalImageUrl);
+                                    $image = $this->uploadToCloudFlareFromCdn(
+                                        $imageWithoutBg,
+                                        'image-' . time(),
+                                        $feature->slug,
+                                        Auth::guard('customer')->id() . 'result-gen' . $generationId
+                                    );
+                                }
+                                $effect= $request->effect ?? 'cyber2';
+                                $image = $this->createEffect($image,$effect);
+                                // Log the activity with the final image URL
+                                Activities::create([
+                                    'customer_id' => Auth::guard('customer')->id(),
+                                    'photo_id' => $id_img,
+                                    'features_id' => $featuresId,
+                                    'image_result' => $image,
+                                    'image_size' => $result->width,
+                                    'ai_model' => 'Leo AI',
+                                    'api_endpoint' => 'https://cloud.leonardo.ai/api/rest/v1/generations/',
+                                ]);
+
+                                // Return the JSON response with both the original and modified URLs
+                                if($feature->remove_bg == 1){
+                                    return response()->json([
+                                        'status' => true,
+                                        'url' => $image,              // Final image URL (with or without background removed)
+                                        'bg_url' => $originalImageUrl  // Original image URL
+                                    ]);
+                                }else{
+                                    return response()->json([
+                                        'status' => true,
+                                        'url' => $image,
+                                    ]);
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    return response()->json(['status' => 'error', 'message' => 'Failed to upload image.', 'details' => $response->body()]);
+                }
+            }
+    }
+    }
     public function fullBodyCartoon(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -1052,23 +1175,15 @@ class ImageAIController extends Controller
         return response()->json(['status' => 'develop']);
     }
 
-    public function createEffect(Request $request)
+    public function createEffect($image,$effect)
     {
-        $validator = Validator::make($request->all(), [
-            'image' => 'required',
-            'effect' => 'required',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['status' => 'error', 'message' => $validator->errors()->first()]);
-        }
         $response = Http::withHeaders([
             'X-Picsart-API-Key' => $this->key,
             'Accept' => 'application/json',
         ])->asMultipart()->post('https://api.picsart.io/tools/1.0/effects', [
             [
                 'name' => 'effect_name',
-                'contents' => $request->effect,
+                'contents' => $effect,
             ],
             [
                 'name' => 'format',
@@ -1076,7 +1191,7 @@ class ImageAIController extends Controller
             ],
             [
                 'name' => 'image_url',
-                'contents' => $request->image,
+                'contents' => $image,
             ],
         ]);
 
@@ -1093,7 +1208,7 @@ class ImageAIController extends Controller
                     Auth::guard('customer')->id() . 'result-gen-profile'
                 );
 
-                return response()->json(['status' => 'success', 'image_url' => $image]);
+                return $image;
             } else {
                 return response()->json(['error' => 'No data found in response.'], 404);
             }
