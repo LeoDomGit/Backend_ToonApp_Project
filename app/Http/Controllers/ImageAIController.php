@@ -514,7 +514,59 @@ class ImageAIController extends Controller
             return response()->json(['check' => 'error', 'msg' => 'Failed to process image', 'error' => $response->body()], 400);
         }
     }
+    private function uploadToCloudFlareFromFile1($imageFile, $code_profile, $folder, $filename)
+    {
+        try {
+            // Step 1: Check if the file exists
+            if (!file_exists($imageFile)) {
+                Log::error('File does not exist: ' . $imageFile);
+                return 'error: file does not exist';
+            }
 
+            // Step 2: Prepare Cloudflare R2 credentials and settings
+            $accountid = '453d5dc9390394015b582d09c1e82365';
+            $r2bucket = 'artapp';  // Updated bucket name
+            $accessKey = $this->aws_access_key;
+            $secretKey = $this->aws_secret_key;
+            $region = 'auto';
+            $endpoint = "https://$accountid.r2.cloudflarestorage.com";
+
+            // Set up the S3 client with Cloudflare's endpoint
+            $s3Client = new S3Client([
+                'version' => 'latest',
+                'region' => $region,
+                'credentials' => [
+                    'key' => $accessKey,
+                    'secret' => $secretKey,
+                ],
+                'endpoint' => $endpoint,
+                'use_path_style_endpoint' => true,
+            ]);
+
+            // Step 3: Define the object path and name in R2
+            $r2object = $folder . '/' . $filename . '.jpg';
+
+            // Step 4: Upload the file to Cloudflare R2
+            try {
+                $result = $s3Client->putObject([
+                    'Bucket' => $r2bucket,
+                    'Key' => $r2object,
+                    'Body' => fopen($imageFile, 'rb'), // Open the file as a binary stream
+                    'ContentType' => 'image/jpeg',
+                ]);
+
+                // Generate the CDN URL using the custom domain
+                $cdnUrl = "https://artapp.promptme.info/$folder/$filename.jpg";
+                return $cdnUrl;
+            } catch (S3Exception $e) {
+                Log::error("Error uploading file: " . $e->getMessage());
+                return 'error: ' . $e->getMessage();
+            }
+        } catch (\Throwable $th) {
+            Log::error($th->getMessage());
+            return 'error: ' . $th->getMessage();
+        }
+    }
     public function createActivities($photoId, $imageResult, $imageSize, $featuresId, $apiEndpoint, $aiModel = null)
     {
         // Set default AI model to 'Picsart' if not provided
