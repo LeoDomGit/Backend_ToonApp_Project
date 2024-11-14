@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use ZipArchive;
 use Illuminate\Support\Facades\Validator;
+
 class BackgroundController extends Controller
 {
 
@@ -17,7 +18,7 @@ class BackgroundController extends Controller
         // Validate the request
         $validator = Validator::make($request->all(), [
             'zip_file' => 'required|file|mimes:zip|max:2048',
-            'feature_id'=>'required|exists:features,id'
+            'feature_id' => 'required|exists:features,id'
         ]);
         if ($validator->fails()) {
             return response()->json(['check' => false, 'msg' => $validator->errors()->first()], 400);
@@ -46,7 +47,7 @@ class BackgroundController extends Controller
                     // Create a new Background record
                     Background::create([
                         'path' => 'background/' . $file,
-                        'feature_id'=>$request->feature_id
+                        'feature_id' => $request->feature_id
                     ]);
                 }
             }
@@ -63,7 +64,7 @@ class BackgroundController extends Controller
     {
         // $backgrounds = Background::all();
         $features = Features::all();
-        return Inertia::render('Background/Index', ['data_images' => [],'data_features'=>$features]);
+        return Inertia::render('Background/Index', ['data_images' => [], 'data_features' => $features]);
     }
 
     /**
@@ -73,7 +74,7 @@ class BackgroundController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'images.*' => 'required|file|mimes:png,jpg,jpeg,webp|max:2048', // Validate each file
-            'feature_id'=>'required|exists:features,id'
+            'feature_id' => 'required|exists:features,id'
         ]);
 
         if ($validator->fails()) {
@@ -85,13 +86,13 @@ class BackgroundController extends Controller
                 $path = $image->storeAs('public/background', $filename);
                 $background = Background::create([
                     'path' => 'background/' . $filename,
-                    'feature_id'=>$request->feature_id
+                    'feature_id' => $request->feature_id
                 ]);
             }
         }
-        $data = Background::where('feature_id',$request->feature_id)->get();
+        $data = Background::where('feature_id', $request->feature_id)->get();
         return response()->json([
-            'check'=>true,
+            'check' => true,
             'msg' => 'Background images uploaded successfully.',
             'data' => $data
         ], 200);
@@ -102,7 +103,7 @@ class BackgroundController extends Controller
      */
     public function show($id)
     {
-        $background = Background::where('feature_id',$id)->get();
+        $background = Background::where('feature_id', $id)->get();
         return response()->json($background, 200);
     }
 
@@ -113,17 +114,17 @@ class BackgroundController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'path' => 'sometimes|required|string|max:255',
-            'feature_id'=>'required|exists:features,id'
+            'feature_id' => 'required|exists:features,id'
         ]);
         if ($validator->fails()) {
             return response()->json(['check' => false, 'msg' => $validator->errors()->first()], 400);
         }
-        $data= $request->all();
+        $data = $request->all();
         $data['updated_at'] = now();
         $background->update($data);
-        $data = Background::where('feature_id',$request->feature_id)->get();
+        $data = Background::where('feature_id', $request->feature_id)->get();
         return response()->json([
-            'check'=>true,
+            'check' => true,
             'msg' => 'Background images uploaded successfully.',
             'data' => $data
         ], 200);
@@ -137,23 +138,24 @@ class BackgroundController extends Controller
         $item = Background::find($id);
         $feature_id = $item->feature_id;
         if (!$item) {
-            return response()->json(['check'=>false,'msg' => 'Background image not found.'], 200);
+            return response()->json(['check' => false, 'msg' => 'Background image not found.'], 200);
         }
-        $background = Background::where('id',$id)->first();
+        $background = Background::where('id', $id)->first();
         $filePath = storage_path('app/public/' . $background->path);
         if (file_exists($filePath)) {
             unlink($filePath);
         }
-        Background::where('id',$id)->delete();
-        $data = Background::where('feature_id',$feature_id)->get();
+        Background::where('id', $id)->delete();
+        $data = Background::where('feature_id', $feature_id)->get();
         return response()->json([
-            'check'=>true,
+            'check' => true,
             'msg' => 'Background images uploaded successfully.',
             'data' => $data
         ], 200);
     }
 
-    public function api_index(){
+    public function api_index()
+    {
         $backgrounds = Background::all();
         return response()->json($backgrounds);
     }
