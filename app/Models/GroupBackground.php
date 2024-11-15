@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class GroupBackground extends Model
 {
     use HasFactory;
-
+    protected $table='group_backgrounds';
     protected $fillable = [
         'name',
         'slug',

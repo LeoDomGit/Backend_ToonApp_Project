@@ -54,6 +54,12 @@ Route::middleware('checkLogin')->group(function () {
     Route::post('/updated_size/{id}', [FeaturesController::class, 'updated_size']);
     Route::resource('/packages', SubcriptionPackagesController::class);
     Route::resource('/configs', ConfigController::class);
+    Route::post('/group_background',[GroupBackgroundController::class,'store']);
+    Route::put('/group_background/{id}',[GroupBackgroundController::class,'update']);
+    Route::get('/group_background/{id}',[GroupBackgroundController::class,'show']);
+    Route::delete('/group_background/{id}',[GroupBackgroundController::class,'destroy']);
+
+
 });
 
 Route::post('/checkLoginEmail', [UserController::class, 'checkLoginEmailAdmin']);
