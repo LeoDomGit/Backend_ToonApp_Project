@@ -983,14 +983,23 @@ class ImageAIController extends Controller
 
     public function setup_profile_picture(Request $request){
         $validator = Validator::make($request->all(), [
-            'image' => 'required|mimes:png,jpg,jpeg',
+            'image' => 'nullable|mimes:png,jpg,jpeg',
             'id_size'=>'nullable',
             'effect'=>'nullable',
-            'slug'=>'required'
+            'slug'=>'required',
+            'image_url'=>'nullable|url'
         ]);
 
         if ($validator->fails()) {
             return response()->json(['status' => 'error', 'message' => $validator->errors()->first()]);
+        }
+        if($request->has('image_url')){
+            $effect= $request->effect ?? 'cyber2';
+            $image = $this->createEffect($image,$effect);
+            return response()->json([
+                'status' => 'success',
+                'url' => $image,
+            ]);
         }
         $file = $request->file('image');
         $result = $this->uploadImage($file);
