@@ -1404,7 +1404,7 @@ class ImageAIController extends Controller
                     $imageWithoutBg,
                     'image-' . time(),
                     $feature->slug,
-                    Auth::guard('customer')->id() . 'result-gen-profile'.now()
+                    Auth::guard('customer')->id() . 'result-gen-profile'.time()
                 );
 
                 return $image;
