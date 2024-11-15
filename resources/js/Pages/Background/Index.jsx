@@ -54,13 +54,63 @@ function Index({ data_images, data_features }) {
 
     useEffect(() => {
         if (feature_id !== 0) {
-            axios.get(`/groups/${feature_id}`).then((res) => {
-                if (res.data) {
-                    setAllGroups(res.data);
-                }
+            // Fetch background images for the selected feature
+            axios
+                .get(`/backgrounds/${feature_id}`)
+                .then((res) => {
+                    setData(res.data); // Update data with the fetched images
+                })
+                .catch((error) => {
+                    console.error("Error fetching background images:", error);
+                });
+
+            // Fetch groups for the selected feature
+            axios
+                .get(`/groups/${feature_id}`)
+                .then((res) => {
+                    if (res.data) {
+                        setAllGroups(res.data); // Update groups for the selected feature
+                    }
+                })
+                .catch((error) => {
+                    console.error("Error fetching groups:", error);
+                });
+        } else {
+            // Reset data and groups if no feature is selected
+            setData([]);
+            setAllGroups([]);
+        }
+    }, [feature_id]); // Run this effect only when the feature_id changes
+    const handleAddToGroup = async (imageIds, groupName) => {
+        if (!groupName) {
+            toast.warning("Please select a group!", { position: "top-right" });
+            return;
+        }
+
+        try {
+            const res = await axios.post("/add-images-to-group", {
+                image_ids: imageIds,
+                group_name: groupName,
+                feature_id,
+            });
+
+            if (res.data.status) {
+                toast.success("Images added to group successfully!", {
+                    position: "top-right",
+                });
+                // Optionally refresh data or handle UI updates
+            } else {
+                toast.error("Failed to add images to group.", {
+                    position: "top-right",
+                });
+            }
+        } catch (error) {
+            console.error("Error adding images to group:", error);
+            toast.error("Error adding images to group.", {
+                position: "top-right",
             });
         }
-    }, [feature_id]); // Fetch groups only when feature_id changes
+    };
 
     const handleAddGroup = async () => {
         if (newGroup.trim() !== "") {
@@ -317,6 +367,8 @@ function Index({ data_images, data_features }) {
                 <BackgroundGallery
                     backgroundImages={data}
                     onDelete={handleDelete}
+                    onAddToGroup={handleAddToGroup}
+                    groupBackgrounds={groupBackgrounds}
                 />
             </Layout>
         </div>

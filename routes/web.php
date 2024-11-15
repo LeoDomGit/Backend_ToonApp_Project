@@ -54,6 +54,12 @@ Route::middleware('checkLogin')->group(function () {
     Route::post('/updated_size/{id}', [FeaturesController::class, 'updated_size']);
     Route::resource('/packages', SubcriptionPackagesController::class);
     Route::resource('/configs', ConfigController::class);
+    Route::post('/backgrounds/add-to-group', [BackgroundController::class, 'addImagesToGroup']);
+
+    // Lấy ảnh theo nhóm
+    Route::get('/backgrounds/{feature_id}', [BackgroundController::class, 'getImagesByGroup']);
+    Route::post('/upload-image', [BackgroundController::class, 'uploadImage']);
+    Route::post('/add-images-to-group', [BackgroundController::class, 'addToGroup']);
 });
 
 Route::post('/checkLoginEmail', [UserController::class, 'checkLoginEmailAdmin']);

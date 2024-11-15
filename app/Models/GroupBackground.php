@@ -26,4 +26,8 @@ class GroupBackground extends Model
     {
         return $this->belongsTo(SubFeatures::class);
     }
+    public function backgrounds()
+    {
+        return $this->hasMany(Background::class, 'group_id');
+    }
 }

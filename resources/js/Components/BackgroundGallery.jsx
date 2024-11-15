@@ -1,6 +1,28 @@
-import React from "react";
+import React, { useState } from "react";
 
-function BackgroundGallery({ backgroundImages, onDelete }) {
+function BackgroundGallery({
+    backgroundImages,
+    onDelete,
+    onAddToGroup,
+    groupBackgrounds,
+}) {
+    const [selectedImages, setSelectedImages] = useState([]);
+
+    const handleSelectImage = (id) => {
+        if (selectedImages.includes(id)) {
+            setSelectedImages(
+                selectedImages.filter((imageId) => imageId !== id)
+            );
+        } else {
+            setSelectedImages([...selectedImages, id]);
+        }
+    };
+
+    const handleAddToGroup = (group) => {
+        onAddToGroup(selectedImages, group);
+        setSelectedImages([]); // Clear selection after adding to a group
+    };
+
     return (
         <div className="row mt-5">
             {backgroundImages.map((image) => (
@@ -9,6 +31,12 @@ function BackgroundGallery({ backgroundImages, onDelete }) {
                         src={`/storage/${image.path}`}
                         alt="Background"
                         className="img-fluid w-100"
+                        style={{
+                            border: selectedImages.includes(image.id)
+                                ? "3px solid green"
+                                : "none",
+                        }}
+                        onClick={() => handleSelectImage(image.id)}
                     />
                     <button
                         onClick={() => onDelete(image.id)}
@@ -18,6 +46,24 @@ function BackgroundGallery({ backgroundImages, onDelete }) {
                     </button>
                 </div>
             ))}
+
+            <div className="col-12 mt-3">
+                <label htmlFor="groupSelect">
+                    Add selected images to group:
+                </label>
+                <select
+                    id="groupSelect"
+                    className="form-control mb-3"
+                    onChange={(e) => handleAddToGroup(e.target.value)}
+                >
+                    <option value="">Select a group</option>
+                    {groupBackgrounds.map((group, index) => (
+                        <option key={index} value={group}>
+                            {group}
+                        </option>
+                    ))}
+                </select>
+            </div>
         </div>
     );
 }
