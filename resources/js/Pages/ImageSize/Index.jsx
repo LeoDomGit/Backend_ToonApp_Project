@@ -35,14 +35,20 @@ function Index({ sizes }) {
     };
   const [size, setSize] = useState('');
   const [data, setData] = useState(sizes)
+  const [width, setWidth] = useState(null);
+  const [height, setHeight] = useState(null);
+  const [image, setImage] = useState(null);
   const [show, setShow] = useState(false);
+    const [showImageModal, setShowImageModal] = useState(false);
+    const [selectedRowId, setSelectedRowId] = useState(null);
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
+    const closeImageModal = () => setShowImageModal(false);
   const api = 'http://localhost:8000/api/';
   const app = 'http://localhost:8000/';
   const formatCreatedAt = (dateString) => {
     const date = new Date(dateString);
-    return date.toLocaleString(); 
+    return date.toLocaleString();
 };
 const switchStatus=(params,value)=>{
     var status=0;
@@ -82,7 +88,6 @@ const switchStatus=(params,value)=>{
     {
         field: 'status',
         headerName: "Status",
-        width: 70,
         renderCell: (params) => (
             <Switch
                 checked={params.value == 1}
@@ -92,20 +97,54 @@ const switchStatus=(params,value)=>{
         )
     },
     {
+        field: 'image',
+        headerName: 'Image',
+        renderCell: (params) => (
+            <img
+                        src={
+            params.value
+                        ? `/storage/${params.value}`
+                        : '/default-image.jpg'
+                        }
+                        alt='image frame'
+                        style={{
+            padding: '2px',
+            width: '100%',
+            height: '100%',
+            objectFit: 'contain',
+            cursor: 'pointer',
+                        }}
+                        onClick={() => openImageModal(params.row.id)}
+            />
+        ),
+    },
+    {
       field: 'created_at', headerName: 'Created at', width: 200, valueGetter: (params) => formatCreatedAt(params)
     }
   ];
   const submitSize = () => {
-    axios.post('/sizes', {
-      size: size
+        const formData = new FormData();
+        formData.append('size', size);
+        formData.append('width', width);
+        formData.append('height', height);
+        if (image) {
+            formData.append('image', image);
+        }
+    axios.post('/sizes',formData, {
+        headers: {
+            'Content-Type': 'multipart/forma-data',
+        },
     }).then((res) => {
       if (res.data.check == true) {
         toast.success("Đã thêm thành công !", {
             position: "top-right"
           });
-        setData(res.data.data);
+        setData((prevData) => [...prevData, res.data.data]);
         setShow(false);
-        setRole('')
+        setSize('');
+        setWidth('');
+        setHeight('');
+        setImage(null);
       }else if(res.data.check==false){
         toast.error(res.data.msg, {
             position: "top-center"
@@ -160,7 +199,6 @@ setSize('');
                 position: "top-right"
               });
           setData(res.data.data);
-
         } else if (res.data.check == false) {
             toast.error(res.data.msg, {
                 position: "top-right"
@@ -168,10 +206,36 @@ setSize('');
         }
       });
     }
-  
+
+  };
+  const openImageModal = (id) => {
+    setSelectedRowId(id);
+    setShowImageModal(true);
+  };
+  const updateImage = () => {
+    const formData = new FormData();
+    formData.append('image', image);
+
+    axios.post(`/size-update-image/${selectedRowId}`, formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        },
+    }).then((res) => {
+        if (res.data.check) {
+            toast.success('Ảnh đã được cập nhật thành công !', {
+                position: 'top-right',
+            });
+            setData(res.data.data);
+            setImage(null);
+            closeImageModal();
+        } else {
+            toast.error(res.data.msg, {
+                position: 'top-right',
+            });
+        }
+    });
   };
   return (
-
     <Layout>
       <>
       <ToastContainer />
@@ -180,14 +244,63 @@ setSize('');
             <Modal.Title>Tạo size hình ảnh</Modal.Title>
           </Modal.Header>
           <Modal.Body>
-            <input type="text" className='form-control' onChange={(e) => setSize(e.target.value)} />
+            <input type="text" className='form-control' placeholder="Nhập tỉ lệ của hình" onChange={(e) => setSize(e.target.value)} />
+                <div className="d-flex mt-2 justify-content-between">
+                    <div>
+                        <input
+                            type="text"
+                            placeholder="Nhập chiều rộng của hình"
+                            className="form-control "
+                            onChange={(e) => setWidth(e.target.value)}
+                        />
+                    </div>
+                    <div>
+                        <input
+                            type='text'
+                            placeholder='Nhập chiều cao của hình'
+                            className='form-control'
+                            onChange={(e) => setHeight(e.target.value)}
+                        />
+                    </div>
+                </div>
+                <input
+                    type='file'
+                    className='form-control mt-2'
+                    accept='image/*'
+                    onChange={(e) => setImage(e.target.files[0])}
+                />
           </Modal.Body>
           <Modal.Footer>
             <Button variant="secondary" onClick={handleClose}>
               Đóng
             </Button>
-            <Button variant="primary text-light" disabled={size == '' ? true : false} onClick={(e) => submitSize()}>
+            <Button variant="primary text-light" disabled={size == '' ? true : false} onClick={submitSize}>
               Tạo mới
+            </Button>
+          </Modal.Footer>
+        </Modal>
+        <Modal show={showImageModal} onHide={closeImageModal}>
+            <Modal.Header closeButton>
+                <Modal.Title>Thay đổi hình ảnh</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+                <input
+                    type='file'
+                    className='form-control'
+                    accept='image/*'
+                    onChange={(e) => setImage(e.target.files[0])}
+                />
+            </Modal.Body>
+            <Modal.Footer>
+                <Button variant='secondary' onClick={closeImageModal}>
+                    Đóng
+                </Button>
+                <Button
+                    variant='primary'
+                    onClick={updateImage}
+                    disabled={!image}
+                 >
+                    Cập nhật ảnh
             </Button>
           </Modal.Footer>
         </Modal>
@@ -239,13 +352,11 @@ setSize('');
               </Box>
                 </div>
               </div>
-              
             )}
           </div>
         </div>
       </>
     </Layout>
-
   )
 }
 
