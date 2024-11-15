@@ -995,6 +995,7 @@ class ImageAIController extends Controller
         }
         if($request->has('image_url')){
             $effect= $request->effect ?? 'cyber2';
+            $image=$request->image_url;
             $image = $this->createEffect($image,$effect);
             return response()->json([
                 'status' => 'success',
@@ -1404,7 +1405,7 @@ class ImageAIController extends Controller
                     $imageWithoutBg,
                     'image-' . time(),
                     $feature->slug,
-                    Auth::guard('customer')->id() . 'result-gen-profile'.time()
+                    Auth::guard('customer')->id() . 'result-gen-profile'
                 );
 
                 return $image;
