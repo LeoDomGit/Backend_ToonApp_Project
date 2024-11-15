@@ -35,6 +35,7 @@ Route::middleware('checkLogin')->group(function () {
     Route::get('/logout', [UserController::class, 'Logout']);
     Route::resource('/roles', RoleController::class);
     Route::resource('/sizes', ImageSizeController::class);
+    Route::post('/size-update-image/{id}', [ImageSizeController::class, 'update_image']);
     Route::resource('/users', UserController::class);
     Route::resource('/permissions', PermissionsController::class);
     Route::post('/permissions/add-role-permision', [PermissionsController::class, 'role_permission']);

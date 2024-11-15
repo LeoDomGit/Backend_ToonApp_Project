@@ -15,12 +15,19 @@ class ImageSize extends Model
         'width',
         'height',
         'status',
+        'image',
         'created_at',
         'updated_at',
     ];
     public function scopeActive($query)
     {
         return $query->where('status', 1);
+    }
+    public function imageUrl():Attribute
+    {
+        return Attribute::get(function ($value, $attributes){
+            return $attributes['image'] ? asset('storage/' . $attributes['image']) : null;
+        });
     }
     public function feature() {
         return $this->belongsToMany(Features::class, 'features_sizes', 'size_id', 'feature_id');
