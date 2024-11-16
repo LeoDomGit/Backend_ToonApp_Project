@@ -895,7 +895,7 @@ function Index({ datafeatures, datasizes }) {
                                         <Box
                                             sx={{
                                                 width: "100%",
-                                                height: "50vh",
+                                                height: "30vh",
                                                 overflowX: "auto",
                                                 overflowY: "hidden",
                                             }}
