@@ -39,16 +39,17 @@ function Index({ datafeatures, datasizes }) {
     const closeImageModal = () => setShowImageModal(false);
     const [groupname, setGroupName] = useState("");
     const [idFeature, setIdFeature] = useState(datafeatures[0].id);
-    const [groups,setGroups]=useState([]);
+    const [groups, setGroups] = useState([]);
+    const [createGroup, setCreateGroup] = useState(false);
     const handleSizeChange = (e) => {
         const selectedValues = e.target.value; // This will be an array of selected sizes
         setSizes(selectedValues);
     };
-    useEffect(()=>{
-        axios.get('/group_background/'+idFeature).then((res)=>{
+    useEffect(() => {
+        axios.get("/group_background/" + idFeature).then((res) => {
             setGroups(res.data);
-        })
-    },[idFeature])
+        });
+    }, [idFeature]);
     const [sizes, setSizes] = useState([]);
     const formatCreatedAt = (dateString) => {
         const date = new Date(dateString);
@@ -105,19 +106,21 @@ function Index({ datafeatures, datasizes }) {
             width: 200,
             renderCell: (params) => {
                 // Convert the sizes from params.row.sizes to an array of selected sizes
-                const selectedSizes = params.row.feature_id
+                const selectedSizes = params.row.feature_id;
                 return (
                     <Select
                         value={selectedSizes} // Set the value to the selected sizes array
                         fullWidth
-                        onChange={(e)=>{
-                            axios.put('/group_background/'+params.row.id,{
-                                feature_id:e.target.value
-                            }).then((res)=>{
-                                if(res.data.check==true){
-                                    setGroups(res.data.data);
-                                }
-                            })
+                        onChange={(e) => {
+                            axios
+                                .put("/group_background/" + params.row.id, {
+                                    feature_id: e.target.value,
+                                })
+                                .then((res) => {
+                                    if (res.data.check == true) {
+                                        setGroups(res.data.data);
+                                    }
+                                });
                         }}
                     >
                         {datafeatures.map((item) => (
@@ -129,7 +132,8 @@ function Index({ datafeatures, datasizes }) {
                 );
             },
             editable: true,
-        }, {
+        },
+        {
             field: "status",
             headerName: "Status",
             width: 200,
@@ -559,7 +563,7 @@ function Index({ datafeatures, datasizes }) {
                             toast.success("Đã xóa thành công !", {
                                 position: "top-right",
                             });
-                           setGroups(res.data.data);
+                            setGroups(res.data.data);
                         } else {
                             toast.error(res.data.msg, {
                                 position: "top-right",
@@ -569,18 +573,20 @@ function Index({ datafeatures, datasizes }) {
                 }
             });
         } else {
-            axios.put(`/group_background/${id}`, { [field]: value }).then((res) => {
-                if (res.data.check) {
-                    toast.success("Chỉnh sửa thành công !", {
-                        position: "top-right",
-                    });
-                    setGroups(res.data.data);
-                } else {
-                    toast.error(res.data.msg, {
-                        position: "top-right",
-                    });
-                }
-            });
+            axios
+                .put(`/group_background/${id}`, { [field]: value })
+                .then((res) => {
+                    if (res.data.check) {
+                        toast.success("Chỉnh sửa thành công !", {
+                            position: "top-right",
+                        });
+                        setGroups(res.data.data);
+                    } else {
+                        toast.error(res.data.msg, {
+                            position: "top-right",
+                        });
+                    }
+                });
         }
     };
     const openImageModal = (id) => {
@@ -612,32 +618,34 @@ function Index({ datafeatures, datasizes }) {
                 }
             });
     };
-    const submitGroupBackground=()=>{
-        if(groupname==''){
-            toast.error('Chưa nhập group name ', {
+    const submitGroupBackground = () => {
+        if (groupname == "") {
+            toast.error("Chưa nhập group name ", {
                 position: "top-right",
             });
-        }else{
-            axios.post('group_background',{
-                feature_id:idFeature,
-                name:groupname
-            }).then((res)=>{
-                if(res.data.check==true){
-                    setGroups(res.data.data)
-                    setGroupName('');
-                    toast.success("Đã thêm thành công !", {
-                        position: "top-right",
-                    });
-                }else if(res.data.check==false){
-                    if(res.data.msg){
-                        toast.error(res.data.msg, {
+        } else {
+            axios
+                .post("group_background", {
+                    feature_id: idFeature,
+                    name: groupname,
+                })
+                .then((res) => {
+                    if (res.data.check == true) {
+                        setGroups(res.data.data);
+                        setGroupName("");
+                        toast.success("Đã thêm thành công !", {
                             position: "top-right",
                         });
+                    } else if (res.data.check == false) {
+                        if (res.data.msg) {
+                            toast.error(res.data.msg, {
+                                position: "top-right",
+                            });
+                        }
                     }
-                }
-            })
+                });
         }
-    }
+    };
     return (
         <Layout>
             <ToastContainer />
@@ -828,7 +836,7 @@ function Index({ datafeatures, datasizes }) {
                                                 <div className="col-md-6">
                                                     <div className="row">
                                                         <div className="col-md-4">
-                                                            <button className="btn btn-outline-warning">
+                                                            <button   onClick={() => setCreateGroup(!createGroup)} className="btn btn-outline-warning">
                                                                 Create group
                                                                 background
                                                             </button>
@@ -837,7 +845,12 @@ function Index({ datafeatures, datasizes }) {
                                                             <select
                                                                 name=""
                                                                 className="form-control"
-                                                                onChange={(e)=>setIdFeature(e.target.value)}
+                                                                onChange={(e) =>
+                                                                    setIdFeature(
+                                                                        e.target
+                                                                            .value
+                                                                    )
+                                                                }
                                                                 id=""
                                                             >
                                                                 {data.length >
@@ -863,59 +876,74 @@ function Index({ datafeatures, datasizes }) {
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div className="row mt-3">
-                                                <div className="col-md-6">
-                                                    <div className="input-group mb-3">
-                                                        <span
-                                                            className="input-group-text"
-                                                            id="basic-addon1"
-                                                        >
-                                                            Group name
-                                                        </span>
-                                                        <input
-                                                            type="text"
-                                                            className="form-control"
-                                                            placeholder="Group name"
-                                                            aria-label="Username"
-                                                            aria-describedby="basic-addon1"
-                                                            onChange={(e)=>setGroupName(e.target.value)}
-                                                            value={
-                                                                groupname !== ""
-                                                                    ? groupname
-                                                                    : ""
-                                                            }
-                                                        />
-                                                        <button onClick={(e)=>submitGroupBackground()} className="btn btn-outline-primary">
-                                                            Submit
-                                                        </button>
+                                            {createGroup && (
+                                                <div className="row mt-3">
+                                                    <div className="col-md-6">
+                                                        <div className="input-group mb-3">
+                                                            <span
+                                                                className="input-group-text"
+                                                                id="basic-addon1"
+                                                            >
+                                                                Group name
+                                                            </span>
+                                                            <input
+                                                                type="text"
+                                                                className="form-control"
+                                                                placeholder="Group name"
+                                                                aria-label="Group name"
+                                                                aria-describedby="basic-addon1"
+                                                                onChange={(e) =>
+                                                                    setGroupName(
+                                                                        e.target
+                                                                            .value
+                                                                    )
+                                                                }
+                                                                value={
+                                                                    groupname ||
+                                                                    ""
+                                                                }
+                                                            />
+                                                            <button
+                                                                onClick={
+                                                                    submitGroupBackground
+                                                                }
+                                                                className="btn btn-outline-primary"
+                                                            >
+                                                                Submit
+                                                            </button>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
+                                            )}
+
                                             <div className="row">
-                                        <Box
-                                            sx={{
-                                                width: "100%",
-                                                height: "50vh",
-                                                overflowX: "auto",
-                                                overflowY: "hidden",
-                                            }}
-                                        >
-                                            <DataGrid
-                                                rows={groups}
-                                                columns={columns1}
-                                                pageSizeOptions={[5]}
-                                                checkboxSelection
-                                                disableRowSelectionOnClick
-                                                onCellEditStop={(params, e) =>
-                                                    handleCellEditStop1(
-                                                        params.row.id,
-                                                        params.field,
-                                                        e.target.value
-                                                    )
-                                                }
-                                            />
-                                        </Box>
-                                    </div>
+                                                <Box
+                                                    sx={{
+                                                        width: "100%",
+                                                        height: "50vh",
+                                                        overflowX: "auto",
+                                                        overflowY: "hidden",
+                                                    }}
+                                                >
+                                                    <DataGrid
+                                                        rows={groups}
+                                                        columns={columns1}
+                                                        pageSizeOptions={[5]}
+                                                        checkboxSelection
+                                                        disableRowSelectionOnClick
+                                                        onCellEditStop={(
+                                                            params,
+                                                            e
+                                                        ) =>
+                                                            handleCellEditStop1(
+                                                                params.row.id,
+                                                                params.field,
+                                                                e.target.value
+                                                            )
+                                                        }
+                                                    />
+                                                </Box>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
