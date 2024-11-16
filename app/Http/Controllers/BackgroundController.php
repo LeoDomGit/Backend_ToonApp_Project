@@ -72,38 +72,32 @@ class BackgroundController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    // Controller để quản lý nhóm và nền ảnh
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'images.*' => 'required|file|mimes:png,jpg,jpeg,webp|max:2048', // Validate each file
-            'feature_id' => 'required|exists:features,id',
-            'group_backgrounds.*' => 'required|exists:group_backgrounds,name', // Validate group names
+            'feature_id' => 'required|exists:features,id'
         ]);
 
         if ($validator->fails()) {
             return response()->json(['check' => false, 'msg' => $validator->errors()->first()], 400);
         }
-
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $image) {
                 $filename = time() . '_' . $image->getClientOriginalName();
                 $path = $image->storeAs('public/background', $filename);
-
-                // Save the image and associated groups
-                Background::create([
+                $background = Background::create([
                     'path' => 'background/' . $filename,
-                    'feature_id' => $request->feature_id,
-                    'group_background_id' => implode(",", $request->group_backgrounds), // Save groups as a comma-separated string
+                    'feature_id' => $request->feature_id
                 ]);
             }
         }
-
-        $data = Background::where('feature_id', $request->feature_id)
-            ->whereIn('group_background_id', $request->group_backgrounds) // Filter by group
-            ->get();
-
-        return response()->json(['check' => true, 'data' => $data], 200);
+        $data = Background::where('feature_id', $request->feature_id)->get();
+        return response()->json([
+            'check' => true,
+            'msg' => 'Background images uploaded successfully.',
+            'data' => $data
+        ], 200);
     }
     public function uploadImage(Request $request)
     {
@@ -284,32 +278,9 @@ class BackgroundController extends Controller
         ], 200);
     }
 
-    public function api_index(Request $request)
+    public function api_index()
     {
-        $validator = Validator::make($request->all(), [
-            'feature_id' => 'required|exists:features,id',
-        ]);
-        if ($validator->fails()) {
-            return response()->json(['check' => false, 'msg' => $validator->errors()->first()], 400);
-        }
-        $backgrounds = GroupBackground::with('backgrounds')->where('feature_id', $request->feature_id)->get();
-        return response()->json($backgrounds);
-    }
-
-    public function api_single(Request $request, $id)
-    {
-        $validator = Validator::make($request->all(), [
-            'feature_id' => 'required|exists:features,id',
-        ]);
-        if ($validator->fails()) {
-            return response()->json(['check' => false, 'msg' => $validator->errors()->first()], 400);
-        }
-        $backgrounds = GroupBackground::with('backgrounds')
-            ->where('feature_id', $request->feature_id)
-            ->whereHas('backgrounds', function ($query) use ($id) {
-                $query->where('group_id', $id); // Using the correct foreign key
-            })
-            ->get();
+        $backgrounds = Background::all();
         return response()->json($backgrounds);
     }
 }
