@@ -56,11 +56,13 @@ class GroupBackgroundController extends Controller
     // ======================================================
     public function destroy($id){
         $item =GroupBackground::where('id',$id)->first();
+        $feature_id=$item->feature_id;
         if(!$item){
             return response()->json(['check'=>false,'msg'=>'Không tìm thấy group']);
         }
         $item->delete();
-        return response()->json(['check'=>true]);
+        $result=GroupBackground::where('feature_id',$feature_id)->get();
+        return response()->json(['check'=>true,'data'=>$result]);
     }
 
     public function saveGroupBackgrounds(Request $request)
