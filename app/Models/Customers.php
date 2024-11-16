@@ -24,6 +24,10 @@ class Customers extends Authenticatable
         'city',
         'platform',
         'last_login',
+        'auth_provider_id',
+        'auth_provider',
+        'auth_email',
+        'auth_token',
         'device_id',
         'expired_at',
         'created_at',
@@ -45,7 +49,7 @@ class Customers extends Authenticatable
         if (!$this->remember_token) {
             $this->remember_token = $this->createToken('customer_token')->plainTextToken;
         }
-    
+
         // Update expired_at based on the duration
         if ($this->expired_at) {
             $this->expired_at = Carbon::parse($this->expired_at)->addMonths($duration);

@@ -11,6 +11,8 @@ class Background extends Model
     protected $table = 'background';
     protected $fillable = ['id', 'path', 'feature_id', 'group_id', 'status', 'is_front', 'created_at', 'updated_at'];
     public function group()
+
+
     {
         return $this->belongsTo(GroupBackground::class, 'group_id');
     }

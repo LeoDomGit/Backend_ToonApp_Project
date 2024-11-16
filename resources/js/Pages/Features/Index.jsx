@@ -8,9 +8,17 @@ import { DataGrid } from "@mui/x-data-grid";
 import "notyf/notyf.min.css";
 import axios from "axios";
 import Swal from "sweetalert2";
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import { Select, MenuItem, OutlinedInput, InputLabel, FormControl, Checkbox, ListItemText } from '@mui/material';
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import {
+    Select,
+    MenuItem,
+    OutlinedInput,
+    InputLabel,
+    FormControl,
+    Checkbox,
+    ListItemText,
+} from "@mui/material";
 function Index({ datafeatures, datasizes }) {
     const [image, setImage] = useState(null);
     const [feature, setFeature] = useState("");
@@ -29,11 +37,20 @@ function Index({ datafeatures, datasizes }) {
     const handleClose = () => setShow(false);
     const handleShow = () => setShow(true);
     const closeImageModal = () => setShowImageModal(false);
+    const [groupname, setGroupName] = useState("");
+    const [idFeature, setIdFeature] = useState(datafeatures[0].id);
+    const [groups, setGroups] = useState([]);
+    const [createGroup, setCreateGroup] = useState(false);
     const handleSizeChange = (e) => {
-        const selectedValues = e.target.value;  // This will be an array of selected sizes
+        const selectedValues = e.target.value; // This will be an array of selected sizes
         setSizes(selectedValues);
-      };
-    const [sizes,setSizes]= useState([]);
+    };
+    useEffect(() => {
+        axios.get("/group_background/" + idFeature).then((res) => {
+            setGroups(res.data);
+        });
+    }, [idFeature]);
+    const [sizes, setSizes] = useState([]);
     const formatCreatedAt = (dateString) => {
         const date = new Date(dateString);
         return date.toLocaleString();
@@ -78,7 +95,74 @@ function Index({ datafeatures, datasizes }) {
             },
         ],
     });
-
+    const columns1 = [
+        { field: "id", headerName: "#", width: 100 },
+        { field: "name", headerName: "Features", width: 200, editable: true },
+        { field: "slug", headerName: "Slug", width: 200 },
+        ,
+        {
+            field: "feature_id",
+            headerName: "Features",
+            width: 200,
+            renderCell: (params) => {
+                // Convert the sizes from params.row.sizes to an array of selected sizes
+                const selectedSizes = params.row.feature_id;
+                return (
+                    <Select
+                        value={selectedSizes} // Set the value to the selected sizes array
+                        fullWidth
+                        onChange={(e) => {
+                            axios
+                                .put("/group_background/" + params.row.id, {
+                                    feature_id: e.target.value,
+                                })
+                                .then((res) => {
+                                    if (res.data.check == true) {
+                                        setGroups(res.data.data);
+                                    }
+                                });
+                        }}
+                    >
+                        {datafeatures.map((item) => (
+                            <MenuItem key={item.id} value={item.id}>
+                                {item.name}
+                            </MenuItem>
+                        ))}
+                    </Select>
+                );
+            },
+            editable: true,
+        },
+        {
+            field: "status",
+            headerName: "Status",
+            width: 200,
+            renderCell: (params) => (
+                <input
+                    key={params.row.id}
+                    type="checkbox"
+                    className="text-center"
+                    checked={params.value}
+                    onChange={(event) => {
+                        const checked = event.target.checked;
+                        axios
+                            .put(`/group_background/${params.row.id}`, {
+                                status: checked,
+                            })
+                            .then((res) => {
+                                if (res.data.check == true) {
+                                    toast.success("Đã sửa thành công !", {
+                                        position: "top-right",
+                                    });
+                                    setGroups(res.data.data);
+                                }
+                            });
+                    }}
+                />
+            ),
+            editable: true,
+        },
+    ];
     const columns = [
         { field: "id", headerName: "#", width: 100 },
         { field: "name", headerName: "Features", width: 200, editable: true },
@@ -113,8 +197,7 @@ function Index({ datafeatures, datasizes }) {
             headerName: "Strength Type",
             width: 200,
             editable: true,
-        }
-        ,
+        },
         {
             field: "status",
             headerName: "Status",
@@ -127,16 +210,18 @@ function Index({ datafeatures, datasizes }) {
                     checked={params.value}
                     onChange={(event) => {
                         const checked = event.target.checked;
-                        axios.put(`/features/${params.row.id}`, {
-                            status: checked,
-                        }).then((res) => {
-                            if (res.data.check == true) {
-                                toast.success("Đã sửa thành công !", {
-                                    position: "top-right"
-                                });
-                                setData(res.data.data);
-                            }
-                        })
+                        axios
+                            .put(`/features/${params.row.id}`, {
+                                status: checked,
+                            })
+                            .then((res) => {
+                                if (res.data.check == true) {
+                                    toast.success("Đã sửa thành công !", {
+                                        position: "top-right",
+                                    });
+                                    setData(res.data.data);
+                                }
+                            });
                     }}
                 />
             ),
@@ -154,21 +239,24 @@ function Index({ datafeatures, datasizes }) {
                     checked={params.value}
                     onChange={(event) => {
                         const checked = event.target.checked;
-                        axios.put(`/features/${params.row.id}`, {
-                            remove_bg: checked,
-                        }).then((res) => {
-                            if (res.data.check == true) {
-                                toast.success("Đã sửa thành công !", {
-                                    position: "top-right"
-                                });
-                                setData(res.data.data);
-                            }
-                        })
+                        axios
+                            .put(`/features/${params.row.id}`, {
+                                remove_bg: checked,
+                            })
+                            .then((res) => {
+                                if (res.data.check == true) {
+                                    toast.success("Đã sửa thành công !", {
+                                        position: "top-right",
+                                    });
+                                    setData(res.data.data);
+                                }
+                            });
                     }}
                 />
             ),
             editable: true,
-        },{
+        },
+        {
             field: "is_pro",
             headerName: "Pro Feature",
             width: 200,
@@ -180,23 +268,24 @@ function Index({ datafeatures, datasizes }) {
                     checked={params.value}
                     onChange={(event) => {
                         const checked = event.target.checked;
-                        axios.put(`/features/${params.row.id}`, {
-                            is_pro: checked,
-                        }).then((res) => {
-                            if (res.data.check == true) {
-                                toast.success("Đã sửa thành công !", {
-                                    position: "top-right"
-                                });
-                                setData(res.data.data);
-                            }
-                        })
+                        axios
+                            .put(`/features/${params.row.id}`, {
+                                is_pro: checked,
+                            })
+                            .then((res) => {
+                                if (res.data.check == true) {
+                                    toast.success("Đã sửa thành công !", {
+                                        position: "top-right",
+                                    });
+                                    setData(res.data.data);
+                                }
+                            });
                     }}
                 />
             ),
             editable: true,
-
-        }
-        , {
+        },
+        {
             field: "is_effect",
             headerName: "Effect",
             width: 200,
@@ -208,22 +297,24 @@ function Index({ datafeatures, datasizes }) {
                     checked={params.value}
                     onChange={(event) => {
                         const checked = event.target.checked;
-                        axios.put(`/features/${params.row.id}`, {
-                            is_effect: checked,
-                        }).then((res) => {
-                            if (res.data.check == true) {
-                                toast.success("Đã sửa thành công !", {
-                                    position: "top-right"
-                                });
-                                setData(res.data.data);
-                            }
-                        })
+                        axios
+                            .put(`/features/${params.row.id}`, {
+                                is_effect: checked,
+                            })
+                            .then((res) => {
+                                if (res.data.check == true) {
+                                    toast.success("Đã sửa thành công !", {
+                                        position: "top-right",
+                                    });
+                                    setData(res.data.data);
+                                }
+                            });
                     }}
                 />
             ),
             editable: true,
-
-        },{
+        },
+        {
             field: "detech_face",
             headerName: "Detech Face",
             width: 200,
@@ -235,16 +326,18 @@ function Index({ datafeatures, datasizes }) {
                     checked={params.value}
                     onChange={(event) => {
                         const checked = event.target.checked;
-                        axios.put(`/features/${params.row.id}`, {
-                            detech_face: checked,
-                        }).then((res) => {
-                            if (res.data.check == true) {
-                                toast.success("Đã sửa thành công !", {
-                                    position: "top-right"
-                                });
-                                setData(res.data.data);
-                            }
-                        })
+                        axios
+                            .put(`/features/${params.row.id}`, {
+                                detech_face: checked,
+                            })
+                            .then((res) => {
+                                if (res.data.check == true) {
+                                    toast.success("Đã sửa thành công !", {
+                                        position: "top-right",
+                                    });
+                                    setData(res.data.data);
+                                }
+                            });
                     }}
                 />
             ),
@@ -284,37 +377,50 @@ function Index({ datafeatures, datasizes }) {
             width: 200,
             renderCell: (params) => {
                 // Convert the sizes from params.row.sizes to an array of selected sizes
-                const selectedSizes = params.row.sizes ? params.row.sizes.map(size => size.id) : [];
+                const selectedSizes = params.row.sizes
+                    ? params.row.sizes.map((size) => size.id)
+                    : [];
 
                 return (
                     <Select
-                        value={selectedSizes}  // Set the value to the selected sizes array
+                        value={selectedSizes} // Set the value to the selected sizes array
                         onChange={handleSizeChange}
-                        defaultValue={params.row.sizes ? params.row.sizes.map(size => size.id) : []}
+                        defaultValue={
+                            params.row.sizes
+                                ? params.row.sizes.map((size) => size.id)
+                                : []
+                        }
                         onBlur={() => {
                             const featureId = params.row.id;
                             var formData = new FormData();
-                            sizes.forEach(size => {
-                                formData.append('size_id[]', size);
+                            sizes.forEach((size) => {
+                                formData.append("size_id[]", size);
                             });
 
-                            axios.post(`/updated_size/${featureId}`, formData)
+                            axios
+                                .post(`/updated_size/${featureId}`, formData)
                                 .then((res) => {
                                     if (res.data.check) {
-                                        toast.success("Sizes updated successfully!", {
-                                            position: "top-right"
-                                        });
+                                        toast.success(
+                                            "Sizes updated successfully!",
+                                            {
+                                                position: "top-right",
+                                            }
+                                        );
                                         setData(res.data.data);
                                     } else {
                                         toast.error(res.data.msg, {
-                                            position: "top-right"
+                                            position: "top-right",
                                         });
                                     }
                                 })
                                 .catch((error) => {
-                                    console.error("There was an error updating sizes:", error);
+                                    console.error(
+                                        "There was an error updating sizes:",
+                                        error
+                                    );
                                     toast.error("Failed to update sizes.", {
-                                        position: "top-right"
+                                        position: "top-right",
                                     });
                                 });
                         }}
@@ -370,7 +476,7 @@ function Index({ datafeatures, datasizes }) {
             .then((res) => {
                 if (res.data.check) {
                     toast.success("Đã thêm thành công !", {
-                        position: "top-right"
+                        position: "top-right",
                     });
 
                     setData((prevData) => [...prevData, res.data.data]);
@@ -379,7 +485,7 @@ function Index({ datafeatures, datasizes }) {
                     setShow(false);
                 } else {
                     toast.error(res.data.msg, {
-                        position: "top-right"
+                        position: "top-right",
                     });
                 }
             })
@@ -387,7 +493,6 @@ function Index({ datafeatures, datasizes }) {
                 notyf.error("Có lỗi xảy ra. Vui lòng thử lại.");
             });
     };
-
     const resetCreate = () => {
         setFeature("");
         setDescription("");
@@ -415,14 +520,14 @@ function Index({ datafeatures, datasizes }) {
                     axios.delete(`/features/${id}`).then((res) => {
                         if (res.data.check) {
                             toast.success("Đã xóa thành công !", {
-                                position: "top-right"
+                                position: "top-right",
                             });
                             setData((prevData) =>
                                 prevData.filter((item) => item.id !== id)
                             );
                         } else {
                             toast.error(res.data.msg, {
-                                position: "top-right"
+                                position: "top-right",
                             });
                         }
                     });
@@ -432,18 +537,58 @@ function Index({ datafeatures, datasizes }) {
             axios.put(`/features/${id}`, { [field]: value }).then((res) => {
                 if (res.data.check) {
                     toast.success("Chỉnh sửa thành công !", {
-                        position: "top-right"
+                        position: "top-right",
                     });
                     setData(res.data.data);
                 } else {
                     toast.error(res.data.msg, {
-                        position: "top-right"
+                        position: "top-right",
                     });
                 }
             });
         }
     };
-
+    const handleCellEditStop1 = (id, field, value) => {
+        if (field === "name" && value === "") {
+            Swal.fire({
+                icon: "question",
+                text: "Bạn muốn xóa group này?",
+                showDenyButton: true,
+                confirmButtonText: "Đúng",
+                denyButtonText: "Không",
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    axios.delete(`/group_background/${id}`).then((res) => {
+                        if (res.data.check) {
+                            toast.success("Đã xóa thành công !", {
+                                position: "top-right",
+                            });
+                            setGroups(res.data.data);
+                        } else {
+                            toast.error(res.data.msg, {
+                                position: "top-right",
+                            });
+                        }
+                    });
+                }
+            });
+        } else {
+            axios
+                .put(`/group_background/${id}`, { [field]: value })
+                .then((res) => {
+                    if (res.data.check) {
+                        toast.success("Chỉnh sửa thành công !", {
+                            position: "top-right",
+                        });
+                        setGroups(res.data.data);
+                    } else {
+                        toast.error(res.data.msg, {
+                            position: "top-right",
+                        });
+                    }
+                });
+        }
+    };
     const openImageModal = (id) => {
         setSelectedRowId(id);
         setShowImageModal(true);
@@ -462,18 +607,45 @@ function Index({ datafeatures, datasizes }) {
             .then((res) => {
                 if (res.data.check) {
                     toast.success("Ảnh đã được cập nhật thành công !", {
-                        position: "top-right"
+                        position: "top-right",
                     });
                     setData(res.data.data);
                     closeImageModal();
                 } else {
                     toast.error(res.data.msg, {
-                        position: "top-right"
+                        position: "top-right",
                     });
                 }
             });
     };
-
+    const submitGroupBackground = () => {
+        if (groupname == "") {
+            toast.error("Chưa nhập group name ", {
+                position: "top-right",
+            });
+        } else {
+            axios
+                .post("group_background", {
+                    feature_id: idFeature,
+                    name: groupname,
+                })
+                .then((res) => {
+                    if (res.data.check == true) {
+                        setGroups(res.data.data);
+                        setGroupName("");
+                        toast.success("Đã thêm thành công !", {
+                            position: "top-right",
+                        });
+                    } else if (res.data.check == false) {
+                        if (res.data.msg) {
+                            toast.error(res.data.msg, {
+                                position: "top-right",
+                            });
+                        }
+                    }
+                });
+        }
+    };
     return (
         <Layout>
             <ToastContainer />
@@ -633,22 +805,147 @@ function Index({ datafeatures, datasizes }) {
                         {data && data.length > 0 && (
                             <div className="card border-0 shadow">
                                 <div className="card-body">
-                                    <Box sx={{ width: '100%', height: '80vh', overflowX: 'auto', overflowY: 'hidden' }}>
-                                        <DataGrid
-                                            rows={data}
-                                            columns={columns}
-                                            pageSizeOptions={[5]}
-                                            checkboxSelection
-                                            disableRowSelectionOnClick
-                                            onCellEditStop={(params, e) =>
-                                                handleCellEditStop(
-                                                    params.row.id,
-                                                    params.field,
-                                                    e.target.value
-                                                )
-                                            }
-                                        />
-                                    </Box>
+                                    <div className="row">
+                                        <Box
+                                            sx={{
+                                                width: "100%",
+                                                height: "50vh",
+                                                overflowX: "auto",
+                                                overflowY: "hidden",
+                                            }}
+                                        >
+                                            <DataGrid
+                                                rows={data}
+                                                columns={columns}
+                                                pageSizeOptions={[5]}
+                                                checkboxSelection
+                                                disableRowSelectionOnClick
+                                                onCellEditStop={(params, e) =>
+                                                    handleCellEditStop(
+                                                        params.row.id,
+                                                        params.field,
+                                                        e.target.value
+                                                    )
+                                                }
+                                            />
+                                        </Box>
+                                    </div>
+                                    <div className="row mt-3">
+                                        <div className="col-md">
+                                            <div className="row">
+                                                <div className="col-md-6">
+                                                    <div className="row">
+                                                        <div className="col-md-4">
+                                                            <button   onClick={() => setCreateGroup(!createGroup)} className="btn btn-outline-warning">
+                                                                Create group
+                                                                background
+                                                            </button>
+                                                        </div>
+                                                        <div className="col-md-8">
+                                                            <select
+                                                                name=""
+                                                                className="form-control"
+                                                                onChange={(e) =>
+                                                                    setIdFeature(
+                                                                        e.target
+                                                                            .value
+                                                                    )
+                                                                }
+                                                                id=""
+                                                            >
+                                                                {data.length >
+                                                                    0 &&
+                                                                    data.map(
+                                                                        (
+                                                                            item,
+                                                                            index
+                                                                        ) => (
+                                                                            <option
+                                                                                value={
+                                                                                    item.id
+                                                                                }
+                                                                            >
+                                                                                {
+                                                                                    item.name
+                                                                                }
+                                                                            </option>
+                                                                        )
+                                                                    )}
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {createGroup && (
+                                                <div className="row mt-3">
+                                                    <div className="col-md-6">
+                                                        <div className="input-group mb-3">
+                                                            <span
+                                                                className="input-group-text"
+                                                                id="basic-addon1"
+                                                            >
+                                                                Group name
+                                                            </span>
+                                                            <input
+                                                                type="text"
+                                                                className="form-control"
+                                                                placeholder="Group name"
+                                                                aria-label="Group name"
+                                                                aria-describedby="basic-addon1"
+                                                                onChange={(e) =>
+                                                                    setGroupName(
+                                                                        e.target
+                                                                            .value
+                                                                    )
+                                                                }
+                                                                value={
+                                                                    groupname ||
+                                                                    ""
+                                                                }
+                                                            />
+                                                            <button
+                                                                onClick={
+                                                                    submitGroupBackground
+                                                                }
+                                                                className="btn btn-outline-primary"
+                                                            >
+                                                                Submit
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            <div className="row mt-2">
+                                                <Box
+                                                    sx={{
+                                                        width: "100%",
+                                                        height: "50vh",
+                                                        overflowX: "auto",
+                                                        overflowY: "hidden",
+                                                    }}
+                                                >
+                                                    <DataGrid
+                                                        rows={groups}
+                                                        columns={columns1}
+                                                        pageSizeOptions={[5]}
+                                                        checkboxSelection
+                                                        disableRowSelectionOnClick
+                                                        onCellEditStop={(
+                                                            params,
+                                                            e
+                                                        ) =>
+                                                            handleCellEditStop1(
+                                                                params.row.id,
+                                                                params.field,
+                                                                e.target.value
+                                                            )
+                                                        }
+                                                    />
+                                                </Box>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         )}

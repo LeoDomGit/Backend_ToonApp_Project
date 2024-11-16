@@ -17,6 +17,14 @@ return new class extends Migration
             $table->unsignedBigInteger('group_id')->nullable(); // ID nhóm
             $table->timestamps();
         });
+
+        if (Schema::hasTable('background')) {
+            Schema::table('background', function (Blueprint $table) {
+                if (!Schema::hasColumn('background', 'is_front')) {
+                    $table->unsignedBigInteger('is_front')->after('feature_id')->default(0);
+                }
+            });
+        }
     }
 
     /**

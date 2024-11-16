@@ -34,7 +34,6 @@ Route::prefix('customers')->group(function () {
 });
 Route::middleware('device_login')->group(function () {
     Route::put('/customers', [CustomersController::class, 'update']);
-
     Route::get('/logout', [CustomersController::class, 'logout']);
     Route::post('/upload_image', [ImageAIController::class, 'uploadImage']);
     Route::post('/style', [ImageAIController::class, 'cartoon']);
@@ -42,6 +41,15 @@ Route::middleware('device_login')->group(function () {
     Route::post('/buyPackage', [SubcriptionPackagesController::class, 'buyPackages']);
     Route::get('/token/{id}', [SubcriptionPackagesController::class, 'getToken']);
     Route::post('/profile', [ImageAIController::class, 'changeBackground']);
+    Route::get('/effects', [ImageAIController::class, 'getEffect']);
+    Route::post('/effect', [ImageAIController::class, 'setup_profile_picture']);
+    //=================================================
+    Route::get('/features', [FeaturesController::class, 'api_index']);
+    Route::get('/features/{id}', [FeaturesController::class, 'api_detail']);
+    Route::get('/configs', [ConfigController::class, 'api_index']);
+    Route::get('/backgrounds', [BackgroundController::class, 'api_index']);
+    Route::get('/backgrounds/{id}', [BackgroundController::class, 'api_single']);
+    Route::get('/packages', [SubcriptionPackagesController::class, 'getPackages']);
 });
 
 Route::get('/configs', [ConfigController::class, 'api_index']);

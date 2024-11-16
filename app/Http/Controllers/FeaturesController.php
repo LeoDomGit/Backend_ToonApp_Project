@@ -64,8 +64,8 @@ class FeaturesController
             'preprocessorId' => $request->input('preprocessorId'),
             'strengthType' => $request->input('strengthType')
         ]);
-
-        return response()->json(['check' => true, 'data' => $feature]);
+        $features = Features::with('sizes')->get();
+        return response()->json(['check' => true, 'data' => $features]);
     }
     /**
      * Display the specified resource.
@@ -133,8 +133,8 @@ class FeaturesController
         }
         $data['updated_at'] = now();
         Features::where('id', $id)->update($data);
-        $data = Features::all();
-        return response()->json(['check' => true, 'data' => $data]);
+        $features = Features::with('sizes')->get();
+        return response()->json(['check' => true, 'data' => $features]);
     }
 
     public function feature_update_image($id)
@@ -155,7 +155,7 @@ class FeaturesController
         $data['image'] = 'features/' . $image->getClientOriginalName();
         $data['updated_at'] = now();
         Features::where('id', $id)->update($data);
-        $data = Features::all();
+        $data =  Features::with('sizes')->get();
         return response()->json(['check' => true, 'data' => $data]);
     }
     /**
@@ -164,7 +164,7 @@ class FeaturesController
     public function destroy(FeatureRequest $features, $id)
     {
         Features::where('id', $id)->delete();
-        $data = Features::all();
+        $data =  Features::with('sizes')->get();
         return response()->json(['check' => true, 'data' => $data]);
     }
 }

@@ -7,12 +7,63 @@ use App\Models\GroupBackground;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Validator;
 
 class GroupBackgroundController extends Controller
 {
     /**
      * Save the group backgrounds.
      */
+    public function store(Request $request){
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|unique:group_backgrounds,name',
+            'feature_id'=>'required|exists:features,id'
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['check' => false, 'msg' => $validator->errors()->first()]);
+        }
+        $data=$request->all();
+        $data['slug']=Str::slug($request->name);
+        $data['created_at']= now();
+        GroupBackground::create($data);
+        $data = GroupBackground::where('feature_id',$request->feature_id)->get();
+        return response()->json(['check'=>true,'data'=>$data]);
+    }
+
+
+    // ============================================
+    public function show($id){
+        $data = GroupBackground::where('feature_id',$id)->get();
+        return response()->json($data);
+    }
+    // ============================================
+
+    public function update(Request $request,$id){
+        $validator = Validator::make($request->all(), [
+            'name' => 'nullable|unique:group_backgrounds,name',
+            'feature_id'=>'nullable|exists:features,id'
+        ]);
+        $data=$request->all();
+        if($request->has('name')){
+            $data['slug']=Str::slug($request->name);
+        }
+        $data['updated_at']= now();
+        GroupBackground::where('id',$id)->update($data);
+        $item= GroupBackground::where('id',$id)->first();
+        $data = GroupBackground::where('feature_id',$item->feature_id)->get();
+        return response()->json(['check'=>true,'data'=>$data]);
+    }
+    // ======================================================
+    public function destroy($id){
+        $item =GroupBackground::where('id',$id)->first();
+        $feature_id=$item->feature_id;
+        if(!$item){
+            return response()->json(['check'=>false,'msg'=>'Không tìm thấy group']);
+        }
+        $item->delete();
+        $result=GroupBackground::where('feature_id',$feature_id)->get();
+        return response()->json(['check'=>true,'data'=>$result]);
+    }
 
     public function saveGroupBackgrounds(Request $request)
     {
