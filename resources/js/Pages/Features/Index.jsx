@@ -624,6 +624,7 @@ function Index({ datafeatures, datasizes }) {
             }).then((res)=>{
                 if(res.data.check==true){
                     setGroups(res.data.data)
+                    setGroupName('');
                     toast.success("Đã thêm thành công !", {
                         position: "top-right",
                     });
