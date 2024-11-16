@@ -60,7 +60,17 @@ Route::middleware('checkLogin')->group(function () {
     Route::get('/background/{id}',[GroupBackgroundController::class,'showBackground']);
     Route::delete('/group_background/{id}',[GroupBackgroundController::class,'destroy']);
     Route::post('/upload_background',[GroupBackgroundController::class,'uploadBackgroundImages']);
+    Route::post('/backgrounds/add-to-group', [BackgroundController::class, 'addImagesToGroup']);
+    Route::post('/assign-to-group', [BackgroundController::class, 'assignToGroup']);
 
+    // Lấy ảnh theo nhóm
+    Route::get('/backgrounds/{feature_id}', [BackgroundController::class, 'getImagesByGroup']);
+    Route::post('/upload-image', [BackgroundController::class, 'uploadImage']);
+
+    Route::post('/group_background', [GroupBackgroundController::class, 'store']);
+    Route::put('/group_background/{id}', [GroupBackgroundController::class, 'update']);
+    Route::get('/group_background/{id}', [GroupBackgroundController::class, 'show']);
+    Route::delete('/group_background/{id}', [GroupBackgroundController::class, 'destroy']);
 });
 
 Route::post('/checkLoginEmail', [UserController::class, 'checkLoginEmailAdmin']);

@@ -54,14 +54,90 @@ function Index({ data_images, data_features }) {
 
     useEffect(() => {
         if (feature_id !== 0) {
-            axios.get(`/groups/${feature_id}`).then((res) => {
-                if (res.data) {
-                    setAllGroups(res.data);
+            // Fetch background images for the selected feature
+            axios
+                .get(`/backgrounds/${feature_id}`)
+                .then((res) => {
+                    setData(res.data); // Update data with the fetched images
+                })
+                .catch((error) => {
+                    console.error("Error fetching background images:", error);
+                });
+
+            // Fetch groups for the selected feature
+            axios
+                .get(`/groups/${feature_id}`)
+                .then((res) => {
+                    if (res.data) {
+                        setAllGroups(res.data); // Update groups for the selected feature
+                    }
+                })
+                .catch((error) => {
+                    console.error("Error fetching groups:", error);
+                    setAllGroups([]);
+                });
+        } else {
+            // Reset data and groups if no feature is selected
+            setData([]);
+            setAllGroups([]);
+        }
+    }, [feature_id]); // Run this effect only when the feature_id changes
+    const handleAddToGroup = async (image_ids, group_id) => {
+        if (!group_id) {
+            toast.warning("Please select a group.", { position: "top-right" });
+            return;
+        }
+
+        if (!image_ids || image_ids.length === 0) {
+            toast.warning("Please select at least one image.", {
+                position: "top-right",
+            });
+            return;
+        }
+
+        try {
+            const res = await axios.post("/assign-to-group", {
+                image_ids: image_ids,
+                group_id: group_id,
+            });
+
+            if (res.data.message) {
+                toast.success(res.data.message, { position: "top-right" });
+
+                // Cập nhật danh sách ảnh sau khi gán nhóm thành công
+                // Nếu API trả về updated_data, bạn có thể cập nhật trực tiếp
+                if (res.data.updated_data) {
+                    setData((prevData) =>
+                        prevData.map((image) =>
+                            image_ids.includes(image.id)
+                                ? res.data.updated_data.find(
+                                      (u) => u.id === image.id
+                                  ) || image
+                                : image
+                        )
+                    );
+                } else {
+                    // Nếu không trả về, bạn có thể refetch dữ liệu
+                    axios
+                        .get(`/backgrounds/${feature_id}`)
+                        .then((response) => {
+                            setData(response.data);
+                        })
+                        .catch((error) => {
+                            console.error(
+                                "Error fetching background images:",
+                                error
+                            );
+                        });
                 }
+            }
+        } catch (error) {
+            console.error("Error assigning images to group:", error);
+            toast.error("Error assigning images to group.", {
+                position: "top-right",
             });
         }
-    }, [feature_id]); // Fetch groups only when feature_id changes
-
+    };
     const handleAddGroup = async () => {
         if (newGroup.trim() !== "") {
             if (!groupBackgrounds.includes(newGroup.trim())) {
@@ -317,6 +393,9 @@ function Index({ data_images, data_features }) {
                 <BackgroundGallery
                     backgroundImages={data}
                     onDelete={handleDelete}
+                    onAddToGroup={handleAddToGroup} // Truyền hàm xử lý gán nhóm
+                    groupBackgrounds={groupBackgrounds}
+                    allGroups={allGroups} // Truyền allGroups vào đây
                 />
             </Layout>
         </div>
