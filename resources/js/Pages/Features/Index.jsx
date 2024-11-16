@@ -559,7 +559,7 @@ function Index({ datafeatures, datasizes }) {
                             toast.success("Đã xóa thành công !", {
                                 position: "top-right",
                             });
-                           setGroups([]);
+                           setGroups(res.data.data);
                         } else {
                             toast.error(res.data.msg, {
                                 position: "top-right",
