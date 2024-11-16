@@ -278,9 +278,32 @@ class BackgroundController extends Controller
         ], 200);
     }
 
-    public function api_index()
+    public function api_index(Request $request)
     {
-        $backgrounds = Background::all();
+        $validator = Validator::make($request->all(), [
+            'feature_id' => 'required|exists:features,id',
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['check' => false, 'msg' => $validator->errors()->first()], 400);
+        }
+        $backgrounds = GroupBackground::with('backgrounds')->where('feature_id', $request->feature_id)->get();
+        return response()->json($backgrounds);
+    }
+
+    public function api_single(Request $request, $id)
+    {
+        $validator = Validator::make($request->all(), [
+            'feature_id' => 'required|exists:features,id',
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['check' => false, 'msg' => $validator->errors()->first()], 400);
+        }
+        $backgrounds = GroupBackground::with('backgrounds')
+            ->where('feature_id', $request->feature_id)
+            ->whereHas('backgrounds', function ($query) use ($id) {
+                $query->where('group_id', $id); // Using the correct foreign key
+            })
+            ->get();
         return response()->json($backgrounds);
     }
 }
