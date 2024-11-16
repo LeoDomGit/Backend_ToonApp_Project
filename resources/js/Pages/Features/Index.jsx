@@ -10,6 +10,7 @@ import axios from "axios";
 import Swal from "sweetalert2";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { Dropzone, FileMosaic } from "@dropzone-ui/react";
 import {
     Select,
     MenuItem,
@@ -41,9 +42,24 @@ function Index({ datafeatures, datasizes }) {
     const [idFeature, setIdFeature] = useState(datafeatures[0].id);
     const [groups, setGroups] = useState([]);
     const [createGroup, setCreateGroup] = useState(false);
+    const [showImageGroupModal, setShowImageGroupModal] = useState(false);
+    const [selectedImages, setSelectedImages] = useState([]);
+    const [groupId, setGroupId] = useState(null);
+    const [selectedFiles, setSelectedFiles] = useState([]);
     const handleSizeChange = (e) => {
         const selectedValues = e.target.value; // This will be an array of selected sizes
         setSizes(selectedValues);
+    };
+    const handleImageButtonClick = async () => {
+        if (groupId) {
+            try {
+                const response = await axios.get(`/background/${groupId}`);
+                setSelectedImages(response.data);
+                setShowImageGroupModal(true);
+            } catch (error) {
+                console.error("Error fetching images:", error);
+            }
+        }
     };
     useEffect(() => {
         axios.get("/group_background/" + idFeature).then((res) => {
@@ -646,11 +662,95 @@ function Index({ datafeatures, datasizes }) {
                 });
         }
     };
+    const updateFiles = (files) => {
+        setSelectedFiles(files);
+    };
+    const handleUpload = async () => {
+        if (selectedFiles.length === 0) {
+            console.log("No files selected for upload.");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("groupId", groupId); // Optionally include group ID if needed
+
+        // Append each selected file to formData
+        selectedFiles.forEach((file) => {
+
+            formData.append("images[]", file.file);
+        });
+
+        try {
+            const response = await axios.post("/upload_background", formData, {
+                headers: { "Content-Type": "multipart/form-data" },
+            });
+            if(response.data.check==true){
+                setSelectedImages(response.data.data);
+                toast.success("Đã thêm thành công !", {
+                    position: "top-right",
+                });
+            }
+
+            // Optionally clear selected files after upload
+            setSelectedFiles([]);
+        } catch (error) {
+            console.error("Error uploading files:", error);
+        }
+    };
     return (
         <Layout>
             <ToastContainer />
 
             <>
+                <Modal
+                    size="lg"
+                    show={showImageGroupModal}
+                    onHide={() => setShowImageGroupModal(false)}
+                    aria-labelledby="Group's images"
+                >
+                    <Modal.Header closeButton>
+                        <Modal.Title>Group's Images</Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>
+                        <div className="row">
+                            {/* Dropzone Column */}
+                            <div className="col-md-3">
+                            <Dropzone onChange={updateFiles} value={selectedFiles}>
+      {selectedFiles.map((file) => (
+        <FileMosaic {...file} preview />
+      ))}
+    </Dropzone>
+                                <button
+                                    className="btn btn-outline-primary mt-2"
+                                    onClick={handleUpload}
+                                >
+                                    Upload
+                                </button>
+                            </div>
+
+                            {/* Images Display Column */}
+                            <div className="col-md">
+                                <div className="row">
+                                    {selectedImages &&
+                                        selectedImages.length > 0 &&
+                                        selectedImages.map((image, index) => (
+                                            <div
+                                                key={index}
+                                                className="col-md-3 mb-3"
+                                            >
+                                                <img
+                                                    src={image.path}
+                                                    alt="Group"
+                                                    className="img-fluid rounded"
+                                                />
+                                            </div>
+                                        ))}
+                                </div>
+                            </div>
+                        </div>
+                    </Modal.Body>
+                </Modal>
+                {/* ================================================ */}
                 <Modal show={showImageModal} onHide={closeImageModal}>
                     <Modal.Header closeButton>
                         <Modal.Title>Thay đổi hình ảnh</Modal.Title>
@@ -832,50 +932,90 @@ function Index({ datafeatures, datasizes }) {
                                     </div>
                                     <div className="row mt-3">
                                         <div className="col-md">
-                                            <div className="row">
-                                                <div className="col-md-6">
-                                                    <div className="row">
-                                                        <div className="col-md-4">
-                                                            <button   onClick={() => setCreateGroup(!createGroup)} className="btn btn-outline-warning">
-                                                                Create group
-                                                                background
-                                                            </button>
-                                                        </div>
-                                                        <div className="col-md-8">
-                                                            <select
-                                                                name=""
-                                                                className="form-control"
-                                                                onChange={(e) =>
-                                                                    setIdFeature(
-                                                                        e.target
-                                                                            .value
-                                                                    )
-                                                                }
-                                                                id=""
-                                                            >
-                                                                {data.length >
-                                                                    0 &&
-                                                                    data.map(
-                                                                        (
-                                                                            item,
-                                                                            index
-                                                                        ) => (
-                                                                            <option
-                                                                                value={
-                                                                                    item.id
-                                                                                }
-                                                                            >
-                                                                                {
-                                                                                    item.name
-                                                                                }
-                                                                            </option>
-                                                                        )
-                                                                    )}
-                                                            </select>
-                                                        </div>
-                                                    </div>
+                                            <div className="row align-items-center">
+                                                {/* Create Group Button */}
+                                                <div className="col-md-3">
+                                                    <button
+                                                        onClick={() =>
+                                                            setCreateGroup(
+                                                                !createGroup
+                                                            )
+                                                        }
+                                                        className="btn btn-outline-warning w-100"
+                                                    >
+                                                        Create group background
+                                                    </button>
+                                                </div>
+
+                                                {/* Groups Dropdown and Images Button */}
+                                                <div className="col-md-5 d-flex">
+                                                    <select
+                                                        className="form-control me-2"
+                                                        onChange={(e) =>
+                                                            setGroupId(
+                                                                e.target.value
+                                                            )
+                                                        }
+                                                        value={groupId || ''}
+                                                        id="groupSelect"
+                                                    >
+                                                        <option disabled value="">Chọn 1 group</option>
+                                                        {groups.length > 0 &&
+                                                            groups.map(
+                                                                (item) => (
+                                                                    <option
+                                                                        key={
+                                                                            item.id
+                                                                        }
+                                                                        value={
+                                                                            item.id
+                                                                        }
+                                                                    >
+                                                                        {
+                                                                            item.name
+                                                                        }
+                                                                    </option>
+                                                                )
+                                                            )}
+                                                    </select>
+                                                    <button
+                                                        onClick={
+                                                            handleImageButtonClick
+                                                        }
+                                                        className="btn btn-outline-secondary"
+                                                    >
+                                                        Images
+                                                    </button>
+                                                </div>
+
+                                                {/* Features Dropdown */}
+                                                <div className="col-md-4">
+                                                    <select
+                                                        className="form-control"
+                                                        id="featureSelect"
+                                                        onChange={(e) =>
+                                                            setIdFeature(
+                                                                e.target.value
+                                                            )
+                                                        }
+                                                    >
+                                                        {data.length > 0 &&
+                                                            data.map((item) => (
+                                                                <option
+                                                                    key={
+                                                                        item.id
+                                                                    }
+                                                                    value={
+                                                                        item.id
+                                                                    }
+                                                                >
+                                                                    {item.name}
+                                                                </option>
+                                                            ))}
+                                                    </select>
                                                 </div>
                                             </div>
+
                                             {createGroup && (
                                                 <div className="row mt-3">
                                                     <div className="col-md-6">

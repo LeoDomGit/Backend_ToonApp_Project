@@ -8,9 +8,78 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Validator;
+use Aws\S3\S3Client;
+use Aws\S3\Exception\S3Exception;
+use Carbon\Carbon;
+
+use GuzzleHttp\Client;
 
 class GroupBackgroundController extends Controller
 {
+    protected $client;
+    protected $aws_secret_key;
+    protected $aws_access_key;
+    public function __construct(Request $request)
+    {
+        $this->aws_secret_key = 'b52dcdbea046cc2cc13a5b767a1c71ea8acbe96422b3e45525d3678ce2b5ed3e';
+        $this->aws_access_key = 'cbb3e2fea7c7f3e7af09b67eeec7d62c';
+        $this->client = new Client();
+    }
+
+    // =====================================================
+    private function uploadToCloudFlareFromFile1($imageFile, $folder, $filename)
+    {
+        try {
+            // Step 1: Check if the file exists
+            if (!file_exists($imageFile)) {
+                Log::error('File does not exist: ' . $imageFile);
+                return 'error: file does not exist';
+            }
+
+            // Step 2: Prepare Cloudflare R2 credentials and settings
+            $accountid = '453d5dc9390394015b582d09c1e82365';
+            $r2bucket = 'artapp';  // Updated bucket name
+            $accessKey = $this->aws_access_key;
+            $secretKey = $this->aws_secret_key;
+            $region = 'auto';
+            $endpoint = "https://$accountid.r2.cloudflarestorage.com";
+
+            // Set up the S3 client with Cloudflare's endpoint
+            $s3Client = new S3Client([
+                'version' => 'latest',
+                'region' => $region,
+                'credentials' => [
+                    'key' => $accessKey,
+                    'secret' => $secretKey,
+                ],
+                'endpoint' => $endpoint,
+                'use_path_style_endpoint' => true,
+            ]);
+
+            // Step 3: Define the object path and name in R2
+            $r2object = $folder . '/' . $filename . '.jpg';
+
+            // Step 4: Upload the file to Cloudflare R2
+            try {
+                $result = $s3Client->putObject([
+                    'Bucket' => $r2bucket,
+                    'Key' => $r2object,
+                    'Body' => fopen($imageFile, 'rb'), // Open the file as a binary stream
+                    'ContentType' => 'image/jpeg',
+                ]);
+
+                // Generate the CDN URL using the custom domain
+                $cdnUrl = "https://artapp.promptme.info/$folder/$filename.jpg";
+                return $cdnUrl;
+            } catch (S3Exception $e) {
+                Log::error("Error uploading file: " . $e->getMessage());
+                return 'error: ' . $e->getMessage();
+            }
+        } catch (\Throwable $th) {
+            Log::error($th->getMessage());
+            return 'error: ' . $th->getMessage();
+        }
+    }
     /**
      * Save the group backgrounds.
      */
@@ -30,7 +99,48 @@ class GroupBackgroundController extends Controller
         return response()->json(['check'=>true,'data'=>$data]);
     }
 
+    public function uploadBackgroundImages(Request $request){
+        $validator = Validator::make($request->all(), [
+            'groupId'=>'required|exists:group_backgrounds,id',
+            'images.*'=>'image'
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['check' => false, 'msg' => $validator->errors()->first()]);
+        }
+        try {
+            foreach ($request->file('images') as $image) {
+                $filename = uniqid() . '_' . $image->getClientOriginalName();
+                $folder = 'backgrounds';
 
+                // Upload to Cloudflare
+                $path = $this->uploadToCloudFlareFromFile1($image, $folder, $filename);
+
+                // Store in database
+                Background::create([
+                    'path' => $path,
+                    'group_id' => $request->groupId,
+                    'status' => 1,
+                    'is_front' => 0
+                ]);
+            }
+            $data=Background::where('group_id',$request->groupId)->get();
+            return response()->json([
+                'check' => true,
+                'msg' => 'Background images uploaded successfully',
+                'data'=>$data
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'check' => false,
+                'msg' => 'Error uploading images: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    public function showBackground($id){
+        $data = Background::where('group_id',$id)->get();
+        return response()->json($data);
+    }
     // ============================================
     public function show($id){
         $data = GroupBackground::where('feature_id',$id)->get();
