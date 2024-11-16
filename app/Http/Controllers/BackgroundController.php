@@ -168,28 +168,15 @@ class BackgroundController extends Controller
 
 
     // Lấy ảnh theo nhóm
-    public function getImagesByGroup($feature_id, Request $request)
+    public function getImagesByGroup(Request $request)
     {
-        $request->validate([
-            'group' => 'nullable|string',
+        $validatedData = $request->validate([
+            'group_id' => 'required|exists:group_backgrounds,id', // group_id phải tồn tại
         ]);
 
-        try {
-            $query = Background::where('feature_id', $feature_id);
+        $images = Background::where('group_id', $validatedData['group_id'])->get();
 
-            if ($request->has('group') && !empty($request->group)) {
-                $group = GroupBackground::where('name', $request->group)->first();
-                if ($group) {
-                    $query->where('group_id', $group->id);
-                }
-            }
-
-            $images = $query->get();
-
-            return response()->json($images);
-        } catch (\Exception $e) {
-            return response()->json(['status' => false, 'message' => 'Error fetching images', 'error' => $e->getMessage()], 500);
-        }
+        return response()->json($images);
     }
     public function addImagesToGroup(Request $request)
     {
@@ -216,6 +203,23 @@ class BackgroundController extends Controller
         } catch (\Exception $e) {
             return response()->json(['status' => false, 'message' => 'Error adding images to group.', 'error' => $e->getMessage()], 500);
         }
+    }
+    // Trong App\Http\Controllers\BackgroundController.php
+    public function assignToGroup(Request $request)
+    {
+        $validatedData = $request->validate([
+            'image_ids' => 'required|array|min:1',
+            'image_ids.*' => 'exists:background,id', // Kiểm tra từng ID ảnh
+            'group_id' => 'required|exists:group_backgrounds,id',
+        ]);
+
+        // Cập nhật group_id cho các ảnh được chọn
+        Background::whereIn('id', $validatedData['image_ids'])
+            ->update(['group_id' => $validatedData['group_id']]);
+
+        return response()->json([
+            'message' => 'Images assigned to group successfully!',
+        ]);
     }
 
     /**

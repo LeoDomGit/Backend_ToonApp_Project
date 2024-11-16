@@ -55,11 +55,12 @@ Route::middleware('checkLogin')->group(function () {
     Route::resource('/packages', SubcriptionPackagesController::class);
     Route::resource('/configs', ConfigController::class);
     Route::post('/backgrounds/add-to-group', [BackgroundController::class, 'addImagesToGroup']);
+    Route::post('/assign-to-group', [BackgroundController::class, 'assignToGroup']);
 
     // Lấy ảnh theo nhóm
     Route::get('/backgrounds/{feature_id}', [BackgroundController::class, 'getImagesByGroup']);
     Route::post('/upload-image', [BackgroundController::class, 'uploadImage']);
-    Route::post('/add-images-to-group', [BackgroundController::class, 'addToGroup']);
+    Route::post('/get-images-by-group', [BackgroundController::class, 'getImagesByGroup']);
 });
 
 Route::post('/checkLoginEmail', [UserController::class, 'checkLoginEmailAdmin']);
