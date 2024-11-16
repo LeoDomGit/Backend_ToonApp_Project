@@ -11,11 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
+        Schema::create('background', function (Blueprint $table) {
+            $table->id();
+            $table->string('path'); // Đường dẫn ảnh
+            $table->unsignedBigInteger('group_id')->nullable(); // ID nhóm
+            $table->timestamps();
+        });
+
         if (Schema::hasTable('background')) {
             Schema::table('background', function (Blueprint $table) {
-               if (!Schema::hasColumn('background', 'is_front')) {
-                $table->unsignedBigInteger('is_front')->after('feature_id')->default(0);
-               }
+                if (!Schema::hasColumn('background', 'is_front')) {
+                    $table->unsignedBigInteger('is_front')->after('feature_id')->default(0);
+                }
             });
         }
     }
@@ -25,6 +32,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        //
+        Schema::dropIfExists('background');
     }
 };

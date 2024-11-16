@@ -6,6 +6,7 @@ use App\Models\Background;
 use App\Models\Features;
 use App\Models\GroupBackground;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use ZipArchive;
@@ -103,6 +104,128 @@ class BackgroundController extends Controller
             ->get();
 
         return response()->json(['check' => true, 'data' => $data], 200);
+    }
+    public function uploadImage(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'image' => 'required|file|mimes:png,jpg,jpeg,webp|max:2048',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['check' => false, 'msg' => $validator->errors()->first()], 400);
+        }
+
+        $image = $request->file('image');
+        $filename = time() . '_' . $image->getClientOriginalName();
+        $path = $image->storeAs('public/background', $filename);
+
+        $background = Background::create([
+            'path' => 'background/' . $filename,
+        ]);
+
+        return response()->json(['check' => true, 'data' => $background], 200);
+    }
+
+    public function addToGroup(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'image_ids' => 'required|array',
+            'image_ids.*' => 'exists:background,id',
+            'group_id' => 'required|exists:group_backgrounds,group_id', // Đảm bảo kiểm tra tồn tại trong bảng nhóm
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['check' => false, 'msg' => $validator->errors()->first()], 400);
+        }
+
+        Background::whereIn('id', $request->image_ids)->update([
+            'group_id' => $request->group_id,
+        ]);
+
+        return response()->json(['check' => true, 'msg' => 'Images added to group successfully.']);
+    }
+    public function addImageToGroup(Request $request)
+    {
+        $request->validate([
+            'image_id' => 'required|exists:background,id',
+            'group_name' => 'required|string|exists:group_backgrounds,name',
+        ]);
+
+        try {
+            // Tìm nhóm theo tên
+            $group = GroupBackground::where('name', $request->group_name)->first();
+
+            if (!$group) {
+                return response()->json(['status' => false, 'message' => 'Group not found'], 404);
+            }
+
+            // Tìm ảnh theo ID
+            $image = Background::find($request->image_id);
+
+            // Gán ảnh vào nhóm
+            $image->group_id = $group->id;
+            $image->save();
+
+            return response()->json(['status' => true, 'message' => 'Image added to group successfully']);
+        } catch (\Exception $e) {
+            return response()->json(['status' => false, 'message' => 'Error adding image to group', 'error' => $e->getMessage()], 500);
+        }
+    }
+
+
+    // Lấy ảnh theo nhóm
+    public function getImagesByGroup(Request $request)
+    {
+        $validatedData = $request->validate([
+            'group_id' => 'required|exists:group_backgrounds,id', // group_id phải tồn tại
+        ]);
+
+        $images = Background::where('group_id', $validatedData['group_id'])->get();
+
+        return response()->json($images);
+    }
+    public function addImagesToGroup(Request $request)
+    {
+        $validated = $request->validate([
+            'image_ids' => 'required|array', // Các ID ảnh cần thêm
+            'group_name' => 'required|string', // Tên nhóm
+            'feature_id' => 'required|integer', // ID của feature
+        ]);
+
+        try {
+            // Tìm hoặc tạo nhóm dựa trên tên nhóm
+            $group = GroupBackground::firstOrCreate(
+                ['name' => $validated['group_name']],
+                ['feature_id' => $validated['feature_id']]
+            );
+
+            // Thêm các ảnh vào nhóm bằng cách cập nhật trường group_id
+            foreach ($validated['image_ids'] as $imageId) {
+                Background::where('id', $imageId)
+                    ->update(['group_id' => $group->id]);
+            }
+
+            return response()->json(['status' => true, 'message' => 'Images added to group successfully.']);
+        } catch (\Exception $e) {
+            return response()->json(['status' => false, 'message' => 'Error adding images to group.', 'error' => $e->getMessage()], 500);
+        }
+    }
+    // Trong App\Http\Controllers\BackgroundController.php
+    public function assignToGroup(Request $request)
+    {
+        $validatedData = $request->validate([
+            'image_ids' => 'required|array|min:1',
+            'image_ids.*' => 'exists:background,id', // Kiểm tra từng ID ảnh
+            'group_id' => 'required|exists:group_backgrounds,id',
+        ]);
+
+        // Cập nhật group_id cho các ảnh được chọn
+        Background::whereIn('id', $validatedData['image_ids'])
+            ->update(['group_id' => $validatedData['group_id']]);
+
+        return response()->json([
+            'message' => 'Images assigned to group successfully!',
+        ]);
     }
 
     /**
