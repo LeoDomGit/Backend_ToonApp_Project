@@ -916,7 +916,7 @@ function Index({ datafeatures, datasizes }) {
                                                 </div>
                                             )}
 
-                                            <div className="row">
+                                            <div className="row mt-2">
                                                 <Box
                                                     sx={{
                                                         width: "100%",
