@@ -57,8 +57,9 @@ Route::middleware('checkLogin')->group(function () {
     Route::post('/group_background',[GroupBackgroundController::class,'store']);
     Route::put('/group_background/{id}',[GroupBackgroundController::class,'update']);
     Route::get('/group_background/{id}',[GroupBackgroundController::class,'show']);
+    Route::get('/background/{id}',[GroupBackgroundController::class,'showBackground']);
     Route::delete('/group_background/{id}',[GroupBackgroundController::class,'destroy']);
-
+    Route::post('/upload_background',[GroupBackgroundController::class,'uploadBackgroundImages']);
 
 });
 
