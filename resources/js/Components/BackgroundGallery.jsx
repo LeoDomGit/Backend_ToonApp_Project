@@ -92,7 +92,7 @@ function BackgroundGallery({
                             X - {image.id}
                         </button>
                         {/* Tooltip */}
-                        <Tooltip id={`tooltip-${image.id}`} />
+                        {/* <Tooltip id={`tooltip-${image.id}`} /> */}
                     </div>
                     {image.group && (
                         <div className="badge bg-primary position-absolute bottom-0 start-0 m-2">
