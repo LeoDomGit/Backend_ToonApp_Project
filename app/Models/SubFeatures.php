@@ -23,6 +23,7 @@ class SubFeatures extends Model
         'initImageId',
         'is_pro',
         'detech_face',
+        'is_highlight',
         'status',
         'prompt',
         'image',
