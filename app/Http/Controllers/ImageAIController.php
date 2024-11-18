@@ -1095,6 +1095,26 @@ class ImageAIController extends Controller
                                     'image_size' => $result->width,
                                     'ai_model' => 'Leo AI',
                                     'api_endpoint' => 'https://cloud.leonardo.ai/api/rest/v1/generations/',
+                                    'attributes'=>json_encode([
+                                        'modelId' => $result->model_id,
+                                        'prompt' => $result->prompt,
+                                        'presetStyle' => $result->presetStyle,
+                                        'num_images' => 1,
+                                        'alchemy' => true,
+                                        isset($initImageId) && $initImageId !== null ? [
+                                            'controlnets' => [
+                                                [
+                                                    'initImageId' => $initImageId,
+                                                    'initImageType' => 'UPLOADED',
+                                                    'preprocessorId' => (int) $result->preprocessorId,
+                                                    'strengthType' => $result->strengthType,
+                                                ]
+                                            ]
+                                        ] : [],
+                                        "init_image_id" => $image_id,
+                                        "init_strength" => 0.5,
+                                    ]),
+                                    'request' => json_encode($request->all()),
                                 ]);
 
                                 // Return the JSON response with both the original and modified URLs
@@ -1192,6 +1212,28 @@ class ImageAIController extends Controller
                                     'image_result' => $image,
                                     'image_size' => $result->width,
                                     'ai_model' => 'Leo AI',
+                                    'attributes'=>json_encode([
+                                        'height' => $height,
+                                        'modelId' => $result->model_id,
+                                        'prompt' => $result->prompt,
+                                        'presetStyle' => $result->presetStyle,
+                                        'width' => $width,
+                                        'num_images' => 1,
+                                        'alchemy' => true,
+                                        isset($initImageId) && $initImageId !== null ? [
+                                            'controlnets' => [
+                                                [
+                                                    'initImageId' => $initImageId,
+                                                    'initImageType' => 'UPLOADED',
+                                                    'preprocessorId' => (int) $result->preprocessorId,
+                                                    'strengthType' => $result->strengthType,
+                                                ]
+                                            ]
+                                        ] : [],
+                                        "init_image_id" => $image_id,
+                                        "init_strength" => 0.5,
+                                    ]),
+                                    'request' => json_encode($request->all()),
                                     'api_endpoint' => 'https://cloud.leonardo.ai/api/rest/v1/generations/',
                                 ]);
 
@@ -1286,6 +1328,26 @@ class ImageAIController extends Controller
                                 'image_result' => $image,
                                 'image_size' => $result->width,
                                 'ai_model' => 'Leo AI',
+                                'attributes'=>json_encode([
+                                    'modelId' => $result->model_id,
+                                    'prompt' => $result->prompt,
+                                    'presetStyle' => $result->presetStyle,
+                                    'num_images' => 1,
+                                    'alchemy' => true,
+                                    isset($initImageId) && $initImageId !== null ? [
+                                        'controlnets' => [
+                                            [
+                                                'initImageId' => $initImageId,
+                                                'initImageType' => 'UPLOADED',
+                                                'preprocessorId' => (int) $result->preprocessorId,
+                                                'strengthType' => $result->strengthType,
+                                            ]
+                                        ]
+                                    ] : [],
+                                    "init_image_id" => $image_id,
+                                    "init_strength" => 0.5,
+                                ]),
+                                    'request' => json_encode($request->all()),
                                 'api_endpoint' => 'https://cloud.leonardo.ai/api/rest/v1/generations/',
                             ]);
 
