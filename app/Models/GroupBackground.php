@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class GroupBackground extends Model
 {
     use HasFactory;
-
+    protected $table='group_backgrounds';
     protected $fillable = [
         'name',
         'slug',
@@ -28,5 +28,9 @@ class GroupBackground extends Model
     public function subFeature()
     {
         return $this->belongsTo(SubFeatures::class);
+    }
+    public function background()
+    {
+        return $this->hasMany(Background::class, 'group_id');
     }
 }
