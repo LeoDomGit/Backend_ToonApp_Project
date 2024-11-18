@@ -1198,12 +1198,13 @@ class ImageAIController extends Controller
                                     return response()->json([
                                         'status' => true,
                                         'url' => $image,              // Final image URL (with or without background removed)
-                                        'bg_url' => $originalImageUrl  // Original image URL
+                                        'style_url' => $originalImageUrl
                                     ]);
                                 }else{
                                     return response()->json([
                                         'status' => true,
                                         'url' => $image,
+                                        'style_url' => $originalImageUrl
                                     ]);
                                 }
                             }
