@@ -6,6 +6,7 @@ use App\Http\Requests\FeatureRequest;
 use App\Models\Features;
 use App\Models\FeaturesSizes;
 use App\Models\ImageSize;
+use App\Models\SubFeatures;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -80,11 +81,24 @@ class FeaturesController
      */
     public function api_index(Features $features)
     {
-        $features = Features::with(['subFeatures', 'sizes'])->active()->get();
-        $features->each(function ($feature) {
+        $features = Features::with(['subFeatures', 'sizes'])
+        ->active()
+        ->get()
+        ->map(function ($feature) {
+            // Hide specified fields in features and subFeatures
             $feature->makeHidden(['model_id', 'prompt', 'presetStyle', 'preprocessorId', 'strengthType', 'initImageId']);
             $feature->subFeatures->each->makeHidden(['model_id', 'prompt', 'presetStyle', 'preprocessorId', 'strengthType', 'initImageId']);
+            return $feature;
         });
+        $highlightedSubFeatures = SubFeatures::where('is_highlight', 1)
+            ->get()
+            ->map(function ($subFeature) {
+                // Convert highlighted subFeature to have the same structure as a feature
+                $subFeature->makeHidden(['model_id', 'prompt', 'presetStyle', 'preprocessorId', 'strengthType', 'initImageId']);
+                $subFeature->setAttribute('is_highlight', 1); // Ensure is_highlight is marked in the structure
+                return $subFeature;
+            });
+        $features = $features->merge($highlightedSubFeatures);
         return response()->json($features);
     }
     public function api_detail(Features $features, $id)

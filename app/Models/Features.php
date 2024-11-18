@@ -54,4 +54,16 @@ class Features extends Model
     {
         return $query->where('status', 1);
     }
+    public function getHighlightsAttribute()
+    {
+        // Include the feature itself if it is highlighted
+        $highlightedItems = $this->is_highlight ? collect([$this]) : collect();
+
+        // Add any highlighted subFeatures
+        $highlightedItems = $highlightedItems->merge(
+            $this->subFeatures->filter(fn($subFeature) => $subFeature->is_highlight == 1)
+        );
+
+        return $highlightedItems;
+    }
 }
