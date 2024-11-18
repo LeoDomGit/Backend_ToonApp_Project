@@ -1542,6 +1542,8 @@ class ImageAIController extends Controller
             if (!$check) {
                 $featuresId = $result->id;
                 $folder = 'cartoon';
+                $height=$file->height();
+                $width=$file->width();
                 $filename =  pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
                 $id_img = $this->uploadServerImage($file);
                 $response = Http::withHeaders([
@@ -1552,6 +1554,8 @@ class ImageAIController extends Controller
                     'prompt' => $result->prompt,
                     'presetStyle' => $result->presetStyle,
                     'num_images' => 1,
+                    'width' => $width,
+                    'height' => $height,
                     'alchemy' => true,
                     isset($initImageId) && $initImageId !== null ? [
                         'controlnets' => [
