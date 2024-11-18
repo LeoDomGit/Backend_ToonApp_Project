@@ -91,13 +91,22 @@ class FeaturesController
             return $feature;
         });
         $highlightedSubFeatures = SubFeatures::where('is_highlight', 1)
+    ->get()
+    ->map(function ($subFeature) {
+        $subFeature->makeHidden(['model_id', 'prompt', 'presetStyle', 'preprocessorId', 'strengthType', 'initImageId']);
+        $featureId = $subFeature->feature_id;
+        $subFeaturesOfFeature = SubFeatures::where('feature_id', $featureId)
             ->get()
-            ->map(function ($subFeature) {
-                // Convert highlighted subFeature to have the same structure as a feature
-                $subFeature->makeHidden(['model_id', 'prompt', 'presetStyle', 'preprocessorId', 'strengthType', 'initImageId']);
-                $subFeature->setAttribute('is_highlight', 1); // Ensure is_highlight is marked in the structure
-                return $subFeature;
+            ->map(function ($siblingSubFeature) {
+                $siblingSubFeature->makeHidden(['model_id', 'prompt', 'presetStyle', 'preprocessorId', 'strengthType', 'initImageId']);
+                return $siblingSubFeature;
             });
+        $subFeature->setAttribute('sub_features', $subFeaturesOfFeature);
+        $subFeature->setAttribute('is_highlight', 1);
+
+        return $subFeature;
+    });
+
         $features = $features->merge($highlightedSubFeatures);
         return response()->json($features);
     }
