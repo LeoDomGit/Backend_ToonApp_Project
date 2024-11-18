@@ -16,6 +16,7 @@ import LogoutIcon from "@mui/icons-material/Logout";
 import WallpaperIcon from '@mui/icons-material/Wallpaper';
 import PhotoSizeSelectActualIcon from '@mui/icons-material/PhotoSizeSelectActual';
 import FeaturedPlayListIcon from '@mui/icons-material/FeaturedPlayList';
+import FilterIcon from '@mui/icons-material/Filter';
 import "../../css/app.css";
 import PermDataSettingIcon from '@mui/icons-material/PermDataSetting';
 function Layout({ children }) {
@@ -75,6 +76,9 @@ function Layout({ children }) {
                         </a>
                         <a href={"/backgrounds"}>
                             <MenuItem icon={<WallpaperIcon />}>Background</MenuItem>
+                        </a>
+                        <a href={"/effects"}>
+                            <MenuItem icon={<FilterIcon />}>Effects</MenuItem>
                         </a>
                         <a href={"/keys"}>
                             <MenuItem icon={<KeyIcon />}>API key</MenuItem>

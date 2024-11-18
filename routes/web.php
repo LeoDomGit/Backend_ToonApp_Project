@@ -12,6 +12,7 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SubcriptionPackagesController;
 use App\Http\Controllers\SubFeaturesController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\EffectsController;
 use App\Models\SubcriptionPackage;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -55,6 +56,7 @@ Route::middleware('checkLogin')->group(function () {
     Route::post('/updated_size/{id}', [FeaturesController::class, 'updated_size']);
     Route::resource('/packages', SubcriptionPackagesController::class);
     Route::resource('/configs', ConfigController::class);
+    Route::resource('effects', EffectsController::class);
 });
 
 Route::post('/checkLoginEmail', [UserController::class, 'checkLoginEmailAdmin']);
