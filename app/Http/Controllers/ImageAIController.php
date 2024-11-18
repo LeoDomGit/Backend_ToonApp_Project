@@ -121,15 +121,16 @@ class ImageAIController extends Controller
         if ($validator->fails()) {
             return response()->json(['status' => 'error', 'message' => $validator->errors()->first()], 400);
         }
-        if($result->is_pro==1 && $this->pro_account==false){
-            return response()->json(['status'=>false,'error'=>'Not accepted'],401);
-        }
+
         $image=$request->file('image');
         $imageContent = file_get_contents($image);
         $tempFilePath = storage_path('app/public/anime/temp_image.jpg');
         file_put_contents($tempFilePath, $imageContent);
         $routePath = $request->path();
         $feature=Features::where('api_endpoint', $routePath)->first();
+        if($feature->is_pro==1 && $this->pro_account==false){
+            return response()->json(['status'=>false,'error'=>'Not accepted'],401);
+        }
         if($request->has('background')){
             $response = Http::withHeaders([
                 'X-Picsart-API-Key' => $this->key,
@@ -1099,12 +1100,13 @@ class ImageAIController extends Controller
                                     return response()->json([
                                         'status' => true,
                                         'url' => $image,              // Final image URL (with or without background removed)
-                                        'bg_url' => $originalImageUrl  // Original image URL
+                                        'style_url' => $originalImageUrl  // Original image URL
                                     ]);
                                 }else{
                                     return response()->json([
                                         'status' => true,
                                         'url' => $image,
+                                        'style_url'=>$originalImageUrl
                                     ]);
                                 }
                             }
