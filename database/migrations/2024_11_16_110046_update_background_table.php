@@ -16,7 +16,6 @@ return new class extends Migration
                 $table->unsignedBigInteger('group_id');
                 $table->foreign('group_id')->references('id')->on('group_backgrounds');
             }
-
         });
     }
 
@@ -25,6 +24,5 @@ return new class extends Migration
      */
     public function down(): void
     {
-     
     }
 };

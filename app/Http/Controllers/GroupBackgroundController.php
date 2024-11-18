@@ -13,6 +13,7 @@ use Aws\S3\Exception\S3Exception;
 use Carbon\Carbon;
 
 use GuzzleHttp\Client;
+use Illuminate\Support\Facades\Log;
 
 class GroupBackgroundController extends Controller
 {
