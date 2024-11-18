@@ -35,16 +35,26 @@ class ImageSizeController extends Controller
      */
     public function store(Request $request)
     {
+        $path = null;
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('sizes', 'public');
+        }
         $validator = Validator::make($request->all(), [
             'size' => 'required|unique:image_sizes,size',
-          
+
         ]);
         if ($validator->fails()) {
             return response()->json(['check' => false, 'msg' => $validator->errors()->first()]);
         }
-        ImageSize::create($request->all());
-        $sizes= ImageSize::all();
-        return response()->json(['check'=> true,'data'=> $sizes]);
+        $size = ImageSize::create([
+            'size' => $request->input('size'),
+            'width'=> $request->input('width'),
+            'height' => $request->input('height'),
+            'status' => 0,
+            'image' => $path,
+        ]);
+
+        return response()->json(['check'=> true,'data'=> $size]);
     }
 
     /**
@@ -71,7 +81,7 @@ class ImageSizeController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'size' => 'unique:image_sizes,size',
-          
+
         ]);
         if ($validator->fails()) {
             return response()->json(['check' => false, 'msg' => $validator->errors()->first()]);
@@ -84,6 +94,29 @@ class ImageSizeController extends Controller
         ImageSize::where('id',$id)->update($data);
         $sizes= ImageSize::all();
         return response()->json(['check'=> true,'data'=> $sizes]);
+
+    }
+
+    public function update_image($id)
+    {
+        $result = ImageSize::where('id', $id)->first();
+        if(!$result){
+            return response()->json(['check' => false, 'msg' => 'không tìm thấy size']);
+        }
+        if(!request()->hasFile('image')){
+            return response()->json(['check' => false, 'msg' => 'Vui lòng chọn hình ảnh']);
+        }
+        $filePath = storage_path('public/sizes'.$result->image);
+        if(file_exists($filePath)){
+            unlink($filePath);
+        }
+        $image = request()->file('image');
+        $path = $image->storeAs('public/sizes', $image->getClientOriginalName());
+        $data['image'] = 'sizes/' . $image->getClientOriginalName();
+        $data['updated_at'] = now();
+        ImageSize::where('id', $id)->update($data);
+        $data=ImageSize::all();
+        return response()->json(['check'=>true, 'data'=>$data]);
 
     }
 

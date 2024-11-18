@@ -7,7 +7,7 @@ use App\Http\Controllers\ImageAIController;
 use App\Http\Controllers\SubcriptionPackagesController;
 use App\Http\Controllers\SubFeaturesController;
 use App\Http\Controllers\UserController;
-use Illuminate\Http\Request;
+use App\Models\Effects;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CustomersController;
 
@@ -50,6 +50,8 @@ Route::middleware('device_login')->group(function () {
     Route::get('/backgrounds', [BackgroundController::class, 'api_index']);
     Route::get('/backgrounds/{id}', [BackgroundController::class, 'api_single']);
     Route::get('/packages', [SubcriptionPackagesController::class, 'getPackages']);
+    Route::get('/effects', [Effects::class, 'api_index']);
+    Route::get('/effects/{id}', [Effects::class, 'api_single']);
 });
 
 Route::get('/configs', [ConfigController::class, 'api_index']);
