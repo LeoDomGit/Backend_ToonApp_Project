@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Validator;
+
 class FeaturesController
 {
     /**
@@ -19,13 +20,14 @@ class FeaturesController
     public function index()
     {
         $features = Features::with('sizes')->get();
-        $sizes= ImageSize::all();
-        return Inertia::render('Features/Index', ['datafeatures' => $features,'datasizes'=>$sizes]);
+        $sizes = ImageSize::all();
+        return Inertia::render('Features/Index', ['datafeatures' => $features, 'datasizes' => $sizes]);
     }
 
 
     //=============================================================
-    public function update_feature_slug(){
+    public function update_feature_slug()
+    {
         $result = Features::all();
         foreach ($result as $key => $item) {
             $item->update(['slug' => Str::slug($item->name)]);
@@ -55,7 +57,7 @@ class FeaturesController
         $feature = Features::create([
             'name' => $request->input('name'),
             'description' => $request->input('description'),
-            'slug'=>Str::slug($request->input('name')),
+            'slug' => Str::slug($request->input('name')),
             'api_endpoint' => $request->input('api_endpoint'),
             'image' => $path,
             'model_id' => $request->input('model_id'),
@@ -81,32 +83,34 @@ class FeaturesController
      */
     public function api_index(Features $features)
     {
-        $features = Features::with(['subFeatures', 'sizes'])
-        ->active()
-        ->get()
-        ->map(function ($feature) {
-            // Hide specified fields in features and subFeatures
-            $feature->makeHidden(['model_id', 'prompt', 'presetStyle', 'preprocessorId', 'strengthType', 'initImageId']);
-            $feature->subFeatures->each->makeHidden(['model_id', 'prompt', 'presetStyle', 'preprocessorId', 'strengthType', 'initImageId']);
-            return $feature;
-        });
-        $highlightedSubFeatures = SubFeatures::where('is_highlight', 1)
-    ->get()
-    ->map(function ($subFeature) {
-        $subFeature->makeHidden(['model_id', 'prompt', 'presetStyle', 'preprocessorId', 'strengthType', 'initImageId']);
-        $featureId = $subFeature->feature_id;
-        $subFeaturesOfFeature = SubFeatures::where('feature_id', $featureId)
-            ->get()
-            ->map(function ($siblingSubFeature) {
-                $siblingSubFeature->makeHidden(['model_id', 'prompt', 'presetStyle', 'preprocessorId', 'strengthType', 'initImageId']);
-                return $siblingSubFeature;
+        $features = Features::with(['subFeatures', 'sizes'])->active()->get();
+
+        if ($features) {
+            // Hide the attributes in the features model
+            $features->makeHidden(['model_id', 'prompt', 'presetStyle', 'preprocessorId', 'strengthType', 'initImageId']);
+
+            // Loop through each subFeature and hide the specified attributes
+            $features->each(function ($feature) {
+                $feature->subFeatures->each->makeHidden(['model_id', 'prompt', 'presetStyle', 'preprocessorId', 'strengthType', 'initImageId']);
             });
-        $subFeature->setAttribute('sub_features', $subFeaturesOfFeature);
-        $subFeature->setAttribute('is_highlight', 1);
+        }
+        $highlightedSubFeatures = SubFeatures::where('is_highlight', 1)
+            ->get()
+            ->map(function ($subFeature) {
+                $subFeature->makeHidden(['model_id', 'prompt', 'presetStyle', 'preprocessorId', 'strengthType', 'initImageId', 'feature_id', 'is_highlight']);
+                $featureId = $subFeature->feature_id;
+                $subFeaturesOfFeature = SubFeatures::where('feature_id', $featureId)
+                    ->get()
+                    ->map(function ($siblingSubFeature) {
+                        $siblingSubFeature->makeHidden(['model_id', 'prompt', 'presetStyle', 'preprocessorId', 'strengthType', 'initImageId']);
+                        return $siblingSubFeature;
+                    });
+                $subFeature->setAttribute('is_effect', 0);
+                $subFeature->setAttribute('sub_features', $subFeaturesOfFeature);
+                $subFeature->setAttribute('sizes', []);
 
-        return $subFeature;
-    });
-
+                return $subFeature;
+            });
         $features = $features->merge($highlightedSubFeatures);
         return response()->json($features);
     }
@@ -125,33 +129,33 @@ class FeaturesController
      * Update the specified resource in storage.
      */
 
-     public function updated_size(Request $request,$id)
+    public function updated_size(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
             'size_id' => 'nullable|array',
-            'size_id.*'=>'exists:image_sizes,id'
+            'size_id.*' => 'exists:image_sizes,id'
         ]);
         if ($validator->fails()) {
             return response()->json(['check' => false, 'msg' => $validator->errors()->first()]);
         }
-        $arr=$request->size_id;
-        FeaturesSizes::where('feature_id',$id)->delete();
-        if($arr!=null){
+        $arr = $request->size_id;
+        FeaturesSizes::where('feature_id', $id)->delete();
+        if ($arr != null) {
             foreach ($arr as $key => $value) {
                 FeaturesSizes::create([
-                 'feature_id'=>$id,
-                 'size_id'=>$value,
-                 'created_at'=>now()
+                    'feature_id' => $id,
+                    'size_id' => $value,
+                    'created_at' => now()
                 ]);
-             }
+            }
         }
         $data = Features::with('sizes')->get();
-        return response()->json(['check'=>true,'data'=>$data]);
+        return response()->json(['check' => true, 'data' => $data]);
     }
     public function update(FeatureRequest $request, $id)
     {
         $data = $request->all();
-        if($request->has('name')){
+        if ($request->has('name')) {
             $data['slug'] = Str::slug($request->input('name'));
         }
         $data['updated_at'] = now();
