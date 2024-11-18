@@ -50,8 +50,8 @@ Route::middleware('device_login')->group(function () {
     Route::get('/backgrounds', [BackgroundController::class, 'api_index']);
     Route::get('/backgrounds/{id}', [BackgroundController::class, 'api_single']);
     Route::get('/packages', [SubcriptionPackagesController::class, 'getPackages']);
-    Route::get('/effects', [Effects::class, 'api_index']);
-    Route::get('/effects/{id}', [Effects::class, 'api_single']);
+    // Route::get('/effects', [Effects::class, 'api_index']);
+    // Route::get('/effects/{id}', [Effects::class, 'api_single']);
 });
 
 Route::get('/configs', [ConfigController::class, 'api_index']);
