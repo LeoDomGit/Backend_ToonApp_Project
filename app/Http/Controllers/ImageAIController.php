@@ -40,8 +40,26 @@ class ImageAIController extends Controller
     public function __construct(Request $request)
     {
         $result = Key::where('api', 'picsart')->orderBy('id', 'asc')->first();
-        $this->key = $result->key;
-
+        $client = new \GuzzleHttp\Client();
+        $response = $client->request('GET', 'https://genai-api.picsart.io/v1/balance', [
+            'headers' => [
+                'X-Picsart-API-Key' => $result->key,
+                'accept' => 'application/json',
+            ],
+        ]);
+        $body = json_decode($response->getBody(), true);
+        $credits = isset($body['credits']) ? $body['credits'] : 0;
+        if ($credits < 5) {
+            $result->update(['key' => 0]);
+            $newKey = Key::where('api', 'picsart')->where('key', '!=', 0)->orderBy('id', 'asc')->first();
+            if ($newKey) {
+                $this->key = $newKey->key;
+            } else {
+                $this->key = null;
+            }
+        } else {
+            $this->key = $result->key;
+        }
         $this->leo_key = env('IMAGE_API_KEY');
         $this->aws_secret_key = 'b52dcdbea046cc2cc13a5b767a1c71ea8acbe96422b3e45525d3678ce2b5ed3e';
         $this->aws_access_key = 'cbb3e2fea7c7f3e7af09b67eeec7d62c';
