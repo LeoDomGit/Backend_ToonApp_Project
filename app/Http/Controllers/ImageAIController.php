@@ -1002,6 +1002,7 @@ class ImageAIController extends Controller
             return response()->json([
                 'status' => 'success',
                 'url' => $image,
+                'style_url'=>$request->style_url,
             ]);
         }
         $file = $request->file('image');
