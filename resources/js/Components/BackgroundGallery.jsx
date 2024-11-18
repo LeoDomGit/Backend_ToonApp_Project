@@ -1,11 +1,11 @@
 import React, { useState } from "react";
-import axios from "axios"; // Đảm bảo bạn đã import axios
+import { Tooltip } from "react-tooltip"; // Import Tooltip from react-tooltip
 
 function BackgroundGallery({
     backgroundImages,
     onDelete,
     onAddToGroup,
-    allGroups, // Nhận allGroups từ props
+    allGroups,
 }) {
     const [selectedImages, setSelectedImages] = useState([]);
 
@@ -31,12 +31,22 @@ function BackgroundGallery({
             return;
         }
 
-        // Gọi hàm để thêm ảnh vào nhóm
+        // Add images to the group and update the state
         onAddToGroup(selectedImages, groupId).then((updatedImages) => {
-            // Cập nhật lại backgroundImages để hiển thị ảnh đã được thêm vào nhóm
-            // Giả sử 'updatedImages' là dữ liệu ảnh đã được cập nhật từ API
-            // Bạn có thể điều chỉnh 'onAddToGroup' để trả về danh sách ảnh đã được cập nhật
-            setSelectedImages([]); // Reset lại ảnh đã chọn
+            // Update the group name in the images
+            const updatedBackgroundImages = backgroundImages.map((image) => {
+                if (selectedImages.includes(image.id)) {
+                    return {
+                        ...image,
+                        group: allGroups.find((group) => group.id === groupId),
+                    };
+                }
+                return image;
+            });
+            // Reset the selected images
+            setSelectedImages([]);
+            // Optionally, you may want to update the backgroundImages state here
+            // setBackgroundImages(updatedBackgroundImages); // If you want to update state directly
         });
     };
 
@@ -44,26 +54,49 @@ function BackgroundGallery({
         <div className="row mt-5">
             {backgroundImages.map((image) => (
                 <div key={image.id} className="col-md-2 mb-3 position-relative">
-                    <img
-                        src={`/storage/${image.path}`}
-                        alt="Background"
-                        className="img-fluid w-100"
+                    <div
                         style={{
-                            border: selectedImages.includes(image.id)
-                                ? "3px solid green"
-                                : "none",
+                            position: "relative",
+                            width: "100px",
+                            height: "100px",
                         }}
-                        onClick={() => handleSelectImage(image.id)}
-                    />
-                    <button
-                        onClick={() => onDelete(image.id)}
-                        className="btn btn-danger btn-sm position-absolute top-0 end-0 m-2 me-4"
+                        data-tooltip-id={`tooltip-${image.id}`}
+                        data-tooltip-content={
+                            image.group
+                                ? `Group: ${image.group.name}`
+                                : "No Group"
+                        } // Nội dung tooltip
                     >
-                        X - {image.id}
-                    </button>
+                        <img
+                            src={`/storage/${image.path}`}
+                            alt="Background"
+                            className="img-fluid"
+                            style={{
+                                width: "100%",
+                                height: "100%",
+                                objectFit: "cover",
+                                border: selectedImages.includes(image.id)
+                                    ? "3px solid green"
+                                    : "none",
+                            }}
+                            onClick={() => handleSelectImage(image.id)}
+                        />
+                        <button
+                            onClick={() => onDelete(image.id)}
+                            className="btn btn-danger btn-sm position-absolute top-0 end-0"
+                            style={{
+                                transform: "translate(50%, -50%)",
+                                zIndex: 2,
+                            }}
+                        >
+                            X - {image.id}
+                        </button>
+                        {/* Tooltip */}
+                        {/* <Tooltip id={`tooltip-${image.id}`} /> */}
+                    </div>
                     {image.group && (
                         <div className="badge bg-primary position-absolute bottom-0 start-0 m-2">
-                            {image.group.name} {/* Hiển thị tên nhóm nếu có */}
+                            {image.group.name}
                         </div>
                     )}
                 </div>

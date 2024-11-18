@@ -30,6 +30,7 @@
         "react-pro-sidebar": "^1.1.0",
         "react-router-dom": "^6.23.1",
         "react-toastify": "^10.0.6",
+        "react-tooltip": "^5.28.0",
         "sweetalert2": "^11.12.0"
     }
 }
