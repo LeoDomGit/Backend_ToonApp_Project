@@ -56,15 +56,16 @@ Route::middleware('checkLogin')->group(function () {
     Route::post('/updated_size/{id}', [FeaturesController::class, 'updated_size']);
     Route::resource('/packages', SubcriptionPackagesController::class);
     Route::resource('/configs', ConfigController::class);
-  //==========================================================
+    //==========================================================
     Route::resource('effects', EffectsController::class);
+    Route::post('effects-update-image/{id}', [EffectsController::class, 'api_update_image']);
 
-    Route::post('/group_background',[GroupBackgroundController::class,'store']);
-    Route::put('/group_background/{id}',[GroupBackgroundController::class,'update']);
-    Route::get('/group_background/{id}',[GroupBackgroundController::class,'show']);
-    Route::get('/background/{id}',[GroupBackgroundController::class,'showBackground']);
-    Route::delete('/group_background/{id}',[GroupBackgroundController::class,'destroy']);
-    Route::post('/upload_background',[GroupBackgroundController::class,'uploadBackgroundImages']);
+    Route::post('/group_background', [GroupBackgroundController::class, 'store']);
+    Route::put('/group_background/{id}', [GroupBackgroundController::class, 'update']);
+    Route::get('/group_background/{id}', [GroupBackgroundController::class, 'show']);
+    Route::get('/background/{id}', [GroupBackgroundController::class, 'showBackground']);
+    Route::delete('/group_background/{id}', [GroupBackgroundController::class, 'destroy']);
+    Route::post('/upload_background', [GroupBackgroundController::class, 'uploadBackgroundImages']);
     Route::post('/backgrounds/add-to-group', [BackgroundController::class, 'addImagesToGroup']);
     Route::post('/assign-to-group', [BackgroundController::class, 'assignToGroup']);
 
