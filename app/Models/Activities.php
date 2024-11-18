@@ -15,6 +15,7 @@ class Activities extends Model
         'photo_id',
         'features_id',
         'image_result',
+        'attributes',
         'image_size',
         'ai_model',
         'api_endpoint',
