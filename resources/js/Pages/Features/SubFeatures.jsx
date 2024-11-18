@@ -133,7 +133,12 @@ function SubFeatures({ dataSubFeatures, dataFeatures }) {
             width: 100,
             renderCell: (params) => params.rowIndex,
         },
-        { field: "name", headerName: "Sub Features", width: 200, editable: true },
+        {
+            field: "name",
+            headerName: "Sub Features",
+            width: 200,
+            editable: true,
+        },
         { field: "slug", headerName: "Slug", width: 200 },
         {
             field: "model_id",
@@ -282,6 +287,35 @@ function SubFeatures({ dataSubFeatures, dataFeatures }) {
             editable: true,
         },
         {
+            field: "is_highlight",
+            headerName: "Highlight",
+            width: 200,
+            renderCell: (params) => (
+                <input
+                    key={params.row.id}
+                    type="checkbox"
+                    className="text-center"
+                    checked={params.value}
+                    onChange={(event) => {
+                        const checked = event.target.checked;
+                        axios
+                            .put(`/sub_feature/${params.row.id}`, {
+                                is_highlight: checked,
+                            })
+                            .then((res) => {
+                                if (res.data.check == true) {
+                                    toast.success("Đã sửa thành công !", {
+                                        position: "top-right",
+                                    });
+                                    setData(res.data.data);
+                                }
+                            });
+                    }}
+                />
+            ),
+            editable: true,
+        },
+        {
             field: "description",
             headerName: "Description",
             width: 200,
@@ -409,7 +443,7 @@ function SubFeatures({ dataSubFeatures, dataFeatures }) {
             headerName: "API Endpoint",
             width: 250,
             editable: true,
-        }
+        },
     ];
     const submitSubFeature = () => {
         const formData = new FormData();
@@ -622,7 +656,9 @@ function SubFeatures({ dataSubFeatures, dataFeatures }) {
                             </option>
                             {features.length > 0 &&
                                 features.map((item, index) => (
-                                    <option key={index} value={item.id}>{item.name}</option>
+                                    <option key={index} value={item.id}>
+                                        {item.name}
+                                    </option>
                                 ))}
                         </select>
                         <textarea
