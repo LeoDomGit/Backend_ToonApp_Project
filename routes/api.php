@@ -10,6 +10,7 @@ use App\Http\Controllers\UserController;
 use App\Models\Effects;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CustomersController;
+use App\Http\Controllers\TestController;
 
 /*
 |--------------------------------------------------------------------------
@@ -63,9 +64,7 @@ Route::get('/packages', [SubcriptionPackagesController::class, 'getPackages']);
 Route::get('/update_feature_slug', [FeaturesController::class, 'update_feature_slug']);
 Route::get('/update_sub_feature_slug', [SubFeaturesController::class, 'update_feature_slug']);
 
-Route::middleware('auth:sanctum')->get('/test', function () {
-    return response()->json(Auth::user());
-});
+Route::resource('test', TestController::class);
 Route::prefix('users')->group(function () {
     Route::post('/register', [UserController::class, 'register']);
     Route::post('/login', [UserController::class, 'Login']);
