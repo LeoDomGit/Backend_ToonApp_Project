@@ -1545,6 +1545,7 @@ class ImageAIController extends Controller
                                         'init_image_id' => $image_id,
                                         'init_strength' => 0.5,
                                             ]),
+                                        'request' => json_encode($request->all()),
                                     'ai_model' => 'Leo AI',
                                     'api_endpoint' => 'https://cloud.leonardo.ai/api/rest/v1/generations/',
                                 ]);
@@ -1659,6 +1660,7 @@ class ImageAIController extends Controller
                                         'init_image_id' => $image_id,
                                         'init_strength' => 0.5,
                                             ]),
+                                    'request' => json_encode($request->all()),
                                     'ai_model' => 'Leo AI',
                                     'api_endpoint' => 'https://cloud.leonardo.ai/api/rest/v1/generations/',
                                 ]);
@@ -1769,6 +1771,7 @@ class ImageAIController extends Controller
                                     'init_image_id' => $image_id,
                                     'init_strength' => 0.5,
                                         ]),
+                                'request' => json_encode($request->all()),
                                 'ai_model' => 'Leo AI',
                                 'api_endpoint' => 'https://cloud.leonardo.ai/api/rest/v1/generations/',
                             ]);
