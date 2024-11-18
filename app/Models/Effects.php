@@ -12,6 +12,8 @@ class Effects extends Model
     protected $fillable=[
         'id',
         'name',
+        'slug',
+        'image',
         'deleted_at',
         'created_at',
         'updated_at'
