@@ -52,10 +52,10 @@ class Customers extends Authenticatable
 
         // Update expired_at based on the duration
         if ($this->expired_at) {
-            $this->expired_at = Carbon::parse($this->expired_at)->addMonths($duration);
+            $this->expired_at = Carbon::parse($this->expired_at)->addDays($duration);
         } else {
             // Set a new expiry if none exists
-            $this->expired_at = Carbon::now()->addMonths($duration);
+            $this->expired_at = Carbon::now()->addDays($duration);
         }
         $this->platform = $platform;
         $this->save();
