@@ -23,7 +23,6 @@ use Carbon\Carbon;
 use Spatie\Activitylog\Models\Activity;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Customers;
-use Intervention\Image\Facades\Image;
 class ImageAIController extends Controller
 {
     protected $key;
@@ -1542,9 +1541,7 @@ class ImageAIController extends Controller
             if (!$check) {
                 $featuresId = $result->id;
                 $folder = 'cartoon';
-                $image = Image::make($file);
-                $height=$file->height();
-                $width=$file->width();
+                list($width, $height) = getimagesize($file);
                 $filename =  pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
                 $id_img = $this->uploadServerImage($file);
                 $response = Http::withHeaders([
