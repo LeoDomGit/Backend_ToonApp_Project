@@ -35,7 +35,7 @@ class GroupBackgroundController extends Controller
                 Log::error('File does not exist: ' . $imageFile);
                 return 'error: file does not exist';
             }
-
+            $filename=str_replace(' ', '', $filename);
             // Step 2: Prepare Cloudflare R2 credentials and settings
             $accountid = '453d5dc9390394015b582d09c1e82365';
             $r2bucket = 'artapp';  // Updated bucket name
@@ -57,7 +57,7 @@ class GroupBackgroundController extends Controller
             ]);
 
             // Step 3: Define the object path and name in R2
-            $r2object = $folder . '/' . $filename . '.jpg';
+            $r2object = $folder . '/' . $filename;
 
             // Step 4: Upload the file to Cloudflare R2
             try {
@@ -69,7 +69,7 @@ class GroupBackgroundController extends Controller
                 ]);
 
                 // Generate the CDN URL using the custom domain
-                $cdnUrl = "https://artapp.promptme.info/$folder/$filename.jpg";
+                $cdnUrl = "https://artapp.promptme.info/$folder/$filename";
                 return $cdnUrl;
             } catch (S3Exception $e) {
                 Log::error("Error uploading file: " . $e->getMessage());
