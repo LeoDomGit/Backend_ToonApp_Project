@@ -32,7 +32,7 @@ class FeedbackController extends Controller
         // Validate dữ liệu đầu vào
         $validator = Validator::make($request->all(), [
             'device_id' => 'required|string|max:255',
-            'flatfom' => 'nullable|string|max:255',
+            'platform' => 'nullable|string|max:255',
             'feedback' => 'required|string|max:255',
         ]);
         if ($validator->fails()) {
@@ -56,21 +56,12 @@ class FeedbackController extends Controller
             return response()->json(['message' => 'Feedback not found'], 404);
         }
 
-        // Validate dữ liệu đầu vào
-        $request->validate([
-            'device_id' => 'required|string|max:255',
-            'flatfom' => 'nullable|string|max:255',
-            'feedback' => 'nullable|string|max:255',
-            'note' => 'nullable|string|max:255',
-            'status' => 'nullable|boolean',
-        ]);
-
-        // Cập nhật feedback
         $feedback->update($request->all());
-
+        $feedback=Feedback::all();
         return response()->json([
+            'check'=>true,
             'message' => 'Feedback updated successfully',
-            'feedback' => $feedback
+            'data' => $feedback
         ]);
     }
 
