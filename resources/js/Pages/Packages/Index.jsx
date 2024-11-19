@@ -16,7 +16,10 @@ function Index({ data }) {
     const [price, setPrice] = useState(null);
     const [duration, setDuration] = useState(null);
     const [description, setDescription] = useState("");
+    const [image, setImage] = useState(null);
+    const [selectedRow, setSelectedRow] = useState(null);
     const [show, setShow] = useState(false);
+    const [showImageModal, setShowImageModal] = useState(false);
 
     // New states for description editing modal
     const [editDescription, setEditDescription] = useState("");
@@ -31,6 +34,7 @@ function Index({ data }) {
         setPrice(null);
         setDuration(null);
         setDescription("");
+        setImage(null);
         setShow(true);
     };
 
@@ -64,6 +68,27 @@ function Index({ data }) {
                     dangerouslySetInnerHTML={{ __html: params.value }}
                     variant="body2"
                     style={{ cursor: "pointer", color: "blue" }}
+                />
+            ),
+        },
+        {
+            field: "image",
+            headerName: "Image",
+            width: 100,
+            renderCell: (params) => (
+                <img
+                    src={params.value ? params.value : "/default-image.jpg"}
+                    alt="package image"
+                    style={{
+                        width: "50px",
+                        height: "50px",
+                        objectFit: "cover",
+                        cursor: "pointer",
+                    }}
+                    onClick={() => {
+                        setSelectedRow(params.row.id);
+                        setShowImageModal(true);
+                    }}
                 />
             ),
         },
@@ -156,7 +181,21 @@ function Index({ data }) {
             showAlert("error", "Description is required");
         } else {
             axios
-                .post("/packages", { name, price, duration, description })
+                .post(
+                    "/packages",
+                    {
+                        name,
+                        price,
+                        duration,
+                        description,
+                        image,
+                    },
+                    {
+                        headers: {
+                            "Content-Type": "multipart/form-data",
+                        },
+                    }
+                )
                 .then((res) => {
                     if (res.data.check == true) {
                         setPackages(res.data.data);
@@ -171,6 +210,32 @@ function Index({ data }) {
                 });
         }
     };
+
+    const submitImage = () => {
+        const formData = new FormData();
+        formData.append("image", image);
+        axios
+            .post(`/packages-update-image/${selectedRow}`, formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            })
+            .then((res) => {
+                if (res.data.check) {
+                    toast.success("Update effect's image successfully", {
+                        position: "top-right",
+                    });
+                    setPackages(res.data.data);
+                    setImage(null);
+                    setShowImageModal(false);
+                } else {
+                    toast.error(res.data.msg, {
+                        position: "top-right",
+                    });
+                }
+            });
+    };
+
     const handleCellEditStop = (id, field, value) => {
         if (field === "name" && value === "") {
             Swal.fire({
@@ -231,6 +296,7 @@ function Index({ data }) {
                             <label>Name</label>
                             <input
                                 type="text"
+                                placeholder="Package's Name"
                                 value={name}
                                 className="form-control mb-3"
                                 onChange={(e) => setName(e.target.value)}
@@ -238,6 +304,7 @@ function Index({ data }) {
                             <label>Price</label>
                             <input
                                 type="number"
+                                placeholder="Package's Price"
                                 value={price}
                                 className="form-control mb-3"
                                 onChange={(e) => setPrice(e.target.value)}
@@ -245,9 +312,17 @@ function Index({ data }) {
                             <label>Duration</label>
                             <input
                                 type="number"
+                                placeholder="Package's Duration"
                                 value={duration}
                                 className="form-control mb-3"
                                 onChange={(e) => setDuration(e.target.value)}
+                            />
+                            <input
+                                type="file"
+                                className="form-control mb-3"
+                                placeholder="Upload effect's image"
+                                accept="image/*"
+                                onChange={(e) => setImage(e.target.files[0])}
                             />
                             <JoditEditor
                                 value={description}
@@ -295,6 +370,37 @@ function Index({ data }) {
                             <Button
                                 variant="primary"
                                 onClick={submitDescriptionEdit}
+                            >
+                                Update
+                            </Button>
+                        </Modal.Footer>
+                    </Modal>
+                    <Modal
+                        show={showImageModal}
+                        onHide={() => setShowImageModal(false)}
+                    >
+                        <Modal.Header closeButton>
+                            <Modal.Title>Update Package Image</Modal.Title>
+                        </Modal.Header>
+                        <Modal.Body>
+                            <input
+                                type="file"
+                                className="form-control"
+                                accept="image/*"
+                                onChange={(e) => setImage(e.target.files[0])}
+                            />
+                        </Modal.Body>
+                        <Modal.Footer>
+                            <Button
+                                variant="secondary"
+                                onClick={() => setShowImageModal(false)}
+                            >
+                                Close
+                            </Button>
+                            <Button
+                                variant="primary"
+                                disabled={!image}
+                                onClick={submitImage}
                             >
                                 Update
                             </Button>
