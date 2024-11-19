@@ -15,7 +15,7 @@ class Feedback extends Model
     // Đảm bảo Laravel chỉ mass-assign những thuộc tính này
     protected $fillable = [
         'device_id',
-        'flatfom',
+        'platform',
         'feedback',
         'note',
         'status'

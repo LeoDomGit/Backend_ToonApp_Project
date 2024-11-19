@@ -50,30 +50,33 @@ function FeedbackIndex({ data }) {
             field: "device_id",
             headerName: "Device ID",
             width: 200,
-            editable: true,
         },
         {
             field: "platform",
             headerName: "Platform",
             width: 200,
-            editable: true,
         },
         {
             field: "feedback",
             headerName: "Feedback",
             width: 200,
+        },
+        {
+            field: "note",
+            headerName: "Note",
+            width: 200,
+            editable: true,
             renderCell: (params) => (
                 <Typography
-                    onClick={() =>
-                        handleFeedbackEdit(params.row.id, params.value)
-                    }
+                onClick={() =>
+                    handleNoteEdit(params.row.id, params.value)
+                }
                     dangerouslySetInnerHTML={{ __html: params.value }}
                     variant="body2"
                     style={{ cursor: "pointer", color: "blue" }}
                 />
             ),
         },
-        { field: "note", headerName: "Note", width: 200, editable: true },
         {
             field: "status",
             headerName: "Status",
@@ -106,15 +109,15 @@ function FeedbackIndex({ data }) {
         },
     ];
 
-    const handleFeedbackEdit = (id, currentFeedback) => {
-        setEditFeedback(currentFeedback);
+    const handleNoteEdit = (id, value) => {
+        setNote(value);
         setEditFeedbackId(id);
         setShowFeedbackModal(true);
     };
 
     const submitFeedbackEdit = () => {
         axios
-            .put(`/feedback/${editFeedbackId}`, { feedback: editFeedback })
+            .put(`/feedback/${editFeedbackId}`, { note: editFeedback })
             .then((res) => {
                 if (res.data.check) {
                     toast.success("Feedback updated successfully!", {
@@ -203,12 +206,12 @@ function FeedbackIndex({ data }) {
                 <ToastContainer />
                 <div className="row">
                     <div className="col-md">
-                        <button
+                        {/* <button
                             className="btn btn-outline-primary mb-3"
                             onClick={resetCreate}
                         >
                             Create
-                        </button>
+                        </button> */}
                     </div>
                     <Modal show={show} onHide={handleClose}>
                         <Modal.Header closeButton>
@@ -263,7 +266,7 @@ function FeedbackIndex({ data }) {
                         </Modal.Header>
                         <Modal.Body>
                             <JoditEditor
-                                value={editFeedback}
+                                value={note}
                                 config={{ readonly: false, height: 400 }}
                                 tabIndex={1}
                                 onBlur={(newContent) =>
