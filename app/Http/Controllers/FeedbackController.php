@@ -11,14 +11,14 @@ class FeedbackController extends Controller
     // Hiển thị tất cả feedback
     public function index()
     {
-        $feedbacks = Feedback::all(); // Lấy tất cả feedback
+        $feedbacks = Feedback::all();
         return Inertia::render('Feedback/Index', ['data' => $feedbacks]);
     }
 
     // Hiển thị chi tiết một feedback
     public function show($id)
     {
-        $feedback = Feedback::find($id); // Lấy feedback theo ID
+        $feedback = Feedback::find($id);
         if (!$feedback) {
             return response()->json(['message' => 'Feedback not found'], 404);
         }
