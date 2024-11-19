@@ -1551,6 +1551,7 @@ class ImageAIController extends Controller
                     'prompt' => $result->prompt,
                     'presetStyle' => $result->presetStyle,
                     'num_images' => 1,
+                    "width"=> 1024,
                     'alchemy' => true,
                     isset($initImageId) && $initImageId !== null ? [
                         'controlnets' => [
