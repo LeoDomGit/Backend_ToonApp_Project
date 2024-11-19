@@ -33,8 +33,7 @@ class FeedbackController extends Controller
         $validator = Validator::make($request->all(), [
             'device_id' => 'required|string|max:255',
             'flatfom' => 'nullable|string|max:255',
-            'feedback' => 'nullable|string|max:255',
-            'note' => 'nullable|string|max:255',
+            'feedback' => 'required|string|max:255',
         ]);
         if ($validator->fails()) {
             return response()->json(['status' => 'error', 'message' => $validator->errors()->first()], 400);

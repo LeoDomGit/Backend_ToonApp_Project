@@ -11,7 +11,7 @@ use App\Models\Effects;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CustomersController;
 use App\Http\Controllers\TestController;
-
+use App\Http\Controllers\FeedbackController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -51,6 +51,7 @@ Route::middleware('device_login')->group(function () {
     Route::get('/backgrounds', [BackgroundController::class, 'api_index']);
     Route::get('/backgrounds/{id}', [BackgroundController::class, 'api_single']);
     Route::get('/packages', [SubcriptionPackagesController::class, 'getPackages']);
+    Route::post('/feedback',[FeedbackController::class, 'store']);
     // Route::get('/effects', [Effects::class, 'api_index']);
     // Route::get('/effects/{id}', [Effects::class, 'api_single']);
 });
