@@ -676,7 +676,6 @@ function Index({ datafeatures, datasizes }) {
 
         // Append each selected file to formData
         selectedFiles.forEach((file) => {
-
             formData.append("images[]", file.file);
         });
 
@@ -684,7 +683,7 @@ function Index({ datafeatures, datasizes }) {
             const response = await axios.post("/upload_background", formData, {
                 headers: { "Content-Type": "multipart/form-data" },
             });
-            if(response.data.check==true){
+            if (response.data.check == true) {
                 setSelectedImages(response.data.data);
                 toast.success("Đã thêm thành công !", {
                     position: "top-right",
@@ -715,11 +714,14 @@ function Index({ datafeatures, datasizes }) {
                         <div className="row">
                             {/* Dropzone Column */}
                             <div className="col-md-3">
-                            <Dropzone onChange={updateFiles} value={selectedFiles}>
-      {selectedFiles.map((file) => (
-        <FileMosaic {...file} preview />
-      ))}
-    </Dropzone>
+                                <Dropzone
+                                    onChange={updateFiles}
+                                    value={selectedFiles}
+                                >
+                                    {selectedFiles.map((file) => (
+                                        <FileMosaic {...file} preview />
+                                    ))}
+                                </Dropzone>
                                 <button
                                     className="btn btn-outline-primary mt-2"
                                     onClick={handleUpload}
@@ -956,10 +958,15 @@ function Index({ datafeatures, datasizes }) {
                                                                 e.target.value
                                                             )
                                                         }
-                                                        value={groupId || ''}
+                                                        value={groupId || ""}
                                                         id="groupSelect"
                                                     >
-                                                        <option disabled value="">Chọn 1 group</option>
+                                                        <option
+                                                            disabled
+                                                            value=""
+                                                        >
+                                                            Chọn 1 group
+                                                        </option>
                                                         {groups.length > 0 &&
                                                             groups.map(
                                                                 (item) => (
