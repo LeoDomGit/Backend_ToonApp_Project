@@ -16,7 +16,10 @@ function Index({ effects }) {
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showImageModal, setShowImageModal] = useState(false);
     const [selectedRow, setSelectedRow] = useState(null);
-
+    const formatCreatedAt = (dateString) => {
+        const date = new Date(dateString);
+        return date.toLocaleString();
+    };
     const resetCreate = () => {
         setName(null);
         setImage(null);
@@ -131,9 +134,18 @@ function Index({ effects }) {
                 />
             ),
         },
-        { field: "created_at", headerName: "Created Time", flex: 1 },
-        { field: "updated_at", headerName: "Updated Time", flex: 1 },
-        { field: "deleted_at", headerName: "Deleted Time", flex: 1 },
+        {
+            field: "created_at",
+            headerName: "Created at",
+            width: 200,
+            valueGetter: (params) => formatCreatedAt(params),
+        },
+        {
+            field: "updated_at",
+            headerName: "Updated at",
+            width: 200,
+            valueGetter: (params) => formatCreatedAt(params),
+        },
     ];
 
     const handleOnCellEditStop = (id, field, value) => {
