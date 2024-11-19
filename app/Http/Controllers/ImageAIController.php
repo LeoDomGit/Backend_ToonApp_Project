@@ -1506,19 +1506,27 @@ class ImageAIController extends Controller
         $result = $this->uploadImage($file);
         $image_id = $result['id'];
         $routePath = $request->path();
+        $is_feature=true;
         $result = Features::where('slug', $request->slug)->first();
         $feature = Features::where('slug', $request->slug)->first();
         if (!$result) {
             $result = SubFeatures::where('slug', $request->slug)->first();
             $feature = SubFeatures::where('slug', $request->slug)->first();
+            $is_feature=false;
         }
         if ($result->is_pro == 1 && $this->pro_account == false) {
             return response()->json(['status' => false, 'error' => 'Not accepted'], 401);
         }
         $initImageId = $result->initImageId;
         if ($request->has('id_size')) {
+            $id_feature=0;
+            if($is_feature==false){
+                $id_feature=$feature->feature_id;
+            }else{
+                $id_feature=$feature->id;
+            }
             $check = FeaturesSizes::where([
-                'feature_id' => $feature->id,
+                'feature_id' => $id_feature,
                 'size_id' => $request->id_size
             ])->first();
             if (!$check) {
