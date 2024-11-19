@@ -9,6 +9,7 @@ use App\Models\Features;
 use App\Models\SubFeatures;
 use App\Models\FeaturesSizes;
 use App\Models\ImageSize;
+use App\Models\Effects;
 use App\Models\Key;
 use App\Models\Photos;
 use Illuminate\Http\Request;
@@ -94,27 +95,9 @@ class ImageAIController extends Controller
      */
     public function getEffect(Request $request)
     {
-        $response = Http::withHeaders([
-            'X-Picsart-API-Key' => $this->key,
-            'Accept' => 'application/json',
-        ])->get('https://api.picsart.io/tools/1.0/effects');
+        $data=Effects::active()->get();
+        return response()->json($data);
 
-        if ($response->successful()) {
-            $data = $response->json();
-            if (isset($data['data'])) {
-                // Return only the effect names
-                $effectNames = array_column($data['data'], 'name');
-                return response()->json($effectNames);
-            } else {
-                return response()->json(['error' => 'No data found in response.'], 404);
-            }
-        } else {
-            return response()->json([
-                'error' => 'Failed to retrieve effects from Picsart API.',
-                'details' => $response->json(),
-                'status' => $response->status()
-            ], $response->status());
-        }
     }
     /**
      * Store a newly created resource in storage.
