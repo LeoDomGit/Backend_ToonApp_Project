@@ -11,14 +11,14 @@ import MenuOutlinedIcon from "@mui/icons-material/MenuOutlined";
 import GroupIcon from "@mui/icons-material/Group";
 import BrandingWatermarkIcon from "@mui/icons-material/BrandingWatermark";
 import InventoryIcon from "@mui/icons-material/Inventory";
-import KeyIcon from '@mui/icons-material/Key';
+import KeyIcon from "@mui/icons-material/Key";
 import LogoutIcon from "@mui/icons-material/Logout";
-import WallpaperIcon from '@mui/icons-material/Wallpaper';
-import PhotoSizeSelectActualIcon from '@mui/icons-material/PhotoSizeSelectActual';
-import FeaturedPlayListIcon from '@mui/icons-material/FeaturedPlayList';
-import FilterIcon from '@mui/icons-material/Filter';
+import WallpaperIcon from "@mui/icons-material/Wallpaper";
+import PhotoSizeSelectActualIcon from "@mui/icons-material/PhotoSizeSelectActual";
+import FeaturedPlayListIcon from "@mui/icons-material/FeaturedPlayList";
+import FilterIcon from "@mui/icons-material/Filter";
 import "../../css/app.css";
-import PermDataSettingIcon from '@mui/icons-material/PermDataSetting';
+import PermDataSettingIcon from "@mui/icons-material/PermDataSetting";
 function Layout({ children }) {
     const { collapseSidebar } = useProSidebar();
 
@@ -54,7 +54,10 @@ function Layout({ children }) {
                                 </MenuItem>
                             </a>
                         </SubMenu>
-                        <SubMenu label="Features" icon={<FeaturedPlayListIcon />}>
+                        <SubMenu
+                            label="Features"
+                            icon={<FeaturedPlayListIcon />}
+                        >
                             <a href={"/features"}>
                                 <MenuItem icon={<FeaturedPlayListIcon />}>
                                     Features
@@ -72,10 +75,14 @@ function Layout({ children }) {
                             </a>
                         </SubMenu>
                         <a href={"/sizes"}>
-                            <MenuItem icon={<BrandingWatermarkIcon />}>Sizes</MenuItem>
+                            <MenuItem icon={<BrandingWatermarkIcon />}>
+                                Sizes
+                            </MenuItem>
                         </a>
                         <a href={"/backgrounds"}>
-                            <MenuItem icon={<WallpaperIcon />}>Background</MenuItem>
+                            <MenuItem icon={<WallpaperIcon />}>
+                                Background
+                            </MenuItem>
                         </a>
                         <a href={"/effects"}>
                             <MenuItem icon={<FilterIcon />}>Effects</MenuItem>
@@ -84,10 +91,19 @@ function Layout({ children }) {
                             <MenuItem icon={<KeyIcon />}>API key</MenuItem>
                         </a>
                         <a href={"/packages"}>
-                            <MenuItem icon={<InventoryIcon />}>Packages</MenuItem>
+                            <MenuItem icon={<InventoryIcon />}>
+                                Packages
+                            </MenuItem>
                         </a>
                         <a href={"/configs"}>
-                            <MenuItem icon={<PermDataSettingIcon />}>Configs</MenuItem>
+                            <MenuItem icon={<PermDataSettingIcon />}>
+                                Configs
+                            </MenuItem>
+                        </a>
+                        <a href={"/feedback"}>
+                            <MenuItem icon={<PermDataSettingIcon />}>
+                                Feedback
+                            </MenuItem>
                         </a>
                         <a href={"/logout"}>
                             <MenuItem icon={<LogoutIcon />}>Log out</MenuItem>

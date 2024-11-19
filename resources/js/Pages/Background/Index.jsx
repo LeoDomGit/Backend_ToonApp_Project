@@ -393,9 +393,9 @@ function Index({ data_images, data_features }) {
                 <BackgroundGallery
                     backgroundImages={data}
                     onDelete={handleDelete}
-                    onAddToGroup={handleAddToGroup} // Truyền hàm xử lý gán nhóm
+                    onAddToGroup={handleAddToGroup}
                     groupBackgrounds={groupBackgrounds}
-                    allGroups={allGroups} // Truyền allGroups vào đây
+                    allGroups={allGroups}
                 />
             </Layout>
         </div>
