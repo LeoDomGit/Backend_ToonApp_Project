@@ -295,21 +295,22 @@ function Index({ effects }) {
                     {effects && effects.length > 0 && (
                         <div className="card border-0 shadow">
                             <div className="card-body">
-                                <Box sx={{}}>
-                                    <DataGrid
-                                        rows={data}
-                                        columns={columns}
-                                        pageSizeOptions={[5]}
-                                        disableRowSelectionOnClick
-                                        onCellEditStop={(params, event) => {
-                                            handleOnCellEditStop(
-                                                params.row.id,
-                                                params.field,
-                                                event.target.value
-                                            );
-                                        }}
-                                    />
-                                </Box>
+                            <Box sx={{ height: 400, width: "100%" }}>
+                                        <DataGrid
+                                            rows={data}
+                                            columns={columns}
+                                            pageSizeOptions={[5]}
+                                            checkboxSelection
+                                            disableRowSelectionOnClick
+                                            onCellEditStop={(params, e) =>
+                                                handleOnCellEditStop(
+                                                    params.row.id,
+                                                    params.field,
+                                                    e.target.value
+                                                )
+                                            }
+                                        />
+                                    </Box>
                             </div>
                         </div>
                     )}
