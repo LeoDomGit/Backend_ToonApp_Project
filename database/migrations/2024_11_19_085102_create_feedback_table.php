@@ -17,7 +17,6 @@ return new class extends Migration
             $table->string('flatfom', 255)->nullable();
             $table->string('feedback', 255)->nullable();
             $table->string('note', 255)->nullable();
-
             $table->boolean('status')->default(0);
             $table->timestamps();
         });

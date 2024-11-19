@@ -36,10 +36,9 @@ class FeedbackController extends Controller
             'note' => 'nullable|string|max:255',
             'status' => 'nullable|boolean',
         ]);
-
-        // Tạo mới feedback
-        $feedback = Feedback::create($request->all());
-
+        $data=$request->all();
+        $data['created_at']= now();
+        $feedback = Feedback::create();
         return response()->json([
             'message' => 'Feedback created successfully',
             'feedback' => $feedback
