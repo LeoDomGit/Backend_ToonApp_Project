@@ -14,6 +14,7 @@ import InventoryIcon from "@mui/icons-material/Inventory";
 import KeyIcon from "@mui/icons-material/Key";
 import LogoutIcon from "@mui/icons-material/Logout";
 import WallpaperIcon from "@mui/icons-material/Wallpaper";
+import FeedbackIcon from "@mui/icons-material/Feedback";
 import PhotoSizeSelectActualIcon from "@mui/icons-material/PhotoSizeSelectActual";
 import FeaturedPlayListIcon from "@mui/icons-material/FeaturedPlayList";
 import FilterIcon from "@mui/icons-material/Filter";
@@ -101,7 +102,7 @@ function Layout({ children }) {
                             </MenuItem>
                         </a>
                         <a href={"/feedback"}>
-                            <MenuItem icon={<PermDataSettingIcon />}>
+                            <MenuItem icon={<FeedbackIcon />}>
                                 Feedback
                             </MenuItem>
                         </a>
