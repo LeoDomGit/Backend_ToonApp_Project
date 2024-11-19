@@ -14,9 +14,9 @@ return new class extends Migration
         Schema::create('feedback', function (Blueprint $table) {
             $table->id();
             $table->string('device_id', 255);
-            $table->string('flatfom', 255);
-            $table->string('feedback', 255);
-            $table->string('note', 255);
+            $table->string('flatfom', 255)->nullable();
+            $table->string('feedback', 255)->nullable();
+            $table->string('note', 255)->nullable();
             $table->boolean('status')->default(0);
             $table->timestamps();
         });

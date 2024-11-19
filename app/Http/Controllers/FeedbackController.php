@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Feedback;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Validator;
 
 class FeedbackController extends Controller
 {
@@ -29,20 +30,20 @@ class FeedbackController extends Controller
     public function store(Request $request)
     {
         // Validate dữ liệu đầu vào
-        $request->validate([
+        $validator = Validator::make($request->all(), [
             'device_id' => 'required|string|max:255',
             'flatfom' => 'nullable|string|max:255',
-            'feedback' => 'nullable|string|max:255',
-            'note' => 'nullable|string|max:255',
-            'status' => 'nullable|boolean',
+            'feedback' => 'required|string|max:255',
         ]);
-
-        // Tạo mới feedback
-        $feedback = Feedback::create($request->all());
-
+        if ($validator->fails()) {
+            return response()->json(['status' => 'error', 'message' => $validator->errors()->first()], 400);
+        }
+        $data=$request->all();
+        $data['created_at']= now();
+        $feedback = Feedback::create($data);
         return response()->json([
+            'status' => 'success',
             'message' => 'Feedback created successfully',
-            'feedback' => $feedback
         ], 201);
     }
 
