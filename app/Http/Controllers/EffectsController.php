@@ -93,7 +93,7 @@ class EffectsController extends Controller
 
     public function api_update_image(Request $request, $id)
     {
-        $data = $request->all;
+        $data = $request->all();
         $queryResult = Effects::find($id);
         if ($queryResult) {
             if ($request->hasFile('image')) {
