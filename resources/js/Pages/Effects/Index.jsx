@@ -295,22 +295,27 @@ function Index({ effects }) {
                     {effects && effects.length > 0 && (
                         <div className="card border-0 shadow">
                             <div className="card-body">
-                            <Box sx={{ height: 400, width: "100%" }}>
-                                        <DataGrid
-                                            rows={data}
-                                            columns={columns}
-                                            pageSizeOptions={[5]}
-                                            checkboxSelection
-                                            disableRowSelectionOnClick
-                                            onCellEditStop={(params, e) =>
-                                                handleOnCellEditStop(
-                                                    params.row.id,
-                                                    params.field,
-                                                    e.target.value
-                                                )
-                                            }
-                                        />
-                                    </Box>
+                                <Box sx={{ height: 400, width: "100%" }}>
+                                    <DataGrid
+                                        rows={data}
+                                        columns={columns}
+                                        pageSizeOptions={[5, 10, 20]} // Define available page sizes
+                                        paginationModel={{
+                                            pageSize: 5,
+                                            page: 0,
+                                        }} // Set initial page size and page
+                                        pagination // Enable pagination
+                                        checkboxSelection
+                                        disableRowSelectionOnClick
+                                        onCellEditStop={(params, e) =>
+                                            handleOnCellEditStop(
+                                                params.row.id,
+                                                params.field,
+                                                e.target.value
+                                            )
+                                        }
+                                    />
+                                </Box>
                             </div>
                         </div>
                     )}
