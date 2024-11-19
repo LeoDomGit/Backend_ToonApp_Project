@@ -9,7 +9,7 @@ class SubcriptionPackage extends Model
 {
     use HasFactory;
     protected $table='subcription_packages';
-    protected $fillable=['id','name','price','duration','description','status','payment_method','created_at','updated_at'];
+    protected $fillable=['id','name','price','duration','description','image','status','payment_method','created_at','updated_at'];
     public function get_columns(){
         return ['id','name','price','duration','description','status','payment_method','created_at','updated_at'];
     }
