@@ -683,6 +683,8 @@ class ImageAIController extends Controller
                             'initImageType' => 'UPLOADED',
                             'preprocessorId' => (int) $result->preprocessorId,
                             'strengthType' => $result->strengthType,
+                            'weight' => $result->weight,
+
                         ]
                     ]
                 ] : [],
@@ -774,6 +776,8 @@ class ImageAIController extends Controller
                             'initImageType' => 'UPLOADED',
                             'preprocessorId' => (int) $result->preprocessorId,
                             'strengthType' => $result->strengthType,
+                            'weight' => $result->weight,
+
                         ]
                     ]
                 ] : [],
@@ -1045,6 +1049,7 @@ class ImageAIController extends Controller
                                 'initImageType' => 'UPLOADED',
                                 'preprocessorId' => (int) $result->preprocessorId,
                                 'strengthType' => $result->strengthType,
+                                'weight' => $result->weight,
                             ]
                         ]
                     ] : [],
@@ -1108,6 +1113,8 @@ class ImageAIController extends Controller
                                                     'initImageType' => 'UPLOADED',
                                                     'preprocessorId' => (int) $result->preprocessorId,
                                                     'strengthType' => $result->strengthType,
+                                'weight' => $result->weight,
+
                                                 ]
                                             ]
                                         ] : [],
@@ -1163,6 +1170,8 @@ class ImageAIController extends Controller
                                 'initImageType' => 'UPLOADED',
                                 'preprocessorId' => (int) $result->preprocessorId,
                                 'strengthType' => $result->strengthType,
+                                'weight' => $result->weight,
+
                             ]
                         ]
                     ] : [],
@@ -1227,6 +1236,8 @@ class ImageAIController extends Controller
                                                     'initImageType' => 'UPLOADED',
                                                     'preprocessorId' => (int) $result->preprocessorId,
                                                     'strengthType' => $result->strengthType,
+                                'weight' => $result->weight,
+
                                                 ]
                                             ]
                                         ] : [],
@@ -1279,6 +1290,8 @@ class ImageAIController extends Controller
                             'initImageType' => 'UPLOADED',
                             'preprocessorId' => (int) $result->preprocessorId,
                             'strengthType' => $result->strengthType,
+                            'weight' => $result->weight,
+
                         ]
                     ]
                 ] : [],
@@ -1341,6 +1354,8 @@ class ImageAIController extends Controller
                                                 'initImageType' => 'UPLOADED',
                                                 'preprocessorId' => (int) $result->preprocessorId,
                                                 'strengthType' => $result->strengthType,
+                                'weight' => $result->weight,
+
                                             ]
                                         ]
                                     ] : [],
@@ -1551,6 +1566,7 @@ class ImageAIController extends Controller
                                 'initImageType' => 'UPLOADED',
                                 'preprocessorId' => (int) $result->preprocessorId,
                                 'strengthType' => $result->strengthType,
+                                'weight' => $result->weight,
                             ]
                         ]
                     ] : [],
@@ -1611,6 +1627,7 @@ class ImageAIController extends Controller
                                                 'initImageType' => 'UPLOADED',
                                                 'preprocessorId' => (int) $result->preprocessorId,
                                                 'strengthType' => $result->strengthType,
+                                'weight' => $result->weight,
                                             ]
                                         ] : [],
                                         'init_image_id' => $image_id,
@@ -1666,6 +1683,7 @@ class ImageAIController extends Controller
                                 'initImageType' => 'UPLOADED',
                                 'preprocessorId' => (int) $result->preprocessorId,
                                 'strengthType' => $result->strengthType,
+                                'weight' => $result->weight,
                             ]
                         ]
                     ] : [],
@@ -1727,6 +1745,7 @@ class ImageAIController extends Controller
                                                     'initImageType' => 'UPLOADED',
                                                     'preprocessorId' => (int) $result->preprocessorId,
                                                     'strengthType' => $result->strengthType,
+                                                    'weight' => $result->weight,
                                                 ]
                                             ]
                                         ] : [],
@@ -1779,6 +1798,7 @@ class ImageAIController extends Controller
                             'initImageType' => 'UPLOADED',
                             'preprocessorId' => (int) $result->preprocessorId,
                             'strengthType' => $result->strengthType,
+                            'weight' => $result->weight,
                         ]
                     ]
                 ] : [],
@@ -1839,6 +1859,8 @@ class ImageAIController extends Controller
                                             'initImageType' => 'UPLOADED',
                                             'preprocessorId' => (int) $result->preprocessorId,
                                             'strengthType' => $result->strengthType,
+                            'weight' => $result->weight,
+
                                         ]
                                     ] : [],
                                     'init_image_id' => $image_id,
