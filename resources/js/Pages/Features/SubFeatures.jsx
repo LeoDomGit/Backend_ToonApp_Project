@@ -159,6 +159,12 @@ function SubFeatures({ dataSubFeatures, dataFeatures }) {
             editable: true,
         },
         {
+            field: "weight",
+            headerName: "Weight",
+            width: 200,
+            editable: true,
+        },
+        {
             field: "initImageId",
             headerName: "initImage Id",
             width: 200,

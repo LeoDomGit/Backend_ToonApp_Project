@@ -21,6 +21,7 @@ class SubFeatures extends Model
         'preprocessorId',
         'strengthType',
         'initImageId',
+        'weight',
         'is_pro',
         'detech_face',
         'is_highlight',

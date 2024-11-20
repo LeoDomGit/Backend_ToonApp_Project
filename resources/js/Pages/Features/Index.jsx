@@ -209,6 +209,12 @@ function Index({ datafeatures, datasizes }) {
             editable: true,
         },
         {
+            field: "weight",
+            headerName: "Weight",
+            width: 200,
+            editable: true,
+        },
+        {
             field: "strengthType",
             headerName: "Strength Type",
             width: 200,

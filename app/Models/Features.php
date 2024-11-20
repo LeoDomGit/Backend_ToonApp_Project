@@ -21,6 +21,7 @@ class Features extends Model
         'preprocessorId',
         'strengthType',
         'description',
+        'weight',
         'slug',
         'detech_face',
         'remove_bg',
