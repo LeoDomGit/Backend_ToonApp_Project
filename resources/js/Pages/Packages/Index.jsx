@@ -324,13 +324,20 @@ function Index({ data }) {
                                 accept="image/*"
                                 onChange={(e) => setImage(e.target.files[0])}
                             />
-                            <JoditEditor
+                            {/* <JoditEditor
                                 value={description}
                                 config={{ readonly: false, height: 400 }}
                                 tabIndex={1}
                                 onBlur={(newContent) =>
                                     setDescription(newContent)
                                 }
+                            /> */}
+                            <textarea
+                                type="text"
+                                className="form-control"
+                                value={description}
+                                placeholder="Package's description"
+                                onChange={(e) => setDescription(e.target.value)}
                             />
                         </Modal.Body>
                         <Modal.Footer>
@@ -351,14 +358,21 @@ function Index({ data }) {
                             <Modal.Title>Edit Description</Modal.Title>
                         </Modal.Header>
                         <Modal.Body>
-                            <JoditEditor
+                            {/* <JoditEditor
                                 value={editDescription}
                                 config={{ readonly: false, height: 400 }}
                                 tabIndex={1}
                                 onBlur={(newContent) =>
                                     setEditDescription(newContent)
                                 }
-                            />
+                            /> */
+                            <textarea
+                                type="text"
+                                className="form-control"
+                                value={editDescription}
+                                placeholder="Package's description"
+                                onChange={(e) => setEditDescription(e.target.value)}
+                            />}
                         </Modal.Body>
                         <Modal.Footer>
                             <Button
