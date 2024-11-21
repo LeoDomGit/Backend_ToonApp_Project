@@ -11,6 +11,8 @@ import Swal from "sweetalert2";
 import Checkbox from "@mui/material/Checkbox"; // If you are using Material-UI
 
 function Index({ data }) {
+    const [name, setName] = useState("");
+    const [module, setModule] = useState("");
     const [entries, setEntries] = useState(data);
     const [modelName, setModelName] = useState("");
     const [prompt, setPrompt] = useState("");
@@ -62,6 +64,8 @@ function Index({ data }) {
 
     const columns = [
         { field: "id", headerName: "#", width: 100 },
+        { field: "name", headerName: "Name", width: 200, editable: true }, // new column
+        { field: "module", headerName: "Module", width: 200, editable: true }, // new column
         {
             field: "model_name",
             headerName: "Model Name",
@@ -69,7 +73,7 @@ function Index({ data }) {
             editable: true,
         },
         { field: "prompt", headerName: "Prompt", width: 200, editable: true },
-        { field: "apiKey", headerName: "API Key", width: 200, editable: true },
+
         {
             field: "overwrite",
             headerName: "Overwrite",
@@ -97,6 +101,7 @@ function Index({ data }) {
             editable: true,
         },
         { field: "cn_name", headerName: "CN Name", width: 200, editable: true },
+        { field: "apiKey", headerName: "API Key", width: 200, editable: true },
         {
             field: "created_at",
             headerName: "Created at",
@@ -135,10 +140,11 @@ function Index({ data }) {
                         });
 
                         // Assuming the response contains the new entry, append it to the existing entries
-                        setEntries((prevEntries) => [
-                            ...prevEntries,
-                            res.data.data, // Add the new data to the state
-                        ]);
+                        const newEntry = res.data.data;
+                        setEntries((prevEntries) => {
+                            // Append the new entry at the beginning of the list
+                            return [newEntry, ...prevEntries]; // Adds the new entry to the state
+                        });
 
                         // Reset form fields after submission
                         resetCreate();
@@ -160,7 +166,6 @@ function Index({ data }) {
                 });
         }
     };
-
     const handleCellEditStop = (id, field, value) => {
         // Check if the edit is for the "name" field and if the value is empty (indicating a deletion request)
         if (field === "model_name" && value === "") {
