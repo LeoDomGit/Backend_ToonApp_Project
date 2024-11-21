@@ -20,4 +20,8 @@ class Feedback extends Model
         'note',
         'status'
     ];
+    public function subcriptionPackages()
+    {
+        return $this->belongsToMany(SubcriptionPackage::class);
+    }
 }
