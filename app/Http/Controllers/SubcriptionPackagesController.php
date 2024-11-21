@@ -28,7 +28,6 @@ class SubcriptionPackagesController extends Controller
     {
         $subcriptionPackages = SubcriptionPackage::all();
         return Inertia::render('Packages/Index', ['data' => $subcriptionPackages]);
-
     }
 
     /**
@@ -56,45 +55,65 @@ class SubcriptionPackagesController extends Controller
             SubcriptionPackage::create($data);
             $data = SubcriptionPackage::all();
             return response()->json(['check' => true, 'data' => $data]);
-
         }
     }
     // ========================================================
     public function buyPackages(Request $request)
     {
+        
         $validator = Validator::make($request->all(), [
             'device_id' => 'required|exists:customers,device_id',
             'subscription_package_id' => 'required|exists:subcription_packages,id',
             'login_provider' => 'required|string',
             'auth_method' => 'required|string',
-            'serverVerificationData' => 'required'
+            'serverVerificationData' => 'required',
+            'platform' => 'required|string|in:ios,android', 
         ]);
+
         if ($validator->fails()) {
             return response()->json(['check' => 'error', 'msg' => $validator->errors()->first()]);
         }
+
+       
         $customer = Auth::guard('customer')->user();
 
         if (!$customer) {
             return response()->json(['error' => 'Customer not found.'], 404);
         }
+
+        $subscriptionPackage = SubcriptionPackage::find($request->subscription_package_id);
+        if (!$subscriptionPackage) {
+            return response()->json(['error' => 'Subscription package not found.'], 404);
+        }
+
+    
+        $productColumn = $request->platform == 'ios' ? 'product_id_ios' : 'product_id_and';
+        $productId = $subscriptionPackage->$productColumn; 
+
+        if (!$productId) {
+            return response()->json(['error' => 'No product ID found for the selected platform.'], 400);
+        }
+
         // Create the subscription history entry
         $subscriptionHistory = SubscriptionHistory::create([
             'customer_id' => $customer->id,
             'subscription_package_id' => $request->subscription_package_id,
             'login_provider' => $request->login_provider,
             'auth_method' => $request->auth_method,
-            'serverVerificationData' => $request->serverVerificationData
-        ]);
-        $subscriptionPackage = SubcriptionPackage::find($request->subscription_package_id);
-        if (!$subscriptionPackage) {
-            return response()->json(['error' => 'Subscription package not found.'], 404);
-        }
+            'serverVerificationData' => $request->serverVerificationData,
+            'platform' => $request->platform, 
+
+
         $customer->updateRememberTokenAndExpiry($subscriptionPackage->duration, $request->platform);
+
+        
         $rememberToken = $customer->fresh()->remember_token;
-        // UAT ENV
+
+       
         $config = config('app.access_token');
-        return response()->json(['check' => true, 'token' => $config]);
+        return response()->json(['check' => true, 'token' => $config, 'product_id' => $productId]);
     }
+
     /**
      * Display the specified resource.
      */
