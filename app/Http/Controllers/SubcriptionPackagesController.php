@@ -60,35 +60,36 @@ class SubcriptionPackagesController extends Controller
     // ========================================================
     public function buyPackages(Request $request)
     {
-        
+        // Validate incoming request
         $validator = Validator::make($request->all(), [
             'device_id' => 'required|exists:customers,device_id',
             'subscription_package_id' => 'required|exists:subcription_packages,id',
             'login_provider' => 'required|string',
             'auth_method' => 'required|string',
             'serverVerificationData' => 'required',
-            'platform' => 'required|string|in:ios,android', 
+            'platform' => 'required|string|in:ios,android', // Ensure platform is either ios or android
         ]);
 
         if ($validator->fails()) {
             return response()->json(['check' => 'error', 'msg' => $validator->errors()->first()]);
         }
 
-       
+        // Get authenticated customer
         $customer = Auth::guard('customer')->user();
 
         if (!$customer) {
             return response()->json(['error' => 'Customer not found.'], 404);
         }
 
+        // Fetch subscription package
         $subscriptionPackage = SubcriptionPackage::find($request->subscription_package_id);
         if (!$subscriptionPackage) {
             return response()->json(['error' => 'Subscription package not found.'], 404);
         }
 
-    
+        // Determine which product ID to use based on platform
         $productColumn = $request->platform == 'ios' ? 'product_id_ios' : 'product_id_and';
-        $productId = $subscriptionPackage->$productColumn; 
+        $productId = $subscriptionPackage->$productColumn; // Get the corresponding product_id from the selected column
 
         if (!$productId) {
             return response()->json(['error' => 'No product ID found for the selected platform.'], 400);
@@ -101,15 +102,16 @@ class SubcriptionPackagesController extends Controller
             'login_provider' => $request->login_provider,
             'auth_method' => $request->auth_method,
             'serverVerificationData' => $request->serverVerificationData,
-            'platform' => $request->platform, 
+            'platform' => $request->platform, // Optionally store platform if needed
+        ]);
 
-
+        // Update customer with the subscription package duration
         $customer->updateRememberTokenAndExpiry($subscriptionPackage->duration, $request->platform);
 
-        
+        // Fetch the updated customer record
         $rememberToken = $customer->fresh()->remember_token;
 
-       
+        // Return success response with token
         $config = config('app.access_token');
         return response()->json(['check' => true, 'token' => $config, 'product_id' => $productId]);
     }
