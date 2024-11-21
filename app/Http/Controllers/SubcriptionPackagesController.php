@@ -85,12 +85,12 @@ class SubcriptionPackagesController extends Controller
             'serverVerificationData' => $request->serverVerificationData
         ]);
 
-        // Tìm kiếm gói đăng ký dựa trên chuỗi 'subscription_package_id' truyền vào
+
         if ($request->platform === 'ios') {
-            // Tìm theo product_id_ios nếu là iOS
+
             $subscriptionPackage = SubcriptionPackage::where('product_id_ios', $request->subscription_package_id)->first();
         } else {
-            // Tìm theo product_id_and nếu là Android
+
             $subscriptionPackage = SubcriptionPackage::where('product_id_and', $request->subscription_package_id)->first();
         }
 
