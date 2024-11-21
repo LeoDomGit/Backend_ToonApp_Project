@@ -121,14 +121,22 @@ class SubcriptionPackagesController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Platform is required'], 400);
         }
         $customer_id = $result->customer_id;
-        $customer = Customers::where('id', $customer_id)->where('platform', $request->has('platform'))->first();
-        if ($customer->expired_at && Carbon::parse($customer->expired_at)->isPast()) {
-            Customers::where('id', $customer_id)->update(['remember_token' => null, 'updated_at' => now()]);
+        $customer = Customers::find($customer_id); // Fetch the customer record
+        if (!$customer) {
+            return response()->json(['error' => 'Customer not found'], 404); // Handle the case where the customer doesn't exist
+        }
+        if ($customer->expired_at && \Carbon\Carbon::parse($customer->expired_at)->isPast()) {
+            Customers::where('id', $customer_id)->update([
+                'remember_token' => null,
+                'updated_at' => now(),
+            ]);
             return response()->json(['token' => 'Expired']);
         }
-        Customers::where('id', $customer_id)->update(['device_id' => $request->device_id, 'updated_at' => now()]);
-        $token = $customer->remember_token;
-        $token = config('app.access_token');
+        Customers::where('id', $customer_id)->update([
+            'device_id' => $request->device_id,
+            'updated_at' => now(),
+        ]);
+        $token = config('app.access_token'); // Set the token from config
         return response()->json(['token' => $token]);
     }
     /**
