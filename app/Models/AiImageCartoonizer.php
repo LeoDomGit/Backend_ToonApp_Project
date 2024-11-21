@@ -14,6 +14,8 @@ class AiImageCartoonizer extends Model
 
     // Các thuộc tính có thể được fillable
     protected $fillable = [
+        'name',
+        'module',
         'model_name',
         'prompt',
         'overwrite',

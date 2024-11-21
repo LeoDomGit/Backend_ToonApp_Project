@@ -53,6 +53,7 @@ class AiImageCartoonizerController extends Controller
         }
     }
 
+
     // Update an existing cartoonizer
     public function update(Request $request, $id)
     {
