@@ -15,6 +15,7 @@ import KeyIcon from "@mui/icons-material/Key";
 import LogoutIcon from "@mui/icons-material/Logout";
 import WallpaperIcon from "@mui/icons-material/Wallpaper";
 import FeedbackIcon from "@mui/icons-material/Feedback";
+import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import PhotoSizeSelectActualIcon from "@mui/icons-material/PhotoSizeSelectActual";
 import FeaturedPlayListIcon from "@mui/icons-material/FeaturedPlayList";
 import FilterIcon from "@mui/icons-material/Filter";
@@ -104,6 +105,11 @@ function Layout({ children }) {
                         <a href={"/feedback"}>
                             <MenuItem icon={<FeedbackIcon />}>
                                 Feedback
+                            </MenuItem>
+                        </a>
+                        <a href={"/cartoonizers"}>
+                            <MenuItem icon={<AutoAwesomeIcon />}>
+                                AI Image Cartoonizer
                             </MenuItem>
                         </a>
                         <a href={"/logout"}>
