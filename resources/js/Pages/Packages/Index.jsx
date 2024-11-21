@@ -37,7 +37,7 @@ function Index({ data }) {
         setImage(null);
         setShow(true);
     };
-
+    
     const showAlert = (status, msg) => {
         if (status === "error") {
             toast.error(msg, { position: "top-right" });
@@ -358,7 +358,8 @@ function Index({ data }) {
                             <Modal.Title>Edit Description</Modal.Title>
                         </Modal.Header>
                         <Modal.Body>
-                            {/* <JoditEditor
+                            {
+                                /* <JoditEditor
                                 value={editDescription}
                                 config={{ readonly: false, height: 400 }}
                                 tabIndex={1}
@@ -366,13 +367,16 @@ function Index({ data }) {
                                     setEditDescription(newContent)
                                 }
                             /> */
-                            <textarea
-                                type="text"
-                                className="form-control"
-                                value={editDescription}
-                                placeholder="Package's description"
-                                onChange={(e) => setEditDescription(e.target.value)}
-                            />}
+                                <textarea
+                                    type="text"
+                                    className="form-control"
+                                    value={editDescription}
+                                    placeholder="Package's description"
+                                    onChange={(e) =>
+                                        setEditDescription(e.target.value)
+                                    }
+                                />
+                            }
                         </Modal.Body>
                         <Modal.Footer>
                             <Button

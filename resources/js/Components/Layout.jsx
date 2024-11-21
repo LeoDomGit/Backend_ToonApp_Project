@@ -107,9 +107,9 @@ function Layout({ children }) {
                                 Feedback
                             </MenuItem>
                         </a>
-                        <a href={"/cartoonizers"}>
+                        <a href={"/apivances"}>
                             <MenuItem icon={<AutoAwesomeIcon />}>
-                                AI Image Cartoonizer
+                                API VanceAI
                             </MenuItem>
                         </a>
                         <a href={"/logout"}>

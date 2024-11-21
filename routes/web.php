@@ -60,9 +60,17 @@ Route::middleware('checkLogin')->group(function () {
 
     Route::resource('/configs', ConfigController::class);
     Route::resource('/feedback', FeedbackController::class);
+    Route::resource('/apivances',  AiImageCartoonizerController::class);
+    Route::get('/apivances', [AiImageCartoonizerController::class, 'index']);
 
+    // Store a new cartoonizer
+    Route::post('/apivances', [AiImageCartoonizerController::class, 'store']);
 
-    Route::apiResource('/cartoonizers', AiImageCartoonizerController::class);
+    // Update a cartoonizer
+    Route::put('/apivances/{id}', [AiImageCartoonizerController::class, 'update']);
+
+    // Delete a cartoonizer
+    Route::delete('/apivances/{id}', [AiImageCartoonizerController::class, 'destroy']);
     //==========================================================
     Route::resource('effects', EffectsController::class);
     Route::post('effects-update-image/{id}', [EffectsController::class, 'api_update_image']);

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AiImageCartoonizerController;
 use App\Http\Controllers\BackgroundController;
 use App\Http\Controllers\ConfigController;
 use App\Http\Controllers\FeaturesController;
@@ -53,6 +54,8 @@ Route::middleware('device_login')->group(function () {
     Route::get('/backgrounds/{id}', [BackgroundController::class, 'api_single']);
     Route::get('/packages', [SubcriptionPackagesController::class, 'getPackages']);
     Route::post('/feedback', [FeedbackController::class, 'store']);
+    Route::post('/apivances', [AiImageCartoonizerController::class, 'store']);
+
     // Route::get('/effects', [Effects::class, 'api_index']);
     // Route::get('/effects/{id}', [Effects::class, 'api_single']);
 });
