@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class SubcriptionPackagesController extends Controller
 {
@@ -60,60 +61,51 @@ class SubcriptionPackagesController extends Controller
     // ========================================================
     public function buyPackages(Request $request)
     {
-        // Validate incoming request
         $validator = Validator::make($request->all(), [
             'device_id' => 'required|exists:customers,device_id',
-            'subscription_package_id' => 'required|exists:subcription_packages,id',
-            'login_provider' => 'required|string',
-            'auth_method' => 'required|string',
             'serverVerificationData' => 'required',
-            'platform' => 'required|string|in:ios,android', // Ensure platform is either ios or android
+            'platform' => 'required',
+            'subscription_package_id' => 'required|string'
         ]);
 
         if ($validator->fails()) {
             return response()->json(['check' => 'error', 'msg' => $validator->errors()->first()]);
         }
 
-        // Get authenticated customer
         $customer = Auth::guard('customer')->user();
 
         if (!$customer) {
             return response()->json(['error' => 'Customer not found.'], 404);
         }
 
-        // Fetch subscription package
-        $subscriptionPackage = SubcriptionPackage::find($request->subscription_package_id);
-        if (!$subscriptionPackage) {
-            return response()->json(['error' => 'Subscription package not found.'], 404);
-        }
-
-        // Determine which product ID to use based on platform
-        $productColumn = $request->platform == 'ios' ? 'product_id_ios' : 'product_id_and';
-        $productId = $subscriptionPackage->$productColumn; // Get the corresponding product_id from the selected column
-
-        if (!$productId) {
-            return response()->json(['error' => 'No product ID found for the selected platform.'], 400);
-        }
-
         // Create the subscription history entry
         $subscriptionHistory = SubscriptionHistory::create([
             'customer_id' => $customer->id,
             'subscription_package_id' => $request->subscription_package_id,
-            'login_provider' => $request->login_provider,
-            'auth_method' => $request->auth_method,
-            'serverVerificationData' => $request->serverVerificationData,
-            'platform' => $request->platform, // Optionally store platform if needed
+            'serverVerificationData' => $request->serverVerificationData
         ]);
 
-        // Update customer with the subscription package duration
-        $customer->updateRememberTokenAndExpiry($subscriptionPackage->duration, $request->platform);
+        // Tìm kiếm gói đăng ký dựa trên chuỗi 'subscription_package_id' truyền vào
+        if ($request->platform === 'ios') {
+            // Tìm theo product_id_ios nếu là iOS
+            $subscriptionPackage = SubcriptionPackage::where('product_id_ios', $request->subscription_package_id)->first();
+        } else {
+            // Tìm theo product_id_and nếu là Android
+            $subscriptionPackage = SubcriptionPackage::where('product_id_and', $request->subscription_package_id)->first();
+        }
 
-        // Fetch the updated customer record
+        if (!$subscriptionPackage) {
+            return response()->json(['error' => 'Subscription package not found.'], 404);
+        }
+
+        // Cập nhật thông tin token và thời gian hết hạn
+        $customer->updateRememberTokenAndExpiry($subscriptionPackage->duration, $request->platform);
         $rememberToken = $customer->fresh()->remember_token;
 
-        // Return success response with token
+        // Lấy token cấu hình từ env
         $config = config('app.access_token');
-        return response()->json(['check' => true, 'token' => $config, 'product_id' => $productId]);
+
+        return response()->json(['check' => true, 'token' => $config]);
     }
 
     /**
