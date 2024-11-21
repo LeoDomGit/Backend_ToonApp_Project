@@ -41,6 +41,7 @@ Route::middleware('device_login')->group(function () {
     Route::post('/claymation', [ImageAIController::class, 'claymation']);
     Route::post('/buyPackage', [SubcriptionPackagesController::class, 'buyPackages']);
     Route::get('/token/{id}', [SubcriptionPackagesController::class, 'getToken']);
+    Route::post('/token', [SubcriptionPackagesController::class, 'getToken']);
     Route::post('/profile', [ImageAIController::class, 'changeBackground']);
     Route::get('/effects', [ImageAIController::class, 'getEffect']);
     Route::post('/effect', [ImageAIController::class, 'setup_profile_picture']);
@@ -51,7 +52,7 @@ Route::middleware('device_login')->group(function () {
     Route::get('/backgrounds', [BackgroundController::class, 'api_index']);
     Route::get('/backgrounds/{id}', [BackgroundController::class, 'api_single']);
     Route::get('/packages', [SubcriptionPackagesController::class, 'getPackages']);
-    Route::post('/feedback',[FeedbackController::class, 'store']);
+    Route::post('/feedback', [FeedbackController::class, 'store']);
     // Route::get('/effects', [Effects::class, 'api_index']);
     // Route::get('/effects/{id}', [Effects::class, 'api_single']);
 });
