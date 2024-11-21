@@ -22,6 +22,7 @@ function Index({ data }) {
     const [cnName, setCnName] = useState("");
     const [show, setShow] = useState(false);
     const [apiKey, setApiKey] = useState("");
+    const [transId, setTransId] = useState(""); // New state for trans_id
 
     const handleClose = () => setShow(false);
     const handleShow = () => setShow(true);
@@ -64,8 +65,9 @@ function Index({ data }) {
 
     const columns = [
         { field: "id", headerName: "#", width: 100 },
-        { field: "name", headerName: "Name", width: 200, editable: true }, // new column
-        { field: "module", headerName: "Module", width: 200, editable: true }, // new column
+        { field: "apiKey", headerName: "API Key", width: 200, editable: true },
+        { field: "name", headerName: "Name", width: 200, editable: true },
+        { field: "module", headerName: "Module", width: 200, editable: true },
         {
             field: "model_name",
             headerName: "Model Name",
@@ -73,7 +75,6 @@ function Index({ data }) {
             editable: true,
         },
         { field: "prompt", headerName: "Prompt", width: 200, editable: true },
-
         {
             field: "overwrite",
             headerName: "Overwrite",
@@ -82,7 +83,7 @@ function Index({ data }) {
             renderCell: (params) => {
                 return (
                     <Checkbox
-                        checked={params.value === 1} // If value is 1, checkbox is checked
+                        checked={params.value === 1}
                         onChange={(e) => handleOverwriteChange(e, params)}
                     />
                 );
@@ -101,7 +102,13 @@ function Index({ data }) {
             editable: true,
         },
         { field: "cn_name", headerName: "CN Name", width: 200, editable: true },
-        { field: "apiKey", headerName: "API Key", width: 200, editable: true },
+        {
+            field: "trans_id", // New column for trans_id
+            headerName: "Trans ID",
+            width: 200,
+            editable: true,
+        },
+
         {
             field: "created_at",
             headerName: "Created at",
@@ -109,7 +116,6 @@ function Index({ data }) {
             valueGetter: (params) => formatCreatedAt(params),
         },
     ];
-
     const submitEntry = () => {
         if (!modelName) {
             showAlert("error", "Model Name is required");
@@ -118,41 +124,33 @@ function Index({ data }) {
         } else if (!apiKey) {
             showAlert("error", "API Key is required");
         } else {
-            // Ensure overwrite is a boolean (true or false)
-            const overwriteBool = overwrite === 1; // overwrite is true if 1, false if 0
+            const overwriteBool = overwrite === 1;
 
-            // Send the POST request to create a new entry
             axios
                 .post("/apivances", {
                     model_name: modelName,
                     prompt,
                     apiKey,
-                    overwrite: overwriteBool, // Send the boolean value
+                    overwrite: overwriteBool,
                     denoising_strength: denoisingStrength,
                     image_uid: imageUid,
                     cn_name: cnName,
+                    trans_id: transId, // Include trans_id here
                 })
                 .then((res) => {
                     if (res.data.check) {
-                        // Show a success toast notification
                         toast.success("Created successfully!", {
                             position: "top-right",
                         });
 
-                        // Assuming the response contains the new entry, append it to the existing entries
                         const newEntry = res.data.data;
                         setEntries((prevEntries) => {
-                            // Append the new entry at the beginning of the list
-                            return [newEntry, ...prevEntries]; // Adds the new entry to the state
+                            return [newEntry, ...prevEntries];
                         });
 
-                        // Reset form fields after submission
                         resetCreate();
-
-                        // Close the modal or form after creation
                         handleClose();
                     } else {
-                        // Show error message if the creation failed
                         showAlert(
                             "error",
                             res.data.msg || "Failed to create entry."
@@ -160,12 +158,12 @@ function Index({ data }) {
                     }
                 })
                 .catch((error) => {
-                    // Show error message for failed request
                     showAlert("error", "An error occurred. Please try again.");
                     console.error(error);
                 });
         }
     };
+
     const handleCellEditStop = (id, field, value) => {
         // Check if the edit is for the "name" field and if the value is empty (indicating a deletion request)
         if (field === "model_name" && value === "") {
@@ -264,6 +262,13 @@ function Index({ data }) {
                             value={imageUid}
                             className="form-control mb-3"
                             onChange={(e) => setImageUid(e.target.value)}
+                        />
+                        <label>Trans ID</label> {/* New trans_id input */}
+                        <input
+                            type="text"
+                            value={transId}
+                            className="form-control mb-3"
+                            onChange={(e) => setTransId(e.target.value)} // Set trans_id here
                         />
                         <label>CN Name</label>
                         <input

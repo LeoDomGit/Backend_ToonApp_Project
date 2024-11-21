@@ -31,6 +31,7 @@ class AiImageCartoonizerController extends Controller
             'denoising_strength' => 'required|numeric',
             'image_uid' => 'required|string',
             'cn_name' => 'required|string',
+            'trans_id' => 'required|string', // New validation for trans_id
         ]);
 
         try {
@@ -53,7 +54,6 @@ class AiImageCartoonizerController extends Controller
         }
     }
 
-
     // Update an existing cartoonizer
     public function update(Request $request, $id)
     {
@@ -74,6 +74,7 @@ class AiImageCartoonizerController extends Controller
             'image_uid' => 'required|string',
             'cn_name' => 'required|string',
             'apiKey' => 'nullable|string|max:255',
+            'trans_id' => 'nullable|string', // Allow trans_id to be nullable in the update method
         ]);
 
         // Handle the 'overwrite' field specifically to ensure it's treated correctly
@@ -98,7 +99,6 @@ class AiImageCartoonizerController extends Controller
             ], 500);
         }
     }
-
 
     // Delete a cartoonizer
     public function destroy($id)

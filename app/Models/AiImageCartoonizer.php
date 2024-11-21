@@ -23,6 +23,7 @@ class AiImageCartoonizer extends Model
         'image_uid',
         'cn_name',
         'apiKey',
+        'trans_id',
 
     ];
 }
