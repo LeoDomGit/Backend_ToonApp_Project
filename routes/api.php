@@ -43,7 +43,7 @@ Route::middleware('device_login')->group(function () {
     Route::post('/style', [ImageAIController::class, 'cartoon']);
     Route::post('/claymation', [ImageAIController::class, 'claymation']);
     Route::post('/buyPackage', [SubcriptionPackagesController::class, 'buyPackages']);
-    Route::get('/token/{id}', [SubcriptionPackagesController::class, 'getToken']);
+    Route::token('/get_token', [SubcriptionPackagesController::class, 'getToken']);
     Route::post('/token', [SubcriptionPackagesController::class, 'getToken']);
     Route::post('/profile', [ImageAIController::class, 'changeBackground']);
     Route::get('/effects', [ImageAIController::class, 'getEffect']);

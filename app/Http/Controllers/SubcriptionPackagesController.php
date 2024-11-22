@@ -111,9 +111,13 @@ class SubcriptionPackagesController extends Controller
     /**
      * Display the specified resource.
      */
-    public function getToken(Request $request, $id)
+    public function getToken(Request $request)
     {
-        $result = SubscriptionHistory::where('serverVerificationData', $id)->first();
+        if(!$request->has('serverVerificationData')){
+            return response()->json(['status'=>'error','message'=>'serverVerificationData is required'],400);
+        }
+        $token=$request->serverVerificationData;
+        $result = SubscriptionHistory::where('serverVerificationData', $token)->first();
         if (!$result) {
             return response()->json(['status' => 'error', 'message' => 'No subscription'], 400);
         }
