@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CustomersController;
 use App\Http\Controllers\TestController;
 use App\Http\Controllers\FeedbackController;
+use App\Http\Controllers\ImageController;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -55,6 +57,9 @@ Route::middleware('device_login')->group(function () {
     Route::get('/packages', [SubcriptionPackagesController::class, 'getPackages']);
     Route::post('/feedback', [FeedbackController::class, 'store']);
     Route::post('/apivances', [AiImageCartoonizerController::class, 'store']);
+    Route::post('/upload_image', [ImageController::class, 'uploadImage']);
+    Route::get('/image/{uid}', [ImageController::class, 'getImage']);
+
 
     // Route::get('/effects', [Effects::class, 'api_index']);
     // Route::get('/effects/{id}', [Effects::class, 'api_single']);

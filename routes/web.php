@@ -15,6 +15,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\EffectsController;
 use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\AiImageCartoonizerController;
+use App\Http\Controllers\ImageController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -62,7 +63,7 @@ Route::middleware('checkLogin')->group(function () {
     Route::resource('/feedback', FeedbackController::class);
     Route::resource('/apivances',  AiImageCartoonizerController::class);
     Route::get('/apivances', [AiImageCartoonizerController::class, 'index']);
-
+    Route::resource('/uploadimages',  ImageController::class);
     // Store a new cartoonizer
     Route::post('/apivances', [AiImageCartoonizerController::class, 'store']);
 

@@ -63,7 +63,7 @@ class SubcriptionPackagesController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'device_id' => 'required|exists:customers,device_id',
-            'serverVerificationData' => 'required',
+            'serverVerificationData' => 'required|string',
             'platform' => 'required',
             'subscription_package_id' => 'required|string'
         ]);
