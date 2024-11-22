@@ -107,11 +107,26 @@ function Layout({ children }) {
                                 Feedback
                             </MenuItem>
                         </a>
-                        <a href={"/apivances"}>
-                            <MenuItem icon={<AutoAwesomeIcon />}>
-                                API VanceAI
-                            </MenuItem>
-                        </a>
+                        <SubMenu
+                            label="Api VanceAI"
+                            icon={<FeaturedPlayListIcon />}
+                        >
+                            <a href={"/uploadimages"}>
+                                <MenuItem icon={<AutoAwesomeIcon />}>
+                                    Upload
+                                </MenuItem>
+                            </a>
+                            <a href={"/uploadimages"}>
+                                <MenuItem icon={<AutoAwesomeIcon />}>
+                                    Transform
+                                </MenuItem>
+                            </a>
+                            <a href={"/uploadimages"}>
+                                <MenuItem icon={<AutoAwesomeIcon />}>
+                                    Download
+                                </MenuItem>
+                            </a>
+                        </SubMenu>
                         <a href={"/logout"}>
                             <MenuItem icon={<LogoutIcon />}>Log out</MenuItem>
                         </a>
