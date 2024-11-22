@@ -37,7 +37,7 @@ Route::prefix('customers')->group(function () {
     Route::post('/social_login', [CustomersController::class, 'social_login']);
 });
 Route::middleware('device_login')->group(function () {
-    Route::put('/customers', [CustomersController::class, 'update']);
+    Route::put('/customers', action: [CustomersController::class, 'update']);
     Route::get('/logout', [CustomersController::class, 'logout']);
     Route::post('/upload_image', [ImageAIController::class, 'uploadImage']);
     Route::post('/style', [ImageAIController::class, 'cartoon']);
@@ -57,13 +57,16 @@ Route::middleware('device_login')->group(function () {
     Route::get('/packages', [SubcriptionPackagesController::class, 'getPackages']);
     Route::post('/feedback', [FeedbackController::class, 'store']);
     Route::post('/apivances', [AiImageCartoonizerController::class, 'store']);
-    Route::post('/upload_image', [ImageController::class, 'uploadImage']);
     Route::get('/image/{uid}', [ImageController::class, 'getImage']);
+
+    Route::post('/vancetransform', [ImageController::class, 'uploadImage']);
 
 
     // Route::get('/effects', [Effects::class, 'api_index']);
     // Route::get('/effects/{id}', [Effects::class, 'api_single']);
 });
+
+Route::get('/download', [ImageController::class, 'download']);
 
 Route::get('/configs', [ConfigController::class, 'api_index']);
 
