@@ -37,9 +37,9 @@ class ImageAIController extends Controller
      * Display a listing of the resource.
      */
 
-    public function __construct(Request $request)
+     public function __construct(Request $request)
     {
-        $result = Key::where('api', 'picsart')->orderBy('id', 'asc')->first();
+        $result = Key::where('api', 'picsart')->where('key','!=','0')->orderBy('id', 'asc')->first();
         $client = new \GuzzleHttp\Client();
         $response = $client->request('GET', 'https://genai-api.picsart.io/v1/balance', [
             'headers' => [
