@@ -86,7 +86,7 @@ class ImageController extends Controller
             }
         } catch (\Throwable $th) {
             Log::error($th->getMessage());
-            return 'error';
+            return 'error'.$th->getMessage();
         }
     }
     // Upload ảnh
