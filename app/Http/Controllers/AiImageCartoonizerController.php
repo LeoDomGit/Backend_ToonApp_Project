@@ -63,42 +63,52 @@ class AiImageCartoonizerController extends Controller
         // Return an error if the cartoonizer is not found
         if (!$cartoonizer) {
             return response()->json(['check' => false, 'msg' => 'Cartoonizer not found.'], 404);
+        }   
+
+        // Get the field and value from the request
+        $field = $request->input('field');
+        $value = $request->input('value');
+
+        // Ensure that the field to be updated is allowed to be modified (for security reasons)
+        $allowedFields = ['model_name', 'prompt', 'overwrite', 'denoising_strength', 'image_uid', 'cn_name', 'apiKey', 'trans_id'];
+
+        if (!in_array($field, $allowedFields)) {
+            return response()->json([
+                'check' => false,
+                'msg' => 'Invalid field provided.',
+            ], 400);
         }
 
-        // Validate the incoming request data
-        $validated = $request->validate([
-            'model_name' => 'required|string',
-            'prompt' => 'nullable|string|max:140',
-            'overwrite' => 'required|boolean',  // Ensure overwrite is a boolean
-            'denoising_strength' => 'required|numeric|between:0,1',  // Denoising strength must be between 0 and 1
-            'image_uid' => 'required|string',
-            'cn_name' => 'required|string',
-            'apiKey' => 'nullable|string|max:255',
-            'trans_id' => 'nullable|string', // Allow trans_id to be nullable in the update method
+        // Validate the value of the field
+        // You can add specific validation for each field if needed (e.g., validate 'overwrite' as boolean, 'denoising_strength' as numeric)
+        $validatedData = $request->validate([
+            'field' => 'required|string|in:' . implode(',', $allowedFields), // Ensure it's a valid field
+            'value' => 'required', // Make sure the value is not empty
         ]);
 
-        // Handle the 'overwrite' field specifically to ensure it's treated correctly
-        $validated['overwrite'] = (bool) $validated['overwrite'];  // Convert to boolean value (true or false)
+        // Update only the specific field
+        $cartoonizer->$field = $value;
 
-        // Attempt to update the cartoonizer with the validated data
         try {
-            $cartoonizer->update($validated);
+            // Save the changes to the database
+            $cartoonizer->save();
 
-            // Return success response if the update is successful
+            // Return success response with the updated data
             return response()->json([
                 'check' => true,
                 'msg' => 'Cartoonizer updated successfully.',
-                'data' => $cartoonizer  // Optionally return the updated object for further use
+                'data' => $cartoonizer,  // Include the updated cartoonizer data
             ]);
         } catch (\Exception $e) {
             // Handle any exception that might occur during the update process
             return response()->json([
                 'check' => false,
                 'msg' => 'Failed to update cartoonizer.',
-                'details' => $e->getMessage()  // Provide exception details for debugging purposes
+                'details' => $e->getMessage(),  // Provide exception details for debugging purposes
             ], 500);
         }
     }
+
 
     // Delete a cartoonizer
     public function destroy($id)
