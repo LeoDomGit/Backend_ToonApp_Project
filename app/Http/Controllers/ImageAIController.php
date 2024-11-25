@@ -27,6 +27,7 @@ use App\Models\Customers;
 class ImageAIController extends Controller
 {
     protected $key;
+    protected $vancekey;
     protected $leo_key;
     protected $client;
     protected $aws_secret_key;
@@ -41,6 +42,7 @@ class ImageAIController extends Controller
     {
         $result = Key::where('api', 'picsart')->where('key','!=','0')->orderBy('id', 'asc')->first();
         $client = new \GuzzleHttp\Client();
+
         $response = $client->request('GET', 'https://genai-api.picsart.io/v1/balance', [
             'headers' => [
                 'X-Picsart-API-Key' => $result->key,
@@ -60,6 +62,32 @@ class ImageAIController extends Controller
         } else {
             $this->key = $result->key;
         }
+
+        $max_num = 20;
+        $used_num = 0;
+        while($used_num < $max_num) {
+            $vance_key = Key::where('api', 'vance')->where('key','!=','0')->orderBy('id', 'asc')->first();
+
+            if (!$vance_key) {
+                $this->vancekey = null;
+                break;
+            }
+
+            $responseVance = $client->request('GET', 'https://api-service.vanceai.com/web_api/v1/point?api_token=' . $vance_key->key);
+            $bodyVance = json_decode($responseVance->getBody(), true);
+
+            $max_num = isset($bodyVance['data']['max_num']) ? $bodyVance['data']['max_num'] : 0;
+            $used_num = isset($bodyVance['data']['used_num']) ? $bodyVance['data']['used_num'] : 0;
+
+            if($used_num == $max_num) {
+                $vance_key->update(['key' => 0]);
+                continue;
+            }
+
+            $this->vancekey = $vance_key->key;
+            break;
+        }
+
         $this->leo_key = env('IMAGE_API_KEY');
         $this->aws_secret_key = 'b52dcdbea046cc2cc13a5b767a1c71ea8acbe96422b3e45525d3678ce2b5ed3e';
         $this->aws_access_key = 'cbb3e2fea7c7f3e7af09b67eeec7d62c';
@@ -67,13 +95,10 @@ class ImageAIController extends Controller
         $guard = Auth::guard('customer');
         $user = $guard->user();
         $bearerToken = $request->bearerToken();
+
         if ($bearerToken && $bearerToken === config('app.access_token')) {
             $this->pro_account = true;
-        }
-        // elseif ($user && $user->expired_at && !Carbon::parse($user->expired_at)->isPast()) {
-        //     $this->pro_account = true;
-        // }
-        else {
+        } else {
             $this->pro_account = false;
         }
     }
@@ -365,8 +390,11 @@ class ImageAIController extends Controller
                 'use_path_style_endpoint' => true,
             ]);
 
+            Log::debug($folder);
+            Log::debug($filename);
             // Step 2: Define the object path and name in R2
             $r2object = $folder . '/' . $filename . '.' . $file->getClientOriginalExtension();
+            Log::debug($r2object);
 
             // Step 3: Upload the file to Cloudflare R2
             try {
@@ -389,7 +417,7 @@ class ImageAIController extends Controller
             return 'error';
         }
     }
-    private function uploadToCloudFlareFromCdn($image_url, $code_profile, $folder, $filename)
+    private function uploadToCloudFlareFromCdn($image_url, $filename, $folder)
     {
         try {
             // Step 1: Prepare Cloudflare R2 credentials and settings
@@ -548,14 +576,13 @@ class ImageAIController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Failed to process image', 'error' => $response->body()], 400);
         }
     }
-    private function uploadToCloudFlareFromFile1($imageFile, $code_profile, $folder, $filename)
+    private function uploadToCloudFlareFromUrl($imageFileUrl, $folder, $filename)
     {
         try {
-            // Step 1: Check if the file exists
-            if (!file_exists($imageFile)) {
-                Log::error('File does not exist: ' . $imageFile);
-                return 'error: file does not exist';
-            }
+            $headers = @get_headers($imageFileUrl, 1); // Sử dụng tham số 1 để lấy dạng mảng
+            $contentType = $headers && isset($headers['Content-Type']) ? $headers['Content-Type'] : 'image/jpeg';
+
+            $extension = pathinfo(parse_url($imageFileUrl, PHP_URL_PATH), PATHINFO_EXTENSION);
 
             // Step 2: Prepare Cloudflare R2 credentials and settings
             $accountid = '453d5dc9390394015b582d09c1e82365';
@@ -578,19 +605,21 @@ class ImageAIController extends Controller
             ]);
 
             // Step 3: Define the object path and name in R2
-            $r2object = $folder . '/' . $filename . '.jpg';
+            $r2object = $folder . '/' . $filename . '.' . $extension;
+            Log::debug('uploadToCloudFlareFromUrl: ' . $r2object);
+            $imageData = @file_get_contents($imageFileUrl);
 
             // Step 4: Upload the file to Cloudflare R2
             try {
                 $result = $s3Client->putObject([
                     'Bucket' => $r2bucket,
                     'Key' => $r2object,
-                    'Body' => fopen($imageFile, 'rb'), // Open the file as a binary stream
-                    'ContentType' => 'image/jpeg',
+                    'Body' => $imageData,
+                    'ContentType' => $contentType,
                 ]);
 
                 // Generate the CDN URL using the custom domain
-                $cdnUrl = "https://artapp.promptme.info/$folder/$filename.jpg";
+                $cdnUrl = "https://artapp.promptme.info/$folder/$filename.$extension";
                 return $cdnUrl;
             } catch (S3Exception $e) {
                 Log::error("Error uploading file: " . $e->getMessage());
@@ -1506,7 +1535,7 @@ class ImageAIController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function cartoon(Request $request)
+    /*public function cartoon(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'image' => 'required|mimes:png,jpg,jpeg',
@@ -1891,7 +1920,415 @@ class ImageAIController extends Controller
                 return response()->json(['status' => 'error', 'message' => 'Failed to upload image.', 'details' => $response->body()]);
             }
         }
+    }*/
+    /* New code 2024-11-24 */
+    public function cartoon(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'image' => 'required|mimes:png,jpg,jpeg',
+            'slug' => 'required',
+            'id_size' => 'nullable'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['status' => 'error', 'message' => $validator->errors()->first()]);
+        }
+
+        $file = $request->file('image');
+
+        $feature = $this->getFeatureBySlug($request->slug);
+        if (!$feature) {
+            return response()->json(['status' => 'error', 'message' => 'Feature not found'], 404);
+        }
+
+        if ($feature->is_pro == 1 && !$this->pro_account) {
+            return response()->json(['status' => false, 'error' => 'Not accepted'], 401);
+        }
+
+        if ($request->slug == '2d-ai-cartoon') {
+            $cartoonizedImageUrl = $this->transformViaVance($request, $file);
+
+            Activities::create([
+                'customer_id' => Auth::guard('customer')->id(),
+                'photo_id' => $this->uploadServerImage($file),
+                'features_id' => $feature->id,
+                'image_result' => $cartoonizedImageUrl,
+                'ai_model' => 'Vance AI',
+                'api_endpoint' => 'https://api-service.vanceai.com/web_api/v1/transform',
+                'attributes' => json_encode([
+                    'jconfig' => json_encode([
+                        'job' => 'animegan',
+                        'config' => [
+                            'module' => 'animegan2',
+                            'module_params' => [
+                                'model_name' => 'Animegan2Stable',
+                                'single_face' => true,
+                                'denoising_strength' => 0.75,
+                            ]
+                        ]
+                    ]),
+                ]),
+                'request' => json_encode($request->all())
+            ]);
+
+            if ($feature->remove_bg) {
+                Log::debug($cartoonizedImageUrl);
+                $cartoonizedImageUrlWithoutBg = $this->removeBackground($cartoonizedImageUrl);
+                $cartoonizedImageUrlWithoutBg = $this->uploadToCloudFlareFromCdn(
+                    $cartoonizedImageUrlWithoutBg,
+                    'image-' . time(),
+                    $feature->slug,
+                    Auth::guard('customer')->id() . 'result-gen' . time()
+                );
+
+                return response()->json([
+                    'status' => true,
+                    'url' => $cartoonizedImageUrl,
+                    'bg_url' => $cartoonizedImageUrlWithoutBg,
+                ]);
+            }
+            
+            return response()->json([
+                'status' => true,
+                'url' => $cartoonizedImageUrl,
+            ]);
+        }
+
+        $result = $this->uploadImage($file);
+        $image_id = $result['id'];
+
+        $featuresId = $feature->id;
+        $initImageId = $feature->initImageId;
+        $isFeature = $feature instanceof Features;
+
+        if ($request->has('id_size')) {
+            $check = $this->checkFeatureSize($feature, $request->id_size, $isFeature);
+            if (!$check) {
+                return $this->processImageGeneration($feature, $file, $image_id, $initImageId, $request, $featuresId);
+            } else {
+                return $this->generateCustomSizeImage($feature, $file, $image_id, $initImageId, $request);
+            }
+        }
+
+        return $this->processImageGeneration($feature, $file, $image_id, $initImageId, $request, $featuresId);
     }
+
+    /**
+     * Get Feature or SubFeature by slug
+     */
+    private function getFeatureBySlug($slug)
+    {
+        $feature = Features::where('slug', $slug)->first();
+        return $feature ?: SubFeatures::where('slug', $slug)->first();
+    }
+
+    /**
+     * Check if the feature size exists
+     */
+    private function checkFeatureSize($feature, $sizeId, $isFeature)
+    {
+        $featureId = $isFeature ? $feature->id : $feature->feature_id;
+        return FeaturesSizes::where([
+            'feature_id' => $featureId,
+            'size_id' => $sizeId
+        ])->exists();
+    }
+
+    /**
+     * Process image generation
+     */
+    private function processImageGeneration($feature, $file, $image_id, $initImageId, $request, $featuresId)
+    {
+        $response = $this->sendImageGenerationRequest($feature, $image_id, $initImageId);
+        if ($response->failed()) {
+            return response()->json(['status' => 'error', 'message' => 'Failed to generate image.', 'details' => $response->body()]);
+        }
+
+        return $this->handleImageGenerationResponse($response, $feature, $file, $featuresId, $request);
+    }
+
+    /**
+     * Generate custom-sized image
+     */
+    private function generateCustomSizeImage($feature, $file, $image_id, $initImageId, $request)
+    {
+        $size = ImageSize::find($request->id_size);
+        if (!$size) {
+            return response()->json(['status' => 'error', 'message' => 'Invalid size ID'], 400);
+        }
+
+        $response = $this->sendImageGenerationRequest($feature, $image_id, $initImageId, [
+            'width' => $size->width,
+            'height' => $size->height
+        ]);
+
+        if ($response->failed()) {
+            return response()->json(['status' => 'error', 'message' => 'Failed to generate image.', 'details' => $response->body()]);
+        }
+
+        return $this->handleImageGenerationResponse($response, $feature, $file, $feature->id, $request);
+    }
+
+    /**
+     * Send image generation request
+     */
+    private function sendImageGenerationRequest($feature, $image_id, $initImageId, $customParams = [])
+    {
+        if(!$feature->weight){
+            $params = array_merge([
+                'modelId' => $feature->model_id,
+                'prompt' => $feature->prompt,
+                'presetStyle' => $feature->presetStyle,
+                'num_images' => 1,
+                'alchemy' => true,
+                'init_image_id' => $image_id,
+                'init_strength' => 0.5,
+                'controlnets' => isset($initImageId) ? [[
+                    'initImageId' => $initImageId,
+                    'initImageType' => 'UPLOADED',
+                    'preprocessorId' => (int) $feature->preprocessorId,
+                    'strengthType' => $feature->strengthType,
+                ]] : []
+            ], $customParams);
+        } else {
+            $params = array_merge([
+                'modelId' => $feature->model_id,
+                'prompt' => $feature->prompt,
+                'presetStyle' => $feature->presetStyle,
+                'num_images' => 1,
+                'alchemy' => true,
+                'init_image_id' => $image_id,
+                'init_strength' => 0.5,
+                'controlnets' => isset($initImageId) ? [[
+                    'initImageId' => $initImageId,
+                    'initImageType' => 'UPLOADED',
+                    'preprocessorId' => (int) $feature->preprocessorId,
+                    'strengthType' => $feature->strengthType,
+                    'weight' => $feature->weight,
+                ]] : []
+            ], $customParams);
+        }
+
+        return Http::withHeaders([
+            'Authorization' => 'Bearer ' . $this->leo_key,
+            'Accept' => 'application/json',
+        ])->post('https://cloud.leonardo.ai/api/rest/v1/generations', $params);
+    }
+
+    /**
+     * Handle image generation response
+     */
+    private function handleImageGenerationResponse($response, $feature, $file, $featuresId, $request)
+    {
+        $data = json_decode($response->body(), true);
+        $generationId = $data['sdGenerationJob']['generationId'];
+
+        // Polling logic
+        $imageData = $this->pollGenerationResult($generationId);
+        if (!$imageData) {
+            return response()->json(['status' => 'error', 'message' => 'Image generation timed out'], 500);
+        }
+
+        $originalImageUrl = $this->uploadToCloudFlareFromCdn($imageData[0]['url'], 'image-result' . time(), $feature->slug);
+        $image = $this->processGeneratedImage($imageData, $feature);
+        $this->logActivity($image, $file, $featuresId, $request, $feature);
+
+        if ($feature->remove_bg) {
+            return response()->json([
+                'status' => true,
+                'url' => $image,              // Final image URL (with or without background removed)
+                'bg_url' => $originalImageUrl  // Original image URL
+            ]);
+        }
+
+        return response()->json(['status' => true, 'url' => $image]);
+    }
+
+    /**
+     * Poll generation result
+     */
+    private function pollGenerationResult($generationId)
+    {
+        while (true) {
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer ' . $this->leo_key,
+                'Accept' => 'application/json',
+            ])->get("https://cloud.leonardo.ai/api/rest/v1/generations/{$generationId}");
+
+            if ($response->failed()) {
+                return null;
+            }
+
+            $data = $response->json();
+            if (!empty($data['generations_by_pk']['generated_images'])) {
+                return $data['generations_by_pk']['generated_images'];
+            }
+
+            sleep(1);
+        }
+    }
+
+    /**
+     * Process generated image
+     */
+    private function processGeneratedImage($imageData, $feature)
+    {
+        $originalImageUrl = $this->uploadToCloudFlareFromCdn($imageData[0]['url'], 'image-result' . time(), $feature->slug);
+        if ($feature->remove_bg) {
+            $imageWithoutBg = $this->removeBackground($originalImageUrl);
+            return $this->uploadToCloudFlareFromCdn($imageWithoutBg, 'image-bg-removed' . time(), $feature->slug);
+        }
+        return $originalImageUrl;
+    }
+
+    /**
+     * Log activity
+     */
+    private function logActivity($image, $file, $featuresId, $request, $feature)
+    {
+        Activities::create([
+            'customer_id' => Auth::guard('customer')->id(),
+            'photo_id' => $this->uploadServerImage($file),
+            'features_id' => $featuresId,
+            'image_result' => $image,
+            'ai_model' => 'Leo AI',
+            'api_endpoint' => 'https://cloud.leonardo.ai/api/rest/v1/generations',
+            'attributes' => json_encode([
+                'modelId' => $feature->model_id,
+                'prompt' => $feature->prompt,
+                'presetStyle' => $feature->presetStyle,
+                'num_images' => 1,
+                'alchemy' => true,
+                'init_strength' => 0.5,
+                'controlnets' => isset($feature->initImageId) ? [[
+                    'initImageId' => $feature->initImageId,
+                    'initImageType' => 'UPLOADED',
+                    'preprocessorId' => (int) $feature->preprocessorId,
+                    'strengthType' => $feature->strengthType,
+                ]] : []
+            ]),
+            'request' => json_encode($request->all())
+        ]);
+    }
+
+    /**
+     * Transform cartoon style via Vance
+     */
+    public function transformViaVance($request, $file)
+    {
+        $filename = time() . '_' . $file->getClientOriginalName();
+        $extension = $file->getClientOriginalExtension();
+        $filePath = $file->getPathname();
+
+        // Upload the image
+        $uploadResponse = $this->uploadToApi($filePath, $filename);
+
+        if (!$uploadResponse->successful()) {
+            return response()->json(['error' => 'Failed to upload image'], 500);
+        }
+
+        $uid = $uploadResponse->json()['data']['uid'];
+        $newfilename = $uid . '_' . time();
+
+        // Transform the image
+        $transformResponse = $this->transformImage($uid);
+
+        if (!$transformResponse->successful()) {
+            return response()->json(['error' => 'Failed to transform image'], 500);
+        }
+
+        $transId = $transformResponse->json()['data']['trans_id'];
+
+        // Download the transformed image
+        $downloadResponse = $this->downloadTransformedImage($transId);
+
+        if (!$downloadResponse->successful()) {
+            return response()->json(['error' => 'Failed to download transformed image'], 500);
+        }
+
+        $cloudflareLink = $this->storeAndUploadToCloudflare($downloadResponse->body(), $newfilename, $extension);
+
+        return $cloudflareLink;
+    }
+
+    /**
+     * Upload image to API Vance
+     */
+    private function uploadToApi($filePath, $filename)
+    {
+        return Http::attach('file', file_get_contents($filePath), $filename)
+            ->post('https://api-service.vanceai.com/web_api/v1/upload', [
+                'api_token' => $this->vancekey,
+            ]);
+    }
+
+    /**
+     * Transform the uploaded image via Vance.
+     */
+    private function transformImage($uid)
+    {
+        return Http::post('https://api-service.vanceai.com/web_api/v1/transform', [
+            'api_token' => $this->vancekey,
+            'uid' => $uid,
+            'jconfig' => json_encode([
+                'name' => 'animegan',
+                'config' => [
+                    'module' => 'animegan2',
+                    'module_params' => [
+                        'model_name' => 'Animegan2Stable',
+                        'single_face' => true,
+                        'denoising_strength' => 0.75,
+                    ]
+                ]
+            ]),
+        ]);
+    }
+
+    /**
+     * Download the transformed image from Vance.
+     */
+    private function downloadTransformedImage($transId)
+    {
+        return Http::post('https://api-service.vanceai.com/web_api/v1/download', [
+            'api_token' => $this->vancekey,
+            'trans_id' => $transId,
+        ]);
+    }
+
+    /**
+     * Store and upload image to Cloudflare.
+     */
+    private function storeAndUploadToCloudflare($fileContent, $filename, $extension)
+    {
+        // Xác định thư mục public tùy chỉnh
+        $customPublicPath = public_path(); // Đây là đường dẫn đến thư mục public mặc định
+        $filePath = $customPublicPath . '/transformed_images/' . $filename . '.' . $extension;
+
+        // Lưu file vào thư mục public
+        if (!file_exists(dirname($filePath))) {
+            mkdir(dirname($filePath), 0755, true);
+        }
+        file_put_contents($filePath, $fileContent);
+        $public_link = url('/') . "/public/transformed_images/" . $filename . '.' . $extension;
+        Log::debug($public_link);
+
+        // Định nghĩa thư mục upload trên Cloudflare
+        $folder = 'uploadcartoon';
+
+        // Upload file lên Cloudflare
+        try {
+            $cloudflareLink = $this->uploadToCloudFlareFromUrl($public_link, $folder, $filename);
+        } catch (\Exception $e) {
+            Log::debug($e->getMessage());
+            $cloudflareLink = '';
+        }
+
+        // Trả về link từ Cloudflare
+        return $cloudflareLink;
+    }
+
+    /* End new code 2024-11-24 */
+
     /**
      * Show the form for creating a new resource.
      */
