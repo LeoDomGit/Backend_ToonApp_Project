@@ -107,7 +107,7 @@ function Layout({ children }) {
                                 Feedback
                             </MenuItem>
                         </a>
-                        <SubMenu
+                        {/* <SubMenu
                             label="Api VanceAI"
                             icon={<FeaturedPlayListIcon />}
                         >
@@ -126,7 +126,7 @@ function Layout({ children }) {
                                     Download
                                 </MenuItem>
                             </a>
-                        </SubMenu>
+                        </SubMenu> */}
                         <a href={"/logout"}>
                             <MenuItem icon={<LogoutIcon />}>Log out</MenuItem>
                         </a>
