@@ -107,6 +107,11 @@ function Layout({ children }) {
                                 Feedback
                             </MenuItem>
                         </a>
+                        <a href={"/apivances"}>
+                            <MenuItem icon={<AutoAwesomeIcon />}>
+                                Api VanceAI
+                            </MenuItem>
+                        </a>
                         {/* <SubMenu
                             label="Api VanceAI"
                             icon={<FeaturedPlayListIcon />}

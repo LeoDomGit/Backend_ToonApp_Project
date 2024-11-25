@@ -191,11 +191,19 @@ function Index({ data }) {
             });
         } else {
             // If it's not a deletion (i.e., field is not "name" or value is not empty), update the entry
-            axios.put(`/apivances/${id}`, { [field]: value }).then((res) => {
+            axios.put(`/apivances/${id}`, { field, value }).then((res) => {
                 if (res.data.check) {
-                    // Show success alert and update entries after editing
-                    showAlert("success", "Entry updated successfully!");
-                    setEntries(res.data.data); // Update entries after success
+                    // Show success alert
+                    showAlert("success", "Updated successfully!");
+
+                    // Update the specific entry in the state by replacing the updated entry only
+                    setEntries((prevEntries) =>
+                        prevEntries.map((entry) =>
+                            entry.id === id
+                                ? { ...entry, [field]: value } // Update the entry with the new value for the specific field
+                                : entry
+                        )
+                    );
                 } else {
                     showAlert("error", res.data.msg);
                 }

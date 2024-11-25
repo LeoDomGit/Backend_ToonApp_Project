@@ -86,7 +86,7 @@ class ImageController extends Controller
             }
         } catch (\Throwable $th) {
             Log::error($th->getMessage());
-            return 'error'.$th->getMessage();
+            return 'error';
         }
     }
     // Upload ảnh
@@ -143,7 +143,9 @@ class ImageController extends Controller
                 $transformData = $transformResponse->json();
                 // dd($transformData)
                 $transId = $transformData['data']['trans_id'];
-
+                Log::info('API Response: ', $data);
+                // Hoặc
+                dd($data);
                 // Step 3: Request to download the transformed image using trans_id
                 $downloadResponse = Http::post('https://api-service.vanceai.com/web_api/v1/download', [
                     'api_token' => $this->key,
