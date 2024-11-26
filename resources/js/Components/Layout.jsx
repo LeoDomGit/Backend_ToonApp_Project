@@ -107,6 +107,9 @@ function Layout({ children }) {
                                 Feedback
                             </MenuItem>
                         </a>
+                        <a href={"/secretkeys"}>
+                            <MenuItem icon={<KeyIcon />}>Secret Key</MenuItem>
+                        </a>
                         <a href={"/apivances"}>
                             <MenuItem icon={<AutoAwesomeIcon />}>
                                 Api VanceAI
