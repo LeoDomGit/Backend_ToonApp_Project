@@ -176,7 +176,7 @@ function Index({ datasecretkeys }) {
         <Layout>
             <Modal show={show} onHide={() => setShow(false)}>
                 <Modal.Header closeButton>
-                    <Modal.Title>Tạo Key</Modal.Title>
+                    <Modal.Title>Tạo Secret Key</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     <input
