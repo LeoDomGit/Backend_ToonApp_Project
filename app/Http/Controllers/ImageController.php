@@ -4,6 +4,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Image;
+use App\Models\Key;
 use App\Models\TransactionLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -18,18 +19,49 @@ use Illuminate\Support\Facades\Http;
 
 class ImageController extends Controller
 {
-    private $aws_secret_key;
-    private $aws_access_key;
+    protected $key;
+    protected $vancekey;
+    protected $leo_key;
+    protected $client;
+    protected $aws_secret_key;
+    protected $aws_access_key;
+    protected $pro_account;
 
-    private $key;
-    private $client;
+    // private $client;
 
     public function __construct(Request $request)
     {
+        $client = new \GuzzleHttp\Client();
+
+        $vance_key = Key::where('api', 'vance')->where('key', '!=', '0')->orderBy('id', 'asc')->first();
+        if ($vance_key) {
+            $responseVance = $client->request('GET', 'https://api-service.vanceai.com/web_api/v1/point?api_token=' . $vance_key->key);
+            $bodyVance = json_decode($responseVance->getBody(), true);
+
+            $credits = isset($bodyVance['data']['credits']) ? $bodyVance['data']['credits'] : 0;
+            $used_num = isset($bodyVance['data']['used_num']) ? $bodyVance['data']['used_num'] : 0;
+            $max_num = isset($bodyVance['data']['max_num']) ? $bodyVance['data']['max_num'] : 0;
+
+            if ($credits < 4 || $used_num == $max_num) {
+                $vance_key->update(['key' => 0]);
+                $newKey = Key::where('api', 'vance')->where('key', '!=', '0')->orderBy('id', 'asc')->first();
+                $this->vancekey = $newKey ? $newKey->key : null;
+            } else {
+                $this->vancekey = $vance_key->key;
+            }
+        } else {
+            $this->vancekey = null;
+        }
+
+        $this->leo_key = env('IMAGE_API_KEY');
         $this->aws_secret_key = 'b52dcdbea046cc2cc13a5b767a1c71ea8acbe96422b3e45525d3678ce2b5ed3e';
         $this->aws_access_key = 'cbb3e2fea7c7f3e7af09b67eeec7d62c';
-        $this->key = '432990d8f58633e8b2d7503228a4c2b2';
         $this->client = new Client();
+        $guard = Auth::guard('customer');
+        $user = $guard->user();
+        $bearerToken = $request->bearerToken();
+
+        $this->pro_account = $bearerToken && $bearerToken === config('app.access_token');
     }
 
     public function index()
@@ -100,28 +132,31 @@ class ImageController extends Controller
         // Get the uploaded file
         $file = $request->file('image');
 
-        // Get the file path and original filename
+        // Generate a unique filename
         $filename = time() . '_' . $file->getClientOriginalName();
         $filePath = $file->getPathname();
 
-        // API Token (assuming it's set on $this->key)
-        $apiToken = $this->key;
+        // API Token (using Vance key set in the constructor)
+        $apiToken = $this->vancekey;
 
-        // Make the request to the API to upload the image
+        if (!$apiToken) {
+            return response()->json(['error' => 'No valid API key available'], 500);
+        }
+
+        // Step 1: Upload the image to the Vance API
         $response = Http::attach('file', file_get_contents($filePath), $filename)
             ->post('https://api-service.vanceai.com/web_api/v1/upload', [
                 'api_token' => $apiToken,
             ]);
 
-        // Check if the request was successful
         if ($response->successful()) {
-            // Get the response data
+            // Retrieve the 'uid' from the response
             $data = $response->json();
-
-            // Retrieve the 'uid' from the response data
             $uid = $data['data']['uid'];
+
+            // Step 2: Transform the uploaded image
             $transformResponse = Http::post('https://api-service.vanceai.com/web_api/v1/transform', [
-                'api_token' => $this->key,  // Use your token here
+                'api_token' => $apiToken,
                 'uid' => $uid,
                 'jconfig' => json_encode([
                     'name' => 'img2anime',
@@ -137,54 +172,46 @@ class ImageController extends Controller
                 ])
             ]);
 
-            // Check if the transform request was successful
             if ($transformResponse->successful()) {
-                // Get the response data from the transform API
+                // Retrieve the 'trans_id' from the transform response
                 $transformData = $transformResponse->json();
-                // dd($transformData)
                 $transId = $transformData['data']['trans_id'];
 
-                // Step 3: Request to download the transformed image using trans_id
+                // Step 3: Download the transformed image
                 $downloadResponse = Http::post('https://api-service.vanceai.com/web_api/v1/download', [
-                    'api_token' => $this->key,
+                    'api_token' => $apiToken,
                     'trans_id' => $transId,
                 ]);
 
-                // Check if the download request was successful
                 if ($downloadResponse->successful()) {
-                    // Get the file content from the download response
+                    // Save the transformed image locally
                     $fileContent = $downloadResponse->body();
-                    $storagePath = 'transformed_images/' . time() . '.jpg';  // Change extension if needed
+                    $storagePath = 'transformed_images/' . time() . '.jpg';
                     Storage::disk('public')->put($storagePath, $fileContent);
                     $storageLink = Storage::url($storagePath);
+
+                    // Optional: Upload the transformed image to Cloudflare
                     $folder = 'uploadcartoon';
                     $cloudflareLink = $this->uploadToCloudFlareFromFile($file, $folder, $filename);
+
+                    // Delete the local image after uploading to Cloudflare
                     Storage::delete($storagePath);
+
                     return response()->json([
                         'message' => 'Image uploaded, transformed, and uploaded to Cloudflare successfully',
                         'uid' => $uid,
                         'trans_id' => $transId,
                         'download_link' => $storageLink,
-                        'cloudflare_link' => $cloudflareLink, // Add the Cloudflare link to the response
+                        'cloudflare_link' => $cloudflareLink,
                     ]);
                 } else {
-                    // Handle error if transform API request fails
-                    return response()->json(['error' => 'Failed to transform image'], 500);
+                    return response()->json(['error' => 'Failed to download transformed image'], 500);
                 }
-                // Return a success message with the UID
-                // return response()->json([
-                //     'message' => 'Image uploaded successfully',
-                //     'uid' => $uid,
-                //     'name' => $data['data']['name'],
-                //     'thumbnail' => $data['data']['thumbnail'],
-                //     'w' => $data['data']['w'],
-                //     'h' => $data['data']['h'],
-                //     'filesize' => $data['data']['filesize'],
-                // ]);
             } else {
-                // Return an error if the API request failed
-                return response()->json(['error' => 'Failed to upload image'], 500);
+                return response()->json(['error' => 'Failed to transform image'], 500);
             }
+        } else {
+            return response()->json(['error' => 'Failed to upload image'], 500);
         }
     }
 
