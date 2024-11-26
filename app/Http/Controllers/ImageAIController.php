@@ -528,7 +528,7 @@ class ImageAIController extends Controller
 
         $image = $request->file('image');
         $effectName = 'badlands';
-        
+
         $id_img = $this->uploadServerImage($image);
 
         // Send request to Picsart API
@@ -656,7 +656,8 @@ class ImageAIController extends Controller
         $validator = Validator::make($request->all(), [
             'image' => 'required|mimes:png,jpg,jpeg',
             'slug' => 'required',
-            'id_size' => 'nullable|exists:image_sizes,id'
+            'id_size' => 'nullable|exists:image_sizes,id',
+            'pro_acc'=>'required|in:0,1'
         ]);
 
         if ($validator->fails()) {
@@ -675,7 +676,8 @@ class ImageAIController extends Controller
             $feature = SubFeatures::where('slug', $request->slug)->first();
             $id_feature = $feature->feature_id;
         }
-        if ($result->is_pro == 1 && $this->pro_account == false) {
+
+        if ($result->is_pro == 1 && $request->pro_acc == 0) {
             return response()->json(['status' => false, 'error' => 'Not accepted'], 401);
         }
         $initImageId = $result->initImageId;
@@ -1023,11 +1025,20 @@ class ImageAIController extends Controller
             'id_size' => 'nullable',
             'effect' => 'nullable',
             'slug' => 'required',
-            'image_url' => 'nullable|url'
+            'image_url' => 'nullable|url',
+            'pro_acc'=>'required|in:0,1'
         ]);
 
         if ($validator->fails()) {
             return response()->json(['status' => 'error', 'message' => $validator->errors()->first()]);
+        }
+        $feature = $this->getFeatureBySlug($request->slug);
+        if (!$feature) {
+            return response()->json(['status' => 'error', 'message' => 'Feature not found'], 404);
+        }
+
+        if ($feature->is_pro == 1 && $request->pro_acc==0) {
+            return response()->json(['status' => false, 'error' => 'Not accepted'], 401);
         }
         if ($request->has('image_url')) {
             $effect = $request->effect ?? 'cyber2';
@@ -1928,7 +1939,8 @@ class ImageAIController extends Controller
         $validator = Validator::make($request->all(), [
             'image' => 'required|mimes:png,jpg,jpeg',
             'slug' => 'required',
-            'id_size' => 'nullable'
+            'id_size' => 'nullable',
+            'pro_acc'=>'required|in:0,1'
         ]);
 
         if ($validator->fails()) {
@@ -1942,7 +1954,7 @@ class ImageAIController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Feature not found'], 404);
         }
 
-        if ($feature->is_pro == 1 && !$this->pro_account) {
+        if ($feature->is_pro == 1 && $request->pro_acc==0) {
             return response()->json(['status' => false, 'error' => 'Not accepted'], 401);
         }
 
