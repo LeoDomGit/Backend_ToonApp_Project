@@ -1942,7 +1942,7 @@ class ImageAIController extends Controller
             'id_size' => 'nullable',
             'pro_acc'=>'nullable|in:0,1'
         ]);
-        
+
         if ($validator->fails()) {
             return response()->json(['status' => 'error', 'message' => $validator->errors()->first()]);
         }
@@ -1954,7 +1954,7 @@ class ImageAIController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Feature not found'], 404);
         }
 
-        if ($feature->is_pro == 1 && $request->pro_acc==0) {
+        if ($feature->is_pro == 1 && (!$request->has('pro_acc') || $request->pro_acc == 0)) {
             return response()->json(['status' => false, 'error' => 'Not accepted'], 401);
         }
 
