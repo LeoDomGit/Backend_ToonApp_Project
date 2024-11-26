@@ -27,6 +27,7 @@ class KeyController extends Controller
         $validator = Validator::make($request->all(), [
             'api' => 'required|string|',
             'key' => 'required|string|',
+            'gmail' => 'required|string|',
         ]);
 
         // If validation fails, return an error response
@@ -41,6 +42,7 @@ class KeyController extends Controller
         $key = Key::create([
             'api' => $request->api,
             'key' => $request->key,
+            'gmail' => $request->gmail,
         ]);
 
         return response()->json([
@@ -58,6 +60,7 @@ class KeyController extends Controller
         $validatedData = $request->validate([
             'api' => 'nullable|string|',
             'key' => 'nullable|string|',
+            'gmail' => 'nullable|string|',
         ]);
 
         // Update the key with the new data if present
@@ -66,6 +69,9 @@ class KeyController extends Controller
         }
         if ($request->has('key')) {
             $key->key = $request->key;
+        }
+        if ($request->has('gmail')) {
+            $key->gmail = $request->gmail;
         }
 
         // Save the updated key

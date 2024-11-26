@@ -24,6 +24,7 @@ use Carbon\Carbon;
 use Spatie\Activitylog\Models\Activity;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Customers;
+
 class ImageAIController extends Controller
 {
     protected $key;
@@ -38,9 +39,9 @@ class ImageAIController extends Controller
      * Display a listing of the resource.
      */
 
-     public function __construct(Request $request)
+    public function __construct(Request $request)
     {
-        $result = Key::where('api', 'picsart')->where('key','!=','0')->orderBy('id', 'asc')->first();
+        $result = Key::where('api', 'picsart')->where('key', '!=', '0')->orderBy('id', 'asc')->first();
         $client = new \GuzzleHttp\Client();
 
         $response = $client->request('GET', 'https://genai-api.picsart.io/v1/balance', [
@@ -65,8 +66,8 @@ class ImageAIController extends Controller
 
         $max_num = 20;
         $used_num = 0;
-        while($used_num < $max_num) {
-            $vance_key = Key::where('api', 'vance')->where('key','!=','0')->orderBy('id', 'asc')->first();
+        while ($used_num < $max_num) {
+            $vance_key = Key::where('api', 'vance')->where('key', '!=', '0')->orderBy('id', 'asc')->first();
 
             if (!$vance_key) {
                 $this->vancekey = null;
@@ -79,7 +80,7 @@ class ImageAIController extends Controller
             $max_num = isset($bodyVance['data']['max_num']) ? $bodyVance['data']['max_num'] : 0;
             $used_num = isset($bodyVance['data']['used_num']) ? $bodyVance['data']['used_num'] : 0;
 
-            if($used_num == $max_num) {
+            if ($used_num == $max_num) {
                 $vance_key->update(['key' => 0]);
                 continue;
             }
@@ -120,9 +121,8 @@ class ImageAIController extends Controller
      */
     public function getEffect(Request $request)
     {
-        $data=Effects::active()->get();
+        $data = Effects::active()->get();
         return response()->json($data);
-
     }
     /**
      * Store a newly created resource in storage.
@@ -528,6 +528,7 @@ class ImageAIController extends Controller
 
         $image = $request->file('image');
         $effectName = 'badlands';
+        
         $id_img = $this->uploadServerImage($image);
 
         // Send request to Picsart API
@@ -1035,7 +1036,7 @@ class ImageAIController extends Controller
             return response()->json([
                 'status' => 'success',
                 'url' => $image,
-                'style_url'=>$request->style_url,
+                'style_url' => $request->style_url,
             ]);
         }
         $file = $request->file('image');
@@ -1129,7 +1130,7 @@ class ImageAIController extends Controller
                                     'image_size' => $result->width,
                                     'ai_model' => 'Leo AI',
                                     'api_endpoint' => 'https://cloud.leonardo.ai/api/rest/v1/generations/',
-                                    'attributes'=>json_encode([
+                                    'attributes' => json_encode([
                                         'modelId' => $result->model_id,
                                         'prompt' => $result->prompt,
                                         'presetStyle' => $result->presetStyle,
@@ -1142,7 +1143,7 @@ class ImageAIController extends Controller
                                                     'initImageType' => 'UPLOADED',
                                                     'preprocessorId' => (int) $result->preprocessorId,
                                                     'strengthType' => $result->strengthType,
-                                'weight' => $result->weight,
+                                                    'weight' => $result->weight,
 
                                                 ]
                                             ]
@@ -1250,7 +1251,7 @@ class ImageAIController extends Controller
                                     'image_result' => $image,
                                     'image_size' => $result->width,
                                     'ai_model' => 'Leo AI',
-                                    'attributes'=>json_encode([
+                                    'attributes' => json_encode([
                                         'height' => $height,
                                         'modelId' => $result->model_id,
                                         'prompt' => $result->prompt,
@@ -1265,7 +1266,7 @@ class ImageAIController extends Controller
                                                     'initImageType' => 'UPLOADED',
                                                     'preprocessorId' => (int) $result->preprocessorId,
                                                     'strengthType' => $result->strengthType,
-                                'weight' => $result->weight,
+                                                    'weight' => $result->weight,
 
                                                 ]
                                             ]
@@ -1370,7 +1371,7 @@ class ImageAIController extends Controller
                                 'image_result' => $image,
                                 'image_size' => $result->width,
                                 'ai_model' => 'Leo AI',
-                                'attributes'=>json_encode([
+                                'attributes' => json_encode([
                                     'modelId' => $result->model_id,
                                     'prompt' => $result->prompt,
                                     'presetStyle' => $result->presetStyle,
@@ -1383,7 +1384,7 @@ class ImageAIController extends Controller
                                                 'initImageType' => 'UPLOADED',
                                                 'preprocessorId' => (int) $result->preprocessorId,
                                                 'strengthType' => $result->strengthType,
-                                'weight' => $result->weight,
+                                                'weight' => $result->weight,
 
                                             ]
                                         ]
@@ -1391,7 +1392,7 @@ class ImageAIController extends Controller
                                     "init_image_id" => $image_id,
                                     "init_strength" => 0.5,
                                 ]),
-                                    'request' => json_encode($request->all()),
+                                'request' => json_encode($request->all()),
                                 'api_endpoint' => 'https://cloud.leonardo.ai/api/rest/v1/generations/',
                             ]);
 
@@ -1400,7 +1401,7 @@ class ImageAIController extends Controller
                                 return response()->json([
                                     'status' => true,
                                     'url' => $image,
-                                  'style_url' => $originalImageUrl
+                                    'style_url' => $originalImageUrl
                                 ]);
                             } else {
                                 return response()->json([
@@ -1987,7 +1988,7 @@ class ImageAIController extends Controller
                     'bg_url' => $cartoonizedImageUrlWithoutBg,
                 ]);
             }
-            
+
             return response()->json([
                 'status' => true,
                 'url' => $cartoonizedImageUrl,
@@ -2074,7 +2075,7 @@ class ImageAIController extends Controller
      */
     private function sendImageGenerationRequest($feature, $image_id, $initImageId, $customParams = [])
     {
-        if(!$feature->weight){
+        if (!$feature->weight) {
             $params = array_merge([
                 'modelId' => $feature->model_id,
                 'prompt' => $feature->prompt,

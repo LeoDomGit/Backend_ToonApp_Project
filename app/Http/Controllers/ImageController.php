@@ -28,7 +28,7 @@ class ImageController extends Controller
     {
         $this->aws_secret_key = 'b52dcdbea046cc2cc13a5b767a1c71ea8acbe96422b3e45525d3678ce2b5ed3e';
         $this->aws_access_key = 'cbb3e2fea7c7f3e7af09b67eeec7d62c';
-        $this->key = 'fe319f7279703eac15091bb4a2b14054';
+        $this->key = '432990d8f58633e8b2d7503228a4c2b2';
         $this->client = new Client();
     }
 
@@ -143,9 +143,7 @@ class ImageController extends Controller
                 $transformData = $transformResponse->json();
                 // dd($transformData)
                 $transId = $transformData['data']['trans_id'];
-                Log::info('API Response: ', $data);
-                // Hoặc
-                dd($data);
+
                 // Step 3: Request to download the transformed image using trans_id
                 $downloadResponse = Http::post('https://api-service.vanceai.com/web_api/v1/download', [
                     'api_token' => $this->key,
