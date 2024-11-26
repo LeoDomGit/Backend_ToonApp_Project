@@ -13,5 +13,6 @@ class Key extends Model
     protected $fillable = [
         'api',
         'key',
+        'gmail',
     ];
 }
