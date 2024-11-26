@@ -16,6 +16,7 @@ use App\Http\Controllers\EffectsController;
 use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\AiImageCartoonizerController;
 use App\Http\Controllers\ImageController;
+use App\Http\Controllers\SecretKeyController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -62,7 +63,7 @@ Route::middleware('checkLogin')->group(function () {
     Route::resource('/configs', ConfigController::class);
     Route::resource('/feedback', FeedbackController::class);
     Route::resource('/apivances',  AiImageCartoonizerController::class);
-
+    Route::resource('/secretkeys',  SecretKeyController::class);
     //==========================================================
     Route::resource('effects', EffectsController::class);
     Route::post('effects-update-image/{id}', [EffectsController::class, 'api_update_image']);
