@@ -1940,9 +1940,9 @@ class ImageAIController extends Controller
             'image' => 'required|mimes:png,jpg,jpeg',
             'slug' => 'required',
             'id_size' => 'nullable',
-            'pro_acc'=>'required|in:0,1'
+            'pro_acc'=>'nullable|in:0,1'
         ]);
-
+        
         if ($validator->fails()) {
             return response()->json(['status' => 'error', 'message' => $validator->errors()->first()]);
         }
