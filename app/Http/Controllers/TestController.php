@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Services\CloudflareService;
+use Illuminate\Support\Facades\Config;
 class TestController extends Controller
 {
     protected $cloudflareService;
@@ -18,7 +19,7 @@ class TestController extends Controller
      */
     public function index()
     {
-        //
+        return response(Config::get('app.api_key'));
     }
 
     /**
