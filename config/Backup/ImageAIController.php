@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace Config\Backup\Controllers;
 
 use App\Models\Activities;
 use App\Models\Background;
@@ -24,7 +24,7 @@ use Carbon\Carbon;
 use Spatie\Activitylog\Models\Activity;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Customers;
-class ImageAIController extends Controller
+class ImageAIController
 {
     protected $key;
     protected $vancekey;
