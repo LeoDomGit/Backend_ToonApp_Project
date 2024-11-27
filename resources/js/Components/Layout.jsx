@@ -21,6 +21,7 @@ import FeaturedPlayListIcon from "@mui/icons-material/FeaturedPlayList";
 import FilterIcon from "@mui/icons-material/Filter";
 import "../../css/app.css";
 import PermDataSettingIcon from "@mui/icons-material/PermDataSetting";
+import LockIcon from "@mui/icons-material/Lock";
 function Layout({ children }) {
     const { collapseSidebar } = useProSidebar();
 
@@ -108,7 +109,7 @@ function Layout({ children }) {
                             </MenuItem>
                         </a>
                         <a href={"/secretkeys"}>
-                            <MenuItem icon={<KeyIcon />}>Secret Key</MenuItem>
+                            <MenuItem icon={<LockIcon />}>Secret Key</MenuItem>
                         </a>
                         <a href={"/apivances"}>
                             <MenuItem icon={<AutoAwesomeIcon />}>
