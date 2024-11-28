@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\BackgroundController;
 use App\Http\Controllers\ConfigController;
 use App\Http\Controllers\FeatureImageController;
@@ -64,6 +65,7 @@ Route::middleware('checkLogin')->group(function () {
     Route::resource('/feedback', FeedbackController::class);
     Route::resource('/apivances',  AiImageCartoonizerController::class);
     Route::resource('/secretkeys',  SecretKeyController::class);
+    Route::resource('/historys',  ActivityController::class);
     //==========================================================
     Route::resource('effects', EffectsController::class);
     Route::post('effects-update-image/{id}', [EffectsController::class, 'api_update_image']);

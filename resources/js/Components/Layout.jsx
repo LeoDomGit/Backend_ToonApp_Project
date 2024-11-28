@@ -13,6 +13,7 @@ import BrandingWatermarkIcon from "@mui/icons-material/BrandingWatermark";
 import InventoryIcon from "@mui/icons-material/Inventory";
 import KeyIcon from "@mui/icons-material/Key";
 import LogoutIcon from "@mui/icons-material/Logout";
+import RestoreIcon from "@mui/icons-material/Restore";
 import WallpaperIcon from "@mui/icons-material/Wallpaper";
 import FeedbackIcon from "@mui/icons-material/Feedback";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
@@ -110,6 +111,9 @@ function Layout({ children }) {
                         </a>
                         <a href={"/secretkeys"}>
                             <MenuItem icon={<LockIcon />}>Secret Key</MenuItem>
+                        </a>
+                        <a href={"/historys"}>
+                            <MenuItem icon={<RestoreIcon />}>History</MenuItem>
                         </a>
                         <a href={"/apivances"}>
                             <MenuItem icon={<AutoAwesomeIcon />}>
