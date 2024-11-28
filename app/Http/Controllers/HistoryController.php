@@ -109,6 +109,4 @@ class HistoryController extends Controller
             ],
         ], 200);
     }
-
-    // Other methods (update, destroy) can remain unchanged
 }
