@@ -68,9 +68,7 @@ function FeedbackIndex({ data }) {
             editable: true,
             renderCell: (params) => (
                 <Typography
-                onClick={() =>
-                    handleNoteEdit(params.row.id, params.value)
-                }
+                    onClick={() => handleNoteEdit(params.row.id, params.value)}
                     dangerouslySetInnerHTML={{ __html: params.value }}
                     variant="body2"
                     style={{ cursor: "pointer", color: "blue" }}
