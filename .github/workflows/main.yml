@@ -26,8 +26,25 @@ jobs:
         run: |
           composer install --no-scripts --no-progress --no-suggest
           composer dump-autoload --optimize
-          
-      # Step 5: Generate the .env file
+
+      # Step 4: Setup SSH for deployment
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H 154.53.42.124 >> ~/.ssh/known_hosts
+
+      # Step 5: Test SSH connection
+      - name: Test SSH Connection
+        run: ssh -o StrictHostKeyChecking=no trendi-apiart@154.53.42.124 "echo 'SSH connection successful!'"
+
+      # Step 6: Remove old cached files from the server (handling permissions)
+      - name: Remove Cached Files
+        run: |
+          sshpass -p "${{ secrets.SSH_PASSWORD }}" ssh -o StrictHostKeyChecking=no trendi-apiart@154.53.42.124 "sudo rm -rf /home/trendi-apiart/htdocs/apiart.trendi.ai/storage/framework/cache/data/*"
+
+      # Step 7: Generate .env file
       - name: Generate .env file
         run: |
           echo "APP_NAME=Laravel" > .env
@@ -51,7 +68,7 @@ jobs:
           echo "SESSION_DRIVER=file" >> .env
           echo "SESSION_LIFETIME=360" >> .env
 
-      # Step 6: Build the frontend
+      # Step 8: Build the frontend
       - name: Setup Node.js
         uses: actions/setup-node@v2
 
@@ -61,17 +78,28 @@ jobs:
       - name: Build Frontend Assets
         run: npm run build
 
-      # Step 7: Deploy the application using rsync with sshpass
-      - name: 📂 Set up SSH key for deployment
-        uses: webfactory/ssh-agent@v0.5.3
-        with:
-            ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-            
-      - name: 🛠️ Add server to known_hosts
-        run: ssh-keyscan -H ${{ secrets.SERVER }} >> ~/.ssh/known_hosts
-        
-      - name: 🚀 Deploy via SSH
+      # Step 9: Deploy the application using rsync
+      - name: Deploy Files
         run: |
-             ssh ${{ secrets.USER }}@${{ secrets.SERVER }} "rm -rf /home/trendi-apiart/htdocs/apiart.trendi.ai*"
-        env:
-            SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          sshpass -p "${{ secrets.SSH_PASSWORD }}" rsync -avz --no-perms --omit-dir-times \
+            --exclude=".git/" \
+            --exclude="node_modules/" \
+            --exclude="vendor/" \
+            --exclude=".env.example" \
+            ./ trendi-apiart@154.53.42.124:${{ secrets.DIRECTION }}
+
+      # Step 10: Set directory permissions on the server
+      - name: Set Directory Permissions
+        run: |
+          sshpass -p "${{ secrets.SSH_PASSWORD }}" ssh -o StrictHostKeyChecking=no trendi-apiart@154.53.42.124 "sudo chmod -R 775 /home/trendi-apiart/htdocs/apiart.trendi.ai/storage /home/trendi-apiart/htdocs/apiart.trendi.ai/bootstrap/cache"
+
+      # Step 11: Run artisan commands
+      - name: Run Artisan Commands
+        run: |
+          sshpass -p "${{ secrets.SSH_PASSWORD }}" ssh -o StrictHostKeyChecking=no trendi-apiart@154.53.42.124 << 'EOF'
+          cd /home/trendi-apiart/htdocs/apiart.trendi.ai
+          php artisan config:cache
+          php artisan route:cache
+          php artisan view:cache
+          php artisan migrate --force
+          EOF
