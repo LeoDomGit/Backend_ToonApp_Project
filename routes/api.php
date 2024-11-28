@@ -14,6 +14,7 @@ use App\Http\Controllers\CustomersController;
 use App\Http\Controllers\TestController;
 use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\ImageController;
+use App\Http\Controllers\HistoryController;
 
 /*
 |--------------------------------------------------------------------------
@@ -60,6 +61,9 @@ Route::middleware('device_login')->group(function () {
     Route::get('/image/{uid}', [ImageController::class, 'getImage']);
 
     Route::post('/vancetransform', [ImageController::class, 'uploadImage']);
+
+    // Create a new history record
+    Route::post('/history', [HistoryController::class, 'store']);
 
 
     // Route::get('/effects', [Effects::class, 'api_index']);
