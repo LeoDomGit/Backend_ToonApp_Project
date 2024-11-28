@@ -62,5 +62,53 @@ class HistoryController extends Controller
         ], 201);
     }
 
+    // Retrieve customer_id and image_result based on device_id
+    public function getCustomerDetails(Request $request)
+    {
+        // Validate request input
+        $validator = Validator::make($request->all(), [
+            'device_id' => 'required|string', // Device ID is required
+        ]);
+
+        // If validation fails, return errors
+        if ($validator->fails()) {
+            return response()->json([
+                'check' => false,
+                'msg' => 'Validation error',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        // Find the customer by device_id
+        $customer = Customers::where('device_id', $request->input('device_id'))->first();
+
+        if (!$customer) {
+            return response()->json([
+                'check' => false,
+                'msg' => 'No customer found for the provided device_id.',
+            ], 404);
+        }
+
+        // Retrieve the latest activity for the customer
+        $activity = Activities::where('customer_id', $customer->id)->latest()->first();
+
+        if (!$activity) {
+            return response()->json([
+                'check' => false,
+                'msg' => 'No activity found for the customer.',
+            ], 404);
+        }
+
+        // Return the customer_id and image_result
+        return response()->json([
+            'check' => true,
+            'msg' => 'Customer details retrieved successfully.',
+            'data' => [
+                'customer_id' => $customer->id,
+                'image_result' => $activity->image_result,
+            ],
+        ], 200);
+    }
+
     // Other methods (update, destroy) can remain unchanged
 }
