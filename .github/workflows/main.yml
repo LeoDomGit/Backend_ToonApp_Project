@@ -1,4 +1,4 @@
- name: Deploy Laravel Project on push
+name: Deploy Laravel Project on push
 
 on:
   push:
@@ -37,7 +37,7 @@ jobs:
 
       # Step 5: Test SSH connection
       - name: Test SSH Connection
-        run: ssh -o StrictHostKeyChecking=no trendi-apiart@apiart.trendi.ai "echo 'SSH connection successful!'"
+        run: ssh -o StrictHostKeyChecking=no trendi-apiart@154.53.42.124 "echo 'SSH connection successful!'"
 
       # Step 6: Generate the .env file
       - name: Generate .env file
@@ -80,17 +80,17 @@ jobs:
                     --exclude="node_modules/" \
                     --exclude="vendor/" \
                     --exclude=".env.example" \
-                    ./ trendi-apiart@apiart.trendi.ai:/home/trendi-apiart/htdocs/apiart.trendi.ai
+                    ./ trendi-apiart@154.53.42.124:/home/trendi-apiart/htdocs/apiart.trendi.ai
 
       # Step 9: Set directory permissions on the server
       - name: Set Directory Permissions
         run: |
-          ssh trendi-apiart@apiart.trendi.ai "chmod -R 775 /home/trendi-apiart/htdocs/apiart.trendi.ai/storage /home/trendi-apiart/htdocs/apiart.trendi.ai/bootstrap/cache"
+          ssh trendi-apiart@154.53.42.124 "chmod -R 775 /home/trendi-apiart/htdocs/apiart.trendi.ai/storage /home/trendi-apiart/htdocs/apiart.trendi.ai/bootstrap/cache"
 
       # Step 10: Run artisan commands
       - name: Run Artisan Commands
         run: |
-          ssh trendi-apiart@apiart.trendi.ai << 'EOF'
+          ssh trendi-apiart@154.53.42.124 << 'EOF'
           cd /home/trendi-apiart/htdocs/apiart.trendi.ai
           php artisan config:cache
           php artisan route:cache
