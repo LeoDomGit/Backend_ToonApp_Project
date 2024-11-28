@@ -34,11 +34,6 @@ jobs:
           echo "${{ secrets.DEPLOY_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H 154.53.42.124 >> ~/.ssh/known_hosts
-
-      # Step 5: Test SSH connection
-      - name: Test SSH Connection
-        run: ssh -o StrictHostKeyChecking=no trendi-apiart@154.53.42.124 "echo 'SSH connection successful!'"
-
       # Step 6: Generate the .env file
       - name: Generate .env file
         run: |
