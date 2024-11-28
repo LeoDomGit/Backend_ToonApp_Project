@@ -27,14 +27,11 @@ jobs:
           composer install --no-scripts --no-progress --no-suggest
           composer dump-autoload --optimize
 
-      # Step 4: Setup SSH for deployment
-      - name: Setup SSH
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.DEPLOY_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H 154.53.42.124 >> ~/.ssh/known_hosts
-      # Step 6: Generate the .env file
+      # Step 4: Install sshpass
+      - name: Install sshpass
+        run: sudo apt-get update && sudo apt-get install -y sshpass
+
+      # Step 5: Generate the .env file
       - name: Generate .env file
         run: |
           echo "APP_NAME=Laravel" > .env
@@ -58,7 +55,7 @@ jobs:
           echo "SESSION_DRIVER=file" >> .env
           echo "SESSION_LIFETIME=360" >> .env
 
-      # Step 7: Build the frontend
+      # Step 6: Build the frontend
       - name: Setup Node.js
         uses: actions/setup-node@v2
 
@@ -68,24 +65,25 @@ jobs:
       - name: Build Frontend Assets
         run: npm run build
 
-      # Step 8: Deploy the application using rsync
+      # Step 7: Deploy the application using rsync with sshpass
       - name: Deploy Files
         run: |
-          rsync -avz --exclude=".git/" \
-                    --exclude="node_modules/" \
-                    --exclude="vendor/" \
-                    --exclude=".env.example" \
-                    ./ trendi-apiart@154.53.42.124:/home/trendi-apiart/htdocs/apiart.trendi.ai
+          sshpass -p "${{ secrets.SSH_PASSWORD }}" rsync -avz --exclude=".git/" \
+            --exclude="node_modules/" \
+            --exclude="vendor/" \
+            --exclude=".env.example" \
+            ./ trendi-apiart@154.53.42.124:/home/trendi-apiart/htdocs/apiart.trendi.ai
 
-      # Step 9: Set directory permissions on the server
+      # Step 8: Set directory permissions on the server
       - name: Set Directory Permissions
         run: |
-          ssh trendi-apiart@154.53.42.124 "chmod -R 775 /home/trendi-apiart/htdocs/apiart.trendi.ai/storage /home/trendi-apiart/htdocs/apiart.trendi.ai/bootstrap/cache"
+          sshpass -p "${{ secrets.SSH_PASSWORD }}" ssh -o StrictHostKeyChecking=no trendi-apiart@154.53.42.124 \
+          "chmod -R 775 /home/trendi-apiart/htdocs/apiart.trendi.ai/storage /home/trendi-apiart/htdocs/apiart.trendi.ai/bootstrap/cache"
 
-      # Step 10: Run artisan commands
+      # Step 9: Run artisan commands
       - name: Run Artisan Commands
         run: |
-          ssh trendi-apiart@154.53.42.124 << 'EOF'
+          sshpass -p "${{ secrets.SSH_PASSWORD }}" ssh -o StrictHostKeyChecking=no trendi-apiart@154.53.42.124 << 'EOF'
           cd /home/trendi-apiart/htdocs/apiart.trendi.ai
           php artisan config:cache
           php artisan route:cache
