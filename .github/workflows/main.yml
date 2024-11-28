@@ -72,6 +72,6 @@ jobs:
         
       - name: 🚀 Deploy via SSH
         run: |
-            rsync -avz --no-perms --omit-dir-times  ./ ${{ secrets.USER }}@${{ secrets.SERVER }}:{{ secrets.DIRECTION }}
+             ssh ${{ secrets.USER }}@${{ secrets.SERVER }} "rm -rf /home/trendi-apiart/htdocs/apiart.trendi.ai*"
         env:
             SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
