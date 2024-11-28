@@ -6,46 +6,47 @@ on:
       - main
 
 jobs:
-  web-deploy:
-    name: Deploy
+  deploy:
+    name: Deploy Laravel Project
     runs-on: ubuntu-latest
+
     steps:
-      - name: Get the latest code
+      # Step 1: Checkout code
+      - name: Checkout Code
         uses: actions/checkout@v2
 
+      # Step 2: Setup PHP
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
 
-      - name: Install Composer dependencies
+      # Step 3: Install Composer dependencies
+      - name: Install Composer Dependencies
         run: |
           composer install --no-scripts --no-progress --no-suggest
+          composer dump-autoload --optimize
 
-      - name: Update Composer dependencies
+      # Step 4: Setup SSH for deployment
+      - name: Setup SSH
         run: |
-          composer update --no-scripts --no-progress --no-suggest
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H apiart.trendi.ai >> ~/.ssh/known_hosts
 
-      - name: Dump autoload files
-        run: composer dump-autoload --optimize
+      # Step 5: Test SSH connection
+      - name: Test SSH Connection
+        run: ssh -o StrictHostKeyChecking=no trendi-apiart@apiart.trendi.ai "echo 'SSH connection successful!'"
 
-      - name: Generate storage link
-        run: php artisan storage:link
-
-      - name: Directory Permissions
-        run: chmod -R 777 storage bootstrap/cache
-
-      - name: Install Node.js (latest version)
-        uses: actions/setup-node@v2
-
-      - name: Create .env file
+      # Step 6: Generate the .env file
+      - name: Generate .env file
         run: |
           echo "APP_NAME=Laravel" > .env
-          echo "APP_URL=https://toonappbackend.trungthanhzone.com" > .env
           echo "APP_ENV=production" >> .env
           echo "APP_KEY=${{ secrets.APP_KEY }}" >> .env
-          echo "APP_DEBUG=true" >> .env
-          echo "LOG_CHANNEL=stack" >> .env
+          echo "APP_DEBUG=false" >> .env
+          echo "APP_URL=https://apiart.trendi.ai" >> .env
           echo "DB_CONNECTION=mysql" >> .env
           echo "DB_HOST=${{ secrets.DB_HOST }}" >> .env
           echo "DB_PORT=3306" >> .env
@@ -58,68 +59,41 @@ jobs:
           echo "MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}" >> .env
           echo "MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}" >> .env
           echo "MAIL_ENCRYPTION=tls" >> .env
-          echo "MAIL_FROM_ADDRESS=${{ secrets.MAIL_FROM_ADDRESS }}" >> .env
-          echo "MAIL_FROM_NAME='Dashboard'" >> .env
-          echo "VITE_OPEN_AI_KEY=${{ secrets.VITE_OPEN_AI_KEY }}" >> .env
-          echo "VITE_GOOGLE_CLIENT_ID=${{ secrets.VITE_GOOGLE_CLIENT_ID }}" >> .env
-          echo "IMAGE_API_KEY=${{ secrets.LEO_AI }}" >> .env
-          echo "PICSART_API_KEY=${{ secrets.IMAGE_API_KEY }}" >> .env
-          echo "AWS_ACCESS_KEY=${{ secrets.AWS_ACCESS_KEY }}" >> .env
-          echo "AWS_SECRET_KEY=${{ secrets.AWS_SECRET_KEY }}" >> .env
           echo "QUEUE_CONNECTION=database" >> .env
           echo "SESSION_DRIVER=file" >> .env
           echo "SESSION_LIFETIME=360" >> .env
-          
-      - name: Install NPM dependencies
+
+      # Step 7: Build the frontend
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+
+      - name: Install Node.js Dependencies
         run: npm install
 
-      - name: Build front-end assets
+      - name: Build Frontend Assets
         run: npm run build
 
-      - name: Setup SSH
+      # Step 8: Deploy the application using rsync
+      - name: Deploy Files
         run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.DEPLOY_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H apiart.trendi.ai >> ~/.ssh/known_hosts
+          rsync -avz --exclude=".git/" \
+                    --exclude="node_modules/" \
+                    --exclude="vendor/" \
+                    --exclude=".env.example" \
+                    ./ trendi-apiart@apiart.trendi.ai:/home/trendi-apiart/htdocs/apiart.trendi.ai
 
-      - name: Sync files with rsync
+      # Step 9: Set directory permissions on the server
+      - name: Set Directory Permissions
         run: |
-          rsync -avz --delete \
-          --exclude '.git*' \
-          --exclude 'node_modules/' \
-          --exclude 'vendor/' \
-          --exclude '.env' \
-          . trendi-apiart@apiart.trendi.ai:/home/trendi-apiart/htdocs/apiart.trendi.ai
+          ssh trendi-apiart@apiart.trendi.ai "chmod -R 775 /home/trendi-apiart/htdocs/apiart.trendi.ai/storage /home/trendi-apiart/htdocs/apiart.trendi.ai/bootstrap/cache"
 
-      - name: Check for deployment errors
-        id: check_error
+      # Step 10: Run artisan commands
+      - name: Run Artisan Commands
         run: |
-          if [ -f /home/trendi-apiart/htdocs/apiart.trendi.ai/storage/logs/laravel.log ]; then
-            echo "error_output=$(tail -n 20 /home/trendi-apiart/htdocs/apiart.trendi.ai/storage/logs/laravel.log)" >> $GITHUB_ENV
-          else
-            echo "error_output=No errors captured." >> $GITHUB_ENV
-          fi
-
-  notify:
-    name: Discord Notification
-    runs-on: ubuntu-latest
-    needs:
-      - web-deploy
-    if: ${{ always() }}
-
-    steps:
-      - name: Notify Discord
-        uses: nobrayner/discord-webhook@v1
-        with:
-          github-token: ${{ secrets.TOKEN }}
-          discord-webhook: ${{ secrets.WEBHOOK }}
-          username: "GitHub Bot Actions"
-          avatar-url: 'https://cdn-icons-png.flaticon.com/512/4712/4712086.png'
-          title: "Deploy Status: ${{ job.status }}"
-          description: |
-            Build and deploy to GitHub Pages: ${{ job.status }}.
-            Error output (if any): ${{ env.error_output }}
-          color-success: '#4287f5'
-          color-failure: '#eb4034'
-          color-cancelled: '#42daf5'
+          ssh trendi-apiart@apiart.trendi.ai << 'EOF'
+          cd /home/trendi-apiart/htdocs/apiart.trendi.ai
+          php artisan config:cache
+          php artisan route:cache
+          php artisan view:cache
+          php artisan migrate --force
+          EOF
