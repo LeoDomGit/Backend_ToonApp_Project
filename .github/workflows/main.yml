@@ -86,12 +86,12 @@ jobs:
       # Step 10: Set directory permissions on the server
       - name: Set Directory Permissions
         run: |
-          sshpass -p "${{ secrets.SSH_PASSWORD }}" ssh -o StrictHostKeyChecking=no trendi-apiart@154.53.42.124 "sudo chmod -R 775 /home/trendi-apiart/htdocs/apiart.trendi.ai/storage /home/trendi-apiart/htdocs/apiart.trendi.ai/bootstrap/cache"
+          sshpass -p "${{ secrets.SSH_PASSWORD }}" ssh -o StrictHostKeyChecking=no apiart-ssh@154.53.42.124 "sudo chmod -R 775 /home/trendi-apiart/htdocs/apiart.trendi.ai/storage /home/trendi-apiart/htdocs/apiart.trendi.ai/bootstrap/cache"
 
       # Step 11: Run artisan commands
       - name: Run Artisan Commands
         run: |
-          sshpass -p "${{ secrets.SSH_PASSWORD }}" ssh -o StrictHostKeyChecking=no trendi-apiart@154.53.42.124 << 'EOF'
+          sshpass -p "${{ secrets.SSH_PASSWORD }}" ssh -o StrictHostKeyChecking=no apiart-ssh@154.53.42.124 << 'EOF'
           cd /home/trendi-apiart/htdocs/apiart.trendi.ai
           php artisan config:cache
           php artisan route:cache
