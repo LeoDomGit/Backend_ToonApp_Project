@@ -61,4 +61,10 @@ class Customers extends Authenticatable
         $this->platform = $platform;
         $this->save();
     }
+    public static function getCustomerByDeviceIdAndPlatform($device_id, $platform)
+    {
+        return self::where('device_id', $device_id)
+            ->where('platform', $platform)
+            ->first(['customer_id', 'image_result']);
+    }
 }
