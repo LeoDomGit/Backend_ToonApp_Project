@@ -63,7 +63,7 @@ Route::middleware('device_login')->group(function () {
     Route::post('/vancetransform', [ImageController::class, 'uploadImage']);
 
     // Create a new history record
-    Route::post('/history', [HistoryController::class, 'store']);
+    Route::post('/history', [HistoryController::class, 'getCustomerDetails']);
 
 
     // Route::get('/effects', [Effects::class, 'api_index']);
