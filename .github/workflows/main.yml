@@ -79,6 +79,5 @@ jobs:
           sshpass -p "${{ secrets.SSH_PASSWORD }}" rsync -avz --no-perms --omit-dir-times \
             --exclude=".git/" \
             --exclude="node_modules/" \
-            --exclude="vendor/" \
             --exclude=".env.example" \
             ./ trendi-apiart@154.53.42.124:${{ secrets.DIRECTION }}
