@@ -68,16 +68,11 @@ Route::middleware('device_login')->group(function () {
     // Route::get('/effects/{id}', [Effects::class, 'api_single']);
 });
 Route::get('/download', [ImageController::class, 'download']);
-
 Route::get('/configs', [ConfigController::class, 'api_index']);
-
-
 Route::get('/backgrounds', [BackgroundController::class, 'api_index']);
 Route::get('/packages', [SubcriptionPackagesController::class, 'getPackages']);
-
 Route::get('/update_feature_slug', [FeaturesController::class, 'update_feature_slug']);
 Route::get('/update_sub_feature_slug', [SubFeaturesController::class, 'update_feature_slug']);
-
 Route::resource('test', TestController::class);
 Route::prefix('users')->group(function () {
     Route::post('/register', [UserController::class, 'register']);
@@ -85,5 +80,4 @@ Route::prefix('users')->group(function () {
     Route::post('/register-with-email', [UserController::class, 'RegisterWithEmail']);
     Route::post('/login-with-email', [UserController::class, 'LoginWithEmail']);
 });
-
 Route::post('/upload-zip', [BackgroundController::class, 'uploadAndUnzip']);
