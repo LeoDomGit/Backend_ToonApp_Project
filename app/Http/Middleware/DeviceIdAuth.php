@@ -18,7 +18,7 @@ class DeviceIdAuth
     {
 
         $authHeader = $request->header('Authorization');
-        $apiKey = config('app.api_key'); // Replace 'api.api_key' with the appropriate config path if needed
+        $apiKey = env('API_KEY'); // Replace 'api.api_key' with the appropriate config path if needed
 
         if (!$authHeader || !str_starts_with($authHeader, 'Bearer ')) {
             return response()->json([

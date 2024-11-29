@@ -67,16 +67,16 @@ class ImageAIController extends Controller
         $max_num = 20;
         $used_num = 0;
         while ($used_num < $max_num) {
-            $vance_key = Key::where('api', 'vance')->where('key', '!=', '0')->orderBy('id', 'asc')->first();
-
+            $vance_key = Key::where('api', 'vance')
+                ->wherenot('key', '0')
+                ->orderBy('id', 'asc')
+                ->first();
             if (!$vance_key) {
                 $this->vancekey = null;
                 break;
             }
-
             $responseVance = $client->request('GET', 'https://api-service.vanceai.com/web_api/v1/point?api_token=' . $vance_key->key);
             $bodyVance = json_decode($responseVance->getBody(), true);
-
             $max_num = isset($bodyVance['data']['max_num']) ? $bodyVance['data']['max_num'] : 0;
             $used_num = isset($bodyVance['data']['used_num']) ? $bodyVance['data']['used_num'] : 0;
 
@@ -84,7 +84,6 @@ class ImageAIController extends Controller
                 $vance_key->update(['key' => 0]);
                 continue;
             }
-
             $this->vancekey = $vance_key->key;
             break;
         }
@@ -368,55 +367,54 @@ class ImageAIController extends Controller
         return $request->id_request;
     }
     private function uploadToCloudFlareFromFile($file, $folder, $filename)
-    {
-        try {
-            // Step 1: Prepare Cloudflare R2 credentials and settings
-            $accountid = '453d5dc9390394015b582d09c1e82365';
-            $r2bucket = 'artapp';  // Updated bucket name
-            $accessKey = $this->aws_access_key;
-            $secretKey = $this->aws_secret_key;
-            $region = 'auto';
-            $endpoint = "https://$accountid.r2.cloudflarestorage.com";
+{
+    try {
+        // Step 1: Prepare Cloudflare R2 credentials and settings
+        $accountid = '453d5dc9390394015b582d09c1e82365';
+        $r2bucket = 'artapp';  // Updated bucket name
+        $accessKey = $this->aws_access_key;
+        $secretKey = $this->aws_secret_key;
+        $region = 'auto';
+        $endpoint = "https://$accountid.r2.cloudflarestorage.com";
 
-            // Set up the S3 client with Cloudflare's endpoint
-            $s3Client = new S3Client([
-                'version' => 'latest',
-                'region' => $region,
-                'credentials' => [
-                    'key' => $accessKey,
-                    'secret' => $secretKey,
-                ],
-                'endpoint' => $endpoint,
-                'use_path_style_endpoint' => true,
+        // Set up the S3 client with Cloudflare's endpoint
+        $s3Client = new S3Client([
+            'version' => 'latest',
+            'region' => $region,
+            'credentials' => [
+                'key' => $accessKey,
+                'secret' => $secretKey,
+            ],
+            'endpoint' => $endpoint,
+            'use_path_style_endpoint' => true,
+        ]);
+
+        // Step 2: Define the object path and name in R2
+        $originalExtension = $file->getClientOriginalExtension();
+        $finalFileName = $filename . '.' . $originalExtension;
+        $r2object = $folder . '/' . $finalFileName;
+
+        // Step 3: Upload the file to Cloudflare R2
+        try {
+            $result = $s3Client->putObject([
+                'Bucket' => $r2bucket,
+                'Key' => $r2object,
+                'Body' => file_get_contents($file->getRealPath()), // Get the file content
+                'ContentType' => $file->getMimeType(),
             ]);
 
-            Log::debug($folder);
-            Log::debug($filename);
-            // Step 2: Define the object path and name in R2
-            $r2object = $folder . '/' . $filename . '.' . $file->getClientOriginalExtension();
-            Log::debug($r2object);
-
-            // Step 3: Upload the file to Cloudflare R2
-            try {
-                $result = $s3Client->putObject([
-                    'Bucket' => $r2bucket,
-                    'Key' => $r2object,
-                    'Body' => file_get_contents($file->getRealPath()), // Get the file content
-                    'ContentType' => $file->getMimeType(),
-                ]);
-
-                // Generate the CDN URL using the custom domain
-                $cdnUrl = "https://artapp.promptme.info/$folder/$filename." . $file->getClientOriginalExtension();
-                return $cdnUrl;
-            } catch (S3Exception $e) {
-                Log::error("Error uploading file: " . $e->getMessage());
-                return 'error' . $e->getMessage();
-            }
-        } catch (\Throwable $th) {
-            Log::error($th->getMessage());
-            return 'error';
+            // Generate the CDN URL using the custom domain
+            $cdnUrl = "https://artapp.promptme.info/$folder/$finalFileName";
+            return $cdnUrl;
+        } catch (S3Exception $e) {
+            Log::error("Error uploading file: " . $e->getMessage());
+            return 'error: ' . $e->getMessage();
         }
+    } catch (\Throwable $th) {
+        Log::error($th->getMessage());
+        return 'error: ' . $th->getMessage();
     }
+}
     private function uploadToCloudFlareFromCdn($image_url, $filename, $folder)
     {
         try {
@@ -475,17 +473,10 @@ class ImageAIController extends Controller
     }
     public function removeBackground($image)
     {
-        $imageContent = file_get_contents($image);
-        $tempFilePath = storage_path('app/public/anime/temp_image.jpg');
-        file_put_contents($tempFilePath, $imageContent);
         $response = Http::withHeaders([
             'X-Picsart-API-Key' => $this->key,
             'Accept' => 'application/json',
-        ])->attach(
-            'image',
-            file_get_contents($tempFilePath),
-            'temp_image.jpg'
-        )->post('https://api.picsart.io/tools/1.0/removebg', [
+        ])->post('https://api.picsart.io/tools/1.0/removebg', [
             'output_type' => 'cutout',
             'bg_blur' => '0',
             'scale' => 'fit',
@@ -497,13 +488,13 @@ class ImageAIController extends Controller
             'shadow_opacity' => '20',
             'shadow_blur' => '50',
             'format' => 'PNG',
+            'image_url' => $image
         ]);
 
         // Check response status
         if ($response->successful()) {
             $data = $response->json();
             $processedImageUrl = $data['data']['url'];
-
             activity('remove_background')
                 ->withProperties([
                     'cdnUrl' => $processedImageUrl,
@@ -657,7 +648,7 @@ class ImageAIController extends Controller
             'image' => 'required|mimes:png,jpg,jpeg',
             'slug' => 'required',
             'id_size' => 'nullable|exists:image_sizes,id',
-            'pro_acc'=>'required|in:0,1'
+            'pro_acc' => 'required|in:0,1'
         ]);
 
         if ($validator->fails()) {
@@ -1026,7 +1017,7 @@ class ImageAIController extends Controller
             'effect' => 'nullable',
             'slug' => 'required',
             'image_url' => 'nullable|url',
-            'pro_acc'=>'required|in:0,1'
+            'pro_acc' => 'required|in:0,1'
         ]);
 
         if ($validator->fails()) {
@@ -1037,7 +1028,7 @@ class ImageAIController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Feature not found'], 404);
         }
 
-        if ($feature->is_pro == 1 && $request->pro_acc==0) {
+        if ($feature->is_pro == 1 && $request->pro_acc == 0) {
             return response()->json(['status' => false, 'error' => 'Not accepted'], 401);
         }
         if ($request->has('image_url')) {
@@ -1940,7 +1931,7 @@ class ImageAIController extends Controller
             'image' => 'required|mimes:png,jpg,jpeg',
             'slug' => 'required',
             'id_size' => 'nullable',
-            'pro_acc'=>'nullable|in:0,1'
+            'pro_acc' => 'nullable|in:0,1'
         ]);
 
         if ($validator->fails()) {
@@ -1959,16 +1950,32 @@ class ImageAIController extends Controller
         }
 
         if ($request->slug == '2d-ai-cartoon') {
-            $cartoonizedImageUrl = $this->transformViaVance($request, $file);
+            $file = $request->file('image');
 
-            Activities::create([
-                'customer_id' => Auth::guard('customer')->id(),
-                'photo_id' => $this->uploadServerImage($file),
-                'features_id' => $feature->id,
-                'image_result' => $cartoonizedImageUrl,
-                'ai_model' => 'Vance AI',
-                'api_endpoint' => 'https://api-service.vanceai.com/web_api/v1/transform',
-                'attributes' => json_encode([
+            // Generate a unique filename
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $filePath = $file->getPathname();
+
+            // API Token (using Vance key set in the constructor)
+            $apiToken = $this->vancekey;
+
+            if (!$apiToken||$apiToken=='0'||$apiToken==0) {
+                return response()->json(['error' => 'No valid API key available'], 500);
+            }
+            $response = Http::attach('file', file_get_contents($filePath), $filename)
+                ->post('https://api-service.vanceai.com/web_api/v1/upload', [
+                    'api_token' => $apiToken,
+                ]);
+
+            if ($response->successful()) {
+                // Retrieve the 'uid' from the response
+                $data = $response->json();
+                $uid = $data['data']['uid'];
+
+                // Step 2: Transform the uploaded image
+                $transformResponse = Http::post('https://api-service.vanceai.com/web_api/v1/transform', [
+                    'api_token' => $apiToken,
+                    'uid' => $uid,
                     'jconfig' => json_encode([
                         'job' => 'animegan',
                         'config' => [
@@ -1980,52 +1987,103 @@ class ImageAIController extends Controller
                             ]
                         ]
                     ]),
-                ]),
-                'request' => json_encode($request->all())
-            ]);
-
-            if ($feature->remove_bg) {
-                Log::debug($cartoonizedImageUrl);
-                $cartoonizedImageUrlWithoutBg = $this->removeBackground($cartoonizedImageUrl);
-                $cartoonizedImageUrlWithoutBg = $this->uploadToCloudFlareFromCdn(
-                    $cartoonizedImageUrlWithoutBg,
-                    'image-' . time(),
-                    $feature->slug,
-                    Auth::guard('customer')->id() . 'result-gen' . time()
-                );
-
-                return response()->json([
-                    'status' => true,
-                    'url' => $cartoonizedImageUrl,
-                    'bg_url' => $cartoonizedImageUrlWithoutBg,
                 ]);
+
+                if ($transformResponse->successful()) {
+                    // Retrieve the 'trans_id' from the transform response
+                    $transformData = $transformResponse->json();
+                    $transId = $transformData['data']['trans_id'];
+                    $response = Http::post('https://api-service.vanceai.com/web_api/v1/download', [
+                        'api_token' => $apiToken,
+                        'trans_id' => $transId,
+                    ]);
+
+                    if ($response->successful()) {
+                        $fileContent = $response->body(); // Get the image data
+                        $folder = 'uploadcartoon';
+                        $filename = 'transformed_' . uniqid(); // Generate a unique filename
+
+                        // Step 1: Save the binary content temporarily as a file
+                        $tempFilePath = storage_path('app/temp_transformed_image.jpg');
+                        file_put_contents($tempFilePath, $fileContent);
+                        $tempFile = new \Illuminate\Http\File($tempFilePath);
+
+                        // Step 2: Upload the temporary file to Cloudflare R2
+                        $cloudflareLink = $this->uploadToCloudFlareFromFile($tempFile, $folder, $filename);
+
+                        // Step 3: Clean up the temporary file
+                        unlink($tempFilePath);
+
+                        if (str_starts_with($cloudflareLink, 'error')) {
+                            return response()->json([
+                                'status' => 'error',
+                                'message' => $cloudflareLink,
+                            ], 500);
+                        }
+
+                        return response()->json([
+                            'uid' => $uid,
+                            'trans_id' => $transId,
+                            'cloudflare_link' => $cloudflareLink,
+                        ]);
+                    }
+                }
             }
-
-            return response()->json([
-                'status' => true,
-                'url' => $cartoonizedImageUrl,
-            ]);
         }
-
-        $result = $this->uploadImage($file);
-        $image_id = $result['id'];
-
-        $featuresId = $feature->id;
-        $initImageId = $feature->initImageId;
-        $isFeature = $feature instanceof Features;
-
-        if ($request->has('id_size')) {
-            $check = $this->checkFeatureSize($feature, $request->id_size, $isFeature);
-            if (!$check) {
-                return $this->processImageGeneration($feature, $file, $image_id, $initImageId, $request, $featuresId);
-            } else {
-                return $this->generateCustomSizeImage($feature, $file, $image_id, $initImageId, $request);
-            }
-        }
-
-        return $this->processImageGeneration($feature, $file, $image_id, $initImageId, $request, $featuresId);
     }
+    private function uploadToCloudFlareFromFile1($imageFile, $folder, $filename)
+    {
+        try {
+            // Step 1: Check if the file exists
+            if (!file_exists($imageFile)) {
+                Log::error('File does not exist: ' . $imageFile);
+                return 'error: file does not exist';
+            }
+            $filename = str_replace(' ', '', $filename);
 
+            // Step 2: Prepare Cloudflare R2 credentials and settings
+            $accountid = '453d5dc9390394015b582d09c1e82365';
+            $r2bucket = 'artapp';  // Updated bucket name
+            $accessKey = $this->aws_access_key;
+            $secretKey = $this->aws_secret_key;
+            $region = 'auto';
+            $endpoint = "https://$accountid.r2.cloudflarestorage.com";
+
+            // Set up the S3 client with Cloudflare's endpoint
+            $s3Client = new S3Client([
+                'version' => 'latest',
+                'region' => $region,
+                'credentials' => [
+                    'key' => $accessKey,
+                    'secret' => $secretKey,
+                ],
+                'endpoint' => $endpoint,
+                'use_path_style_endpoint' => true,
+            ]);
+
+            // Step 3: Define the object path and name in R2
+            $r2object = $folder . '/' . $filename;
+
+            // Step 4: Upload the file to Cloudflare R2
+            try {
+                $result = $s3Client->putObject([
+                    'Bucket' => $r2bucket,
+                    'Key' => $r2object,
+                    'Body' => fopen($imageFile, 'rb'), // Open the file as a binary stream
+                    'ContentType' => 'image/jpeg',
+                ]);
+
+                // Generate the CDN URL using the custom domain
+                $cdnUrl = "https://$accountid.r2.cloudflarestorage.com/$r2bucket/$r2object";
+                return $cdnUrl;
+            } catch (S3Exception $e) {
+                return 'error: ' . $e->getMessage();
+            }
+        } catch (\Exception $e) {
+            Log::error('Error uploading image to Cloudflare R2: ' . $e->getMessage());
+            return 'error: ' . $e->getMessage();
+        }
+    }
     /**
      * Get Feature or SubFeature by slug
      */
@@ -2239,29 +2297,24 @@ class ImageAIController extends Controller
         if (!$uploadResponse->successful()) {
             return response()->json(['error' => 'Failed to upload image'], 500);
         }
-
         $uid = $uploadResponse->json()['data']['uid'];
         $newfilename = $uid . '_' . time();
 
         // Transform the image
         $transformResponse = $this->transformImage($uid);
+        dd($transformResponse);
+        // if (!$transformResponse->successful()) {
+        //     return response()->json(['error' => 'Failed to transform image'], 500);
+        // }
 
-        if (!$transformResponse->successful()) {
-            return response()->json(['error' => 'Failed to transform image'], 500);
-        }
+        // $transId = $transformResponse->json()['data']['trans_id'];
+        // // Download the transformed image
+        // $downloadResponse = Http::post('https://api-service.vanceai.com/web_api/v1/download', [
+        //     'api_token' => $this->vancekey,
+        //     'trans_id' => $transId,
+        // ]);
+        // return $downloadResponse;
 
-        $transId = $transformResponse->json()['data']['trans_id'];
-
-        // Download the transformed image
-        $downloadResponse = $this->downloadTransformedImage($transId);
-
-        if (!$downloadResponse->successful()) {
-            return response()->json(['error' => 'Failed to download transformed image'], 500);
-        }
-
-        $cloudflareLink = $this->storeAndUploadToCloudflare($downloadResponse->body(), $newfilename, $extension);
-
-        return $cloudflareLink;
     }
 
     /**
@@ -2280,7 +2333,7 @@ class ImageAIController extends Controller
      */
     private function transformImage($uid)
     {
-        return Http::post('https://api-service.vanceai.com/web_api/v1/transform', [
+        $transformResponse =  Http::post('https://api-service.vanceai.com/web_api/v1/transform', [
             'api_token' => $this->vancekey,
             'uid' => $uid,
             'jconfig' => json_encode([
@@ -2295,6 +2348,45 @@ class ImageAIController extends Controller
                 ]
             ]),
         ]);
+        if ($transformResponse->successful()) {
+            // Get the response data from the transform API
+            $transformData = $transformResponse->json();
+            // dd($transformData)
+            $transId = $transformData['data']['trans_id'];
+            sleep(3);
+            // Step 3: Request to download the transformed image using trans_id
+            $downloadResponse = Http::post('https://api-service.vanceai.com/web_api/v1/download', [
+                'api_token' => $this->vancekey,
+                'trans_id' => $transId,
+            ]);
+            return $downloadResponse;
+            // Check if the download request was successful
+            if ($downloadResponse->successful()) {
+                $fileContent = $downloadResponse;
+                // Temporary local storage path for the image
+                $filename = time() . '.jpg'; // Dynamic filename based on the current timestamp
+                $storagePath = 'transformed_images/' . $filename;
+                return $storagePath;
+                // Save the file temporarily to the local disk
+                Storage::disk('public')->put($storagePath, $fileContent);
+
+                // Define the folder in Cloudflare where the file will be uploaded
+                $folder = 'uploadcartoon';
+
+                // Full path of the local file to pass to Cloudflare upload
+                $localFilePath = Storage::disk('public')->path($storagePath);
+
+                // Upload the file to Cloudflare
+                $cloudflareLink = $this->uploadToCloudFlareFromFile($localFilePath, $folder, $filename);
+
+                // Delete the temporary local file
+                Storage::disk('public')->delete($storagePath);
+                return $cloudflareLink;
+            } else {
+                // Handle error if transform API request fails
+                return response()->json(['error' => 'Failed to transform image'], 500);
+            }
+        }
     }
 
     /**

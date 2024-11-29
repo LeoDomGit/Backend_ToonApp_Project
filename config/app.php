@@ -82,7 +82,7 @@ return [
     */
 
    'timezone' => 'Asia/Ho_Chi_Minh',
-
+   'api_key'=>'$2y$10$tlT/rmMdARCcjgcr3l6tZOZFJWXe.G4xGuVnzOIZE6.JOtP5Q3Z5a',
     /*
     |--------------------------------------------------------------------------
     | Application Locale Configuration
