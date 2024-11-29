@@ -1571,7 +1571,8 @@ class ImageAIController extends Controller
         $validator = Validator::make($request->all(), [
             'image' => 'required|mimes:png,jpg,jpeg',
             'slug' => 'required',
-            'id_size' => 'nullable'
+            'id_size' => 'nullable',
+             'pro_acc'=>'required|in:0,1'
         ]);
 
         if ($validator->fails()) {
@@ -1589,7 +1590,7 @@ class ImageAIController extends Controller
             $feature = SubFeatures::where('slug', $request->slug)->first();
             $is_feature=false;
         }
-        if ($result->is_pro == 1 && $this->pro_account == false) {
+        if ($result->is_pro == 1 && $request->pro_acc == 0) {
             return response()->json(['status' => false, 'error' => 'Not accepted'], 401);
         }
         $initImageId = $result->initImageId;
