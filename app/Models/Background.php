@@ -9,7 +9,7 @@ class Background extends Model
 {
     use HasFactory;
     protected $table = 'background';
-    protected $fillable = ['id', 'path', 'feature_id', 'group_id', 'status', 'is_front', 'created_at', 'updated_at'];
+    protected $fillable = ['id', 'path', 'feature_id','url_front', 'group_id', 'status', 'is_front', 'created_at', 'updated_at'];
     public function group()
 
 
