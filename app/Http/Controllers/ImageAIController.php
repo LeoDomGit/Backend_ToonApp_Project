@@ -68,22 +68,19 @@ class ImageAIController extends Controller
         $used_num = 0;
         while ($used_num < $max_num) {
             $vance_key = Key::where('api', 'vance')
-                ->wherenot('key', '0')
-                ->orderBy('id', 'asc')
                 ->first();
             if (!$vance_key) {
                 $this->vancekey = null;
                 break;
             }
-            $responseVance = $client->request('GET', 'https://api-service.vanceai.com/web_api/v1/point?api_token=' . $vance_key->key);
-            $bodyVance = json_decode($responseVance->getBody(), true);
-            $max_num = isset($bodyVance['data']['max_num']) ? $bodyVance['data']['max_num'] : 0;
-            $used_num = isset($bodyVance['data']['used_num']) ? $bodyVance['data']['used_num'] : 0;
-
-            if ($used_num == $max_num) {
-                $vance_key->update(['key' => 0]);
-                continue;
-            }
+            // $responseVance = $client->request('GET', 'https://api-service.vanceai.com/web_api/v1/point?api_token=' . $vance_key->key);
+            // $bodyVance = json_decode($responseVance->getBody(), true);
+            // $max_num = isset($bodyVance['data']['max_num']) ? $bodyVance['data']['max_num'] : 0;
+            // $used_num = isset($bodyVance['data']['used_num']) ? $bodyVance['data']['used_num'] : 0;
+            // if ($used_num == $max_num) {
+            //     $vance_key->delete();
+            //     continue;
+            // }
             $this->vancekey = $vance_key->key;
             break;
         }
@@ -476,37 +473,68 @@ class ImageAIController extends Controller
         $response = Http::withHeaders([
             'X-Picsart-API-Key' => $this->key,
             'Accept' => 'application/json',
-        ])->post('https://api.picsart.io/tools/1.0/removebg', [
-            'output_type' => 'cutout',
-            'bg_blur' => '0',
-            'scale' => 'fit',
-            'auto_center' => 'false',
-            'stroke_size' => '0',
-            'stroke_color' => 'FFFFFF',
-            'stroke_opacity' => '100',
-            'shadow' => 'disabled',
-            'shadow_opacity' => '20',
-            'shadow_blur' => '50',
-            'format' => 'PNG',
-            'image_url' => $image
+        ])->asMultipart()->post('https://api.picsart.io/tools/1.0/removebg', [
+            [
+                'name' => 'output_type',
+                'contents' => 'cutout',
+            ],
+            [
+                'name' => 'bg_blur',
+                'contents' => '0',
+            ],
+            [
+                'name' => 'scale',
+                'contents' => 'fit',
+            ],
+            [
+                'name' => 'auto_center',
+                'contents' => 'false',
+            ],
+            [
+                'name' => 'stroke_size',
+                'contents' => '0',
+            ],
+            [
+                'name' => 'stroke_color',
+                'contents' => 'FFFFFF',
+            ],
+            [
+                'name' => 'stroke_opacity',
+                'contents' => '100',
+            ],
+            [
+                'name' => 'shadow',
+                'contents' => 'disabled',
+            ],
+            [
+                'name' => 'shadow_opacity',
+                'contents' => '20',
+            ],
+            [
+                'name' => 'shadow_blur',
+                'contents' => '50',
+            ],
+            [
+                'name' => 'format',
+                'contents' => 'PNG',
+            ],
+            [
+                'name' => 'image_url',
+                'contents' => $image,
+            ],
         ]);
 
-        // Check response status
         if ($response->successful()) {
             $data = $response->json();
-            $processedImageUrl = $data['data']['url'];
-            activity('remove_background')
-                ->withProperties([
-                    'cdnUrl' => $processedImageUrl,
-                    'sourceUrl' => $image,
-                ])
-                ->log('Image processed successfully');
-            return $processedImageUrl;
+            return $data['data']['url'];
         } else {
-            return response()->json(['status' => 'error', 'message' => 'Failed to process image', 'error' => $response->json()], 400);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to process image',
+                'error' => $response->json(),
+            ], 400);
         }
     }
-
     public function animalToon(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -1538,7 +1566,7 @@ class ImageAIController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    /*public function cartoon(Request $request)
+    public function cartoon(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'image' => 'required|mimes:png,jpg,jpeg',
@@ -1923,114 +1951,112 @@ class ImageAIController extends Controller
                 return response()->json(['status' => 'error', 'message' => 'Failed to upload image.', 'details' => $response->body()]);
             }
         }
-    }*/
-    /* New code 2024-11-24 */
-    public function cartoon(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'image' => 'required|mimes:png,jpg,jpeg',
-            'slug' => 'required',
-            'id_size' => 'nullable',
-            'pro_acc' => 'nullable|in:0,1'
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['status' => 'error', 'message' => $validator->errors()->first()]);
-        }
-
-        $file = $request->file('image');
-
-        $feature = $this->getFeatureBySlug($request->slug);
-        if (!$feature) {
-            return response()->json(['status' => 'error', 'message' => 'Feature not found'], 404);
-        }
-
-        if ($feature->is_pro == 1 && (!$request->has('pro_acc') || $request->pro_acc == 0)) {
-            return response()->json(['status' => false, 'error' => 'Not accepted'], 401);
-        }
-
-        if ($request->slug == '2d-ai-cartoon') {
-            $file = $request->file('image');
-
-            // Generate a unique filename
-            $filename = time() . '_' . $file->getClientOriginalName();
-            $filePath = $file->getPathname();
-
-            // API Token (using Vance key set in the constructor)
-            $apiToken = $this->vancekey;
-
-            if (!$apiToken||$apiToken=='0'||$apiToken==0) {
-                return response()->json(['error' => 'No valid API key available'], 500);
-            }
-            $response = Http::attach('file', file_get_contents($filePath), $filename)
-                ->post('https://api-service.vanceai.com/web_api/v1/upload', [
-                    'api_token' => $apiToken,
-                ]);
-
-            if ($response->successful()) {
-                // Retrieve the 'uid' from the response
-                $data = $response->json();
-                $uid = $data['data']['uid'];
-
-                // Step 2: Transform the uploaded image
-                $transformResponse = Http::post('https://api-service.vanceai.com/web_api/v1/transform', [
-                    'api_token' => $apiToken,
-                    'uid' => $uid,
-                    'jconfig' => json_encode([
-                        'job' => 'animegan',
-                        'config' => [
-                            'module' => 'animegan2',
-                            'module_params' => [
-                                'model_name' => 'Animegan2Stable',
-                                'single_face' => true,
-                                'denoising_strength' => 0.75,
-                            ]
-                        ]
-                    ]),
-                ]);
-
-                if ($transformResponse->successful()) {
-                    // Retrieve the 'trans_id' from the transform response
-                    $transformData = $transformResponse->json();
-                    $transId = $transformData['data']['trans_id'];
-                    $response = Http::post('https://api-service.vanceai.com/web_api/v1/download', [
-                        'api_token' => $apiToken,
-                        'trans_id' => $transId,
-                    ]);
-
-                    if ($response->successful()) {
-                        $fileContent = $response->body(); // Get the image data
-                        $folder = 'uploadcartoon';
-                        $filename = 'transformed_' . uniqid(); // Generate a unique filename
-
-                        // Step 1: Save the binary content temporarily as a file
-                        $tempFilePath = storage_path('app/temp_transformed_image.jpg');
-                        file_put_contents($tempFilePath, $fileContent);
-                        $tempFile = new \Illuminate\Http\File($tempFilePath);
-
-                        // Step 2: Upload the temporary file to Cloudflare R2
-                        $cloudflareLink = $this->uploadToCloudFlareFromFile($tempFile, $folder, $filename);
-
-                        // Step 3: Clean up the temporary file
-                        unlink($tempFilePath);
-
-                        if (str_starts_with($cloudflareLink, 'error')) {
-                            return response()->json([
-                                'status' => 'error',
-                                'message' => $cloudflareLink,
-                            ], 500);
-                        }
-
-                        return response()->json([
-                            'uid' => $uid,
-                            'trans_id' => $transId,
-                            'cloudflare_link' => $cloudflareLink,
-                        ]);
-                    }
-                }
-            }
-        }
     }
+    /* New code 2024-11-24 */
+    // public function cartoon(Request $request)
+    // {
+    //     $validator = Validator::make($request->all(), [
+    //         'image' => 'required|mimes:png,jpg,jpeg',
+    //         'slug' => 'required',
+    //         'id_size' => 'nullable',
+    //         'pro_acc' => 'nullable|in:0,1'
+    //     ]);
+
+    //     if ($validator->fails()) {
+    //         return response()->json(['status' => 'error', 'message' => $validator->errors()->first()]);
+    //     }
+
+    //     $file = $request->file('image');
+
+    //     $feature = $this->getFeatureBySlug($request->slug);
+    //     if (!$feature) {
+    //         return response()->json(['status' => 'error', 'message' => 'Feature not found'], 404);
+    //     }
+
+    //     if ($feature->is_pro == 1 && (!$request->has('pro_acc') || $request->pro_acc == 0)) {
+    //         return response()->json(['status' => false, 'error' => 'Not accepted'], 401);
+    //     }
+
+    //     if ($request->slug == '2d-ai-cartoon') {
+    //         $file = $request->file('image');
+
+    //         // Generate a unique filename
+    //         $filename = time() . '_' . $file->getClientOriginalName();
+    //         $filePath = $file->getPathname();
+
+    //         // API Token (using Vance key set in the constructor)
+    //         $apiToken = $this->vancekey;
+    //         if (!$apiToken||$apiToken=='0'||$apiToken==0) {
+    //             return response()->json(['error' => 'No valid API key available'], 500);
+    //         }
+    //         $response = Http::attach('file', file_get_contents($filePath), $filename)
+    //             ->post('https://api-service.vanceai.com/web_api/v1/upload', [
+    //                 'api_token' => $apiToken,
+    //             ]);
+    //         if ($response->successful()) {
+    //             // Retrieve the 'uid' from the response
+    //             $data = $response->json();
+    //             $uid = $data['data']['uid'];
+
+    //             // Step 2: Transform the uploaded image
+    //             $transformResponse = Http::post('https://api-service.vanceai.com/web_api/v1/transform', [
+    //                 'api_token' => $apiToken,
+    //                 'uid' => $uid,
+    //                 'jconfig' => json_encode([
+    //                     'job' => 'animegan',
+    //                     'config' => [
+    //                         'module' => 'animegan2',
+    //                         'module_params' => [
+    //                             'model_name' => 'Animegan2Stable',
+    //                             'single_face' => true,
+    //                             'denoising_strength' => 0.75,
+    //                         ]
+    //                     ]
+    //                 ]),
+    //             ]);
+
+    //             if ($transformResponse->successful()) {
+    //                 // Retrieve the 'trans_id' from the transform response
+    //                 $transformData = $transformResponse->json();
+    //                 $transId = $transformData['data']['trans_id'];
+    //                 $response = Http::post('https://api-service.vanceai.com/web_api/v1/download', [
+    //                     'api_token' => $apiToken,
+    //                     'trans_id' => $transId,
+    //                 ]);
+
+    //                 if ($response->successful()) {
+    //                     $fileContent = $response->body(); // Get the image data
+    //                     $folder = 'uploadcartoon';
+    //                     $filename = 'transformed_' . uniqid(); // Generate a unique filename
+
+    //                     // Step 1: Save the binary content temporarily as a file
+    //                     $tempFilePath = storage_path('app/temp_transformed_image.jpg');
+    //                     file_put_contents($tempFilePath, $fileContent);
+    //                     $tempFile = new \Illuminate\Http\File($tempFilePath);
+
+    //                     // Step 2: Upload the temporary file to Cloudflare R2
+    //                     $cloudflareLink = $this->uploadToCloudFlareFromFile($tempFile, $folder, $filename);
+
+    //                     // Step 3: Clean up the temporary file
+    //                     unlink($tempFilePath);
+
+    //                     if (str_starts_with($cloudflareLink, 'error')) {
+    //                         return response()->json([
+    //                             'status' => 'error',
+    //                             'message' => $cloudflareLink,
+    //                         ], 500);
+    //                     }
+
+    //                     return response()->json([
+    //                         'uid' => $uid,
+    //                         'trans_id' => $transId,
+    //                         'cloudflare_link' => $cloudflareLink,
+    //                     ]);
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
     private function uploadToCloudFlareFromFile1($imageFile, $folder, $filename)
     {
         try {
@@ -2302,7 +2328,6 @@ class ImageAIController extends Controller
 
         // Transform the image
         $transformResponse = $this->transformImage($uid);
-        dd($transformResponse);
         // if (!$transformResponse->successful()) {
         //     return response()->json(['error' => 'Failed to transform image'], 500);
         // }

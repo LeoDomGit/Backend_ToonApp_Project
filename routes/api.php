@@ -69,6 +69,7 @@ Route::middleware('device_login')->group(function () {
     // Route::get('/effects', [Effects::class, 'api_index']);
     // Route::get('/effects/{id}', [Effects::class, 'api_single']);
 });
+Route::get('/remove-bg',[ImageAIController::class,'removeBackground1']);
 
 Route::get('/download', [ImageController::class, 'download']);
 
