@@ -59,12 +59,10 @@ Route::middleware('device_login')->group(function () {
     Route::post('/feedback', [FeedbackController::class, 'store']);
     Route::post('/apivances', [AiImageCartoonizerController::class, 'store']);
     Route::get('/image/{uid}', [ImageController::class, 'getImage']);
-
+    Route::post('/history', [HistoryController::class, 'getCustomerDetails']);
     Route::post('/vancetransform', [ImageController::class, 'uploadImage']);
 
     // Create a new history record
-    Route::post('/history', [HistoryController::class, 'getCustomerDetails']);
-
 
     // Route::get('/effects', [Effects::class, 'api_index']);
     // Route::get('/effects/{id}', [Effects::class, 'api_single']);

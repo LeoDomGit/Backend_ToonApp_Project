@@ -68,6 +68,7 @@ class HistoryController extends Controller
         // Validate request input
         $validator = Validator::make($request->all(), [
             'device_id' => 'required|string', // Device ID is required
+            'platform' => 'required|string',  // Platform is required
         ]);
 
         // If validation fails, return errors
@@ -79,13 +80,15 @@ class HistoryController extends Controller
             ], 422);
         }
 
-        // Find the customer by device_id
-        $customer = Customers::where('device_id', $request->input('device_id'))->first();
+        // Find the customer by device_id and platform
+        $customer = Customers::where('device_id', $request->input('device_id'))
+            ->where('platform', $request->input('platform'))
+            ->first();
 
         if (!$customer) {
             return response()->json([
                 'check' => false,
-                'msg' => 'No customer found for the provided device_id.',
+                'msg' => 'No customer found for the provided device_id and platform.',
             ], 404);
         }
 
