@@ -93,23 +93,19 @@ class HistoryController extends Controller
         }
 
         // Retrieve the latest activity for the customer
-        $activity = Activities::where('customer_id', $customer->id)->latest()->first();
+        $activity = Activities::where('customer_id', $customer->id)->pluck('image_result')->toArray();
 
-        if (!$activity) {
+        if (empty($activity)) {
             return response()->json([
                 'check' => false,
                 'msg' => 'No activity found for the customer.',
             ], 404);
         }
 
-        // Return the customer_id and image_result
+        // Return the customer_id and an array of image_result values
         return response()->json([
             'check' => true,
-            'msg' => 'Customer details retrieved successfully.',
-            'data' => [
-                'customer_id' => $customer->id,
-                'image_result' => $activity->image_result,
-            ],
+            'data' => $activity,
         ], 200);
     }
 }
