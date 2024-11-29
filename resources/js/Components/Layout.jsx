@@ -115,11 +115,11 @@ function Layout({ children }) {
                         <a href={"/historys"}>
                             <MenuItem icon={<RestoreIcon />}>History</MenuItem>
                         </a>
-                        <a href={"/apivances"}>
+                        {/* <a href={"/apivances"}>
                             <MenuItem icon={<AutoAwesomeIcon />}>
                                 Api VanceAI
                             </MenuItem>
-                        </a>
+                        </a> */}
                         {/* <SubMenu
                             label="Api VanceAI"
                             icon={<FeaturedPlayListIcon />}
