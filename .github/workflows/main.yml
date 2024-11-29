@@ -76,6 +76,7 @@ jobs:
           echo "QUEUE_CONNECTION=database" >> .env
           echo "SESSION_DRIVER=file" >> .env
           echo "SESSION_LIFETIME=360" >> .env
+          echo "API_KEY=${{ secrets.API_KEY }}" >> .env
           
       - name: Install NPM dependencies
         run: npm install
