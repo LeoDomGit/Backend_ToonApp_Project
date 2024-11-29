@@ -367,46 +367,33 @@ function Index({ datafeatures, datasizes }) {
             editable: true,
         },
         {
-            field: "overwrite",
-            headerName: "Overwrite",
-            width: 150,
+            field: "detech_face",
+            headerName: "Detect face",
+            width: 200,
             renderCell: (params) => (
                 <input
                     key={params.row.id}
                     type="checkbox"
                     className="text-center"
-                    checked={params.value === 1} // Check if the value is 1 (true), otherwise unchecked (false)
+                    checked={params.value}
                     onChange={(event) => {
-                        const checked = event.target.checked; // Get the checkbox status (checked or not)
-
-                        // Send the updated value to the server (1 for checked, 0 for unchecked)
+                        const checked = event.target.checked;
                         axios
-                            .put(`/apivances/${params.row.id}`, {
-                                overwrite: checked ? 1 : 0, // Set 1 if checked, 0 if unchecked
+                            .put(`/features/${params.row.id}`, {
+                                detech_face: checked,
                             })
                             .then((res) => {
-                                if (res.data.check === true) {
-                                    // Show success toast notification
-                                    toast.success("Đã sửa thành công !", {
+                                if (res.data.check == true) {
+                                    toast.success("Đã sửa thành công !", {
                                         position: "top-right",
                                     });
-
-                                    // Update the state with the new data
                                     setData(res.data.data);
-                                } else {
-                                    toast.error(
-                                        "Có lỗi xảy ra, vui lòng thử lại."
-                                    );
                                 }
-                            })
-                            .catch((error) => {
-                                toast.error("Có lỗi xảy ra, vui lòng thử lại.");
-                                console.error(error);
                             });
                     }}
                 />
             ),
-            editable: true, // Allow the checkbox to be edited in the table
+            editable: true,
         },
         {
             field: "description",
