@@ -71,6 +71,36 @@ function Index({ datafeatures, datasizes }) {
         const date = new Date(dateString);
         return date.toLocaleString();
     };
+    const [selectedFilesfront, setSelectedFilesfront] = useState([]);
+    const updateFilesfront = (acceptedFiles) => {
+      setSelectedFilesfront(acceptedFiles);
+    };
+    const handleUploadfront = async () => {
+        const formData = new FormData();
+        formData.append("groupId", groupId); // Optionally include group ID if needed
+
+        // Append each selected file to formData
+        selectedFilesfront.forEach((file) => {
+            formData.append("images[]", file.file);
+        });
+
+        try {
+            const response = await axios.post("/upload_frontground", formData, {
+                headers: { "Content-Type": "multipart/form-data" },
+            });
+            if (response.data.check == true) {
+                setSelectedImages(response.data.data);
+                toast.success("Đã thêm thành công !", {
+                    position: "top-right",
+                });
+            }
+
+            // Optionally clear selected files after upload
+            setSelectedFiles([]);
+        } catch (error) {
+            console.error("Error uploading files:", error);
+        }
+    };
 
     const notyf = new Notyf({
         duration: 1000,
@@ -628,7 +658,12 @@ function Index({ datafeatures, datasizes }) {
         setSelectedRowId(id);
         setShowImageModal(true);
     };
-
+    const loadFrontGroundImage=()=>{
+        axios.get('/frontground/'+groupId)
+        .then((res)=>{
+            setSelectedImages(res.data);
+        })
+    }
     const updateImage = () => {
         const formData = new FormData();
         formData.append("image", image);
@@ -684,6 +719,12 @@ function Index({ datafeatures, datasizes }) {
     const updateFiles = (files) => {
         setSelectedFiles(files);
     };
+    const loadBackground = ()=>{
+        axios.get('/background/'+groupId)
+        .then((res)=>{
+            setSelectedImages(res.data);
+        })
+    }
     const handleUpload = async () => {
         if (selectedFiles.length === 0) {
             console.log("No files selected for upload.");
@@ -733,6 +774,7 @@ function Index({ datafeatures, datasizes }) {
                         <div className="row">
                             {/* Dropzone Column */}
                             <div className="col-md-3">
+                                <h5>URL Background</h5>
                                 <Dropzone
                                     onChange={updateFiles}
                                     value={selectedFiles}
@@ -747,10 +789,33 @@ function Index({ datafeatures, datasizes }) {
                                 >
                                     Upload
                                 </button>
+                                <h5 className="mt-4">URL Frontground</h5>
+                                <Dropzone
+                                    onChange={updateFilesfront}
+                                    value={selectedFilesfront}
+                                >
+                                    {selectedFilesfront.map((file) => (
+                                        <FileMosaic {...file} preview />
+                                    ))}
+                                </Dropzone>
+                                <button
+                                    className="btn btn-outline-primary mt-2"
+                                    onClick={handleUploadfront}
+                                >
+                                    Upload
+                                </button>
                             </div>
 
                             {/* Images Display Column */}
                             <div className="col-md">
+                                <div className="row mb-3">
+                                    <div className="col-md text-center">
+                                        <button className="form-control btn btn-outline-primary" onClick={(e)=>loadBackground()}>Background</button>
+                                    </div>
+                                    <div className="col-md text-center">
+                                        <button className="form-control btn btn-outline-secondary" onClick={(e)=>loadFrontGroundImage()}>Frontground</button>
+                                    </div>
+                                </div>
                                 <div className="row">
                                     {selectedImages &&
                                         selectedImages.length > 0 &&
@@ -760,7 +825,15 @@ function Index({ datafeatures, datasizes }) {
                                                 className="col-md-3 mb-3"
                                             >
                                                 <img
-                                                    src={image.path}
+                                                    src={
+                                                        image.path
+                                                            ? image.path
+                                                            : image.url_front
+                                                            ? image.url_front
+                                                            : image.url_back
+                                                            ? image.url_back
+                                                            : ''
+                                                    }
                                                     alt="Group"
                                                     className="img-fluid rounded"
                                                 />

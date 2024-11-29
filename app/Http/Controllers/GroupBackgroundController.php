@@ -13,6 +13,7 @@ use Aws\S3\Exception\S3Exception;
 use Carbon\Carbon;
 
 use GuzzleHttp\Client;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Log;
 
 class GroupBackgroundController extends Controller
@@ -55,20 +56,21 @@ class GroupBackgroundController extends Controller
                 'endpoint' => $endpoint,
                 'use_path_style_endpoint' => true,
             ]);
-            $fileMimeType = mime_content_type($imageFile);
-            // Step 3: Define the object path and name in R2
-            $r2object = $folder . '/' . $filename;
+            if ($imageFile instanceof UploadedFile) {
+                $fileMimeType = $imageFile->getMimeType();
+            } else {
+                // For regular file paths, use mime_content_type()
+                $fileMimeType = mime_content_type($imageFile);
+            }
 
-            // Step 4: Upload the file to Cloudflare R2
+            $r2object = $folder . '/' . $filename;
             try {
                 $result = $s3Client->putObject([
                     'Bucket' => $r2bucket,
                     'Key' => $r2object,
-                    'Body' => fopen($imageFile, 'rb'), // Open the file as a binary stream
+                    'Body' => fopen($imageFile, 'rb'),
                     'ContentType' => $fileMimeType,
                 ]);
-
-                // Generate the CDN URL using the custom domain
                 $cdnUrl = "https://artapp.promptme.info/$folder/$filename";
                 return $cdnUrl;
             } catch (S3Exception $e) {
@@ -136,9 +138,61 @@ class GroupBackgroundController extends Controller
             ]);
         }
     }
+// ==================================================
+public function uploadFrontGroundImages(Request $request){
+    $validator = Validator::make($request->all(), [
+        'groupId'=>'required|exists:group_backgrounds,id',
+        'images.*'=>'image'
+    ]);
+    if ($validator->fails()) {
+        return response()->json(['check' => false, 'msg' => $validator->errors()->first()]);
+    }
+    try {
+        foreach ($request->file('images') as $image) {
+            $filename = uniqid() . '_' . $image->getClientOriginalName();
+            $folder = 'backgrounds';
 
+            // Upload to Cloudflare
+            $path = $this->uploadToCloudFlareFromFile1($image, $folder, $filename);
+
+            // Store in database
+            Background::create([
+                'url_front' => $path,
+                'group_id' => $request->groupId,
+                'status' => 1,
+                'is_front' => 0
+            ]);
+        }
+        $data=Background::where('group_id',$request->groupId)->get();
+        return response()->json([
+            'check' => true,
+            'msg' => 'Background images uploaded successfully',
+            'data'=>$data
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'check' => false,
+            'msg' => 'Error uploading images: ' . $e->getMessage()
+        ]);
+    }
+}
+// ==================================================
     public function showBackground($id){
-        $data = Background::where('group_id',$id)->get();
+        $data = Background::where('group_id', $id)
+    ->where(function ($query) {
+        $query->where('path', '!=', null)
+              ->orWhere('url_back', '!=', null);
+    })
+    ->get();
+        return response()->json($data);
+    }
+    // ==================================================
+    public function showFrontground($id){
+        $data = Background::where('group_id', $id)
+    ->where(function ($query) {
+        $query->where('url_front', '!=', null);
+    })
+    ->get();
         return response()->json($data);
     }
     // ============================================
