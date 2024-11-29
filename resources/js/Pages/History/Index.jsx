@@ -23,6 +23,10 @@ function HistoryIndex({ data }) {
             toast.success(msg, { position: "top-right" });
         }
     };
+    const formatCreatedAt = (dateString) => {
+        const date = new Date(dateString);
+        return date.toLocaleString();
+    };
 
     const columns = [
         { field: "id", headerName: "#", width: 100 },
@@ -49,6 +53,12 @@ function HistoryIndex({ data }) {
                     </a>
                 );
             },
+        },
+        {   
+            field: "created_at",
+            headerName: "Created at",
+            width: 200,
+            valueGetter: (params) => formatCreatedAt(params),
         },
     ];
 
