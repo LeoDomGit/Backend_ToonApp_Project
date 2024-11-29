@@ -36,7 +36,19 @@ function HistoryIndex({ data }) {
             field: "image_result",
             headerName: "Image Result",
             width: 1000,
-            editable: true,
+            editable: false,
+            renderCell: (params) => {
+                return (
+                    <a
+                        href={params.value}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ color: "blue", textDecoration: "underline" }}
+                    >
+                        {params.value}
+                    </a>
+                );
+            },
         },
     ];
 
