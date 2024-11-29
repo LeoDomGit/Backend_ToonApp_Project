@@ -44,7 +44,6 @@ class GroupBackgroundController extends Controller
             $secretKey = $this->aws_secret_key;
             $region = 'auto';
             $endpoint = "https://$accountid.r2.cloudflarestorage.com";
-
             // Set up the S3 client with Cloudflare's endpoint
             $s3Client = new S3Client([
                 'version' => 'latest',
@@ -56,7 +55,7 @@ class GroupBackgroundController extends Controller
                 'endpoint' => $endpoint,
                 'use_path_style_endpoint' => true,
             ]);
-
+            $fileMimeType = mime_content_type($imageFile);
             // Step 3: Define the object path and name in R2
             $r2object = $folder . '/' . $filename;
 
@@ -66,7 +65,7 @@ class GroupBackgroundController extends Controller
                     'Bucket' => $r2bucket,
                     'Key' => $r2object,
                     'Body' => fopen($imageFile, 'rb'), // Open the file as a binary stream
-                    'ContentType' => 'image/jpeg',
+                    'ContentType' => $fileMimeType,
                 ]);
 
                 // Generate the CDN URL using the custom domain
