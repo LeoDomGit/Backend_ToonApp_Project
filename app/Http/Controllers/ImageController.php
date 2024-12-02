@@ -124,37 +124,38 @@ class ImageController extends Controller
     // Upload ảnh
     public function uploadImage(Request $request)
     {
-        // Validate if the file is uploaded and is valid
+        // Start time measurement
+        $startTime = microtime(true);
+
+        // Step 1: Validate the uploaded file
         if (!$request->hasFile('image') || !$request->file('image')->isValid()) {
             return response()->json(['error' => 'No valid file uploaded'], 400);
         }
 
-        // Get the uploaded file
         $file = $request->file('image');
-
-        // Generate a unique filename
         $filename = time() . '_' . $file->getClientOriginalName();
         $filePath = $file->getPathname();
 
-        // API Token (using Vance key set in the constructor)
         $apiToken = $this->vancekey;
-
         if (!$apiToken) {
             return response()->json(['error' => 'No valid API key available'], 500);
         }
 
-        // Step 1: Upload the image to the Vance API
+        $step1Time = microtime(true);
+
+        // Step 2: Upload the image to the Vance API
         $response = Http::attach('file', file_get_contents($filePath), $filename)
             ->post('https://api-service.vanceai.com/web_api/v1/upload', [
                 'api_token' => $apiToken,
             ]);
 
+        $step2Time = microtime(true);
+
         if ($response->successful()) {
-            // Retrieve the 'uid' from the response
             $data = $response->json();
             $uid = $data['data']['uid'];
 
-            // Step 2: Transform the uploaded image
+            // Step 3: Transform the uploaded image
             $transformResponse = Http::post('https://api-service.vanceai.com/web_api/v1/transform', [
                 'api_token' => $apiToken,
                 'uid' => $uid,
@@ -172,30 +173,32 @@ class ImageController extends Controller
                 ])
             ]);
 
+            $step3Time = microtime(true);
+
             if ($transformResponse->successful()) {
-                // Retrieve the 'trans_id' from the transform response
                 $transformData = $transformResponse->json();
                 $transId = $transformData['data']['trans_id'];
 
-                // Step 3: Download the transformed image
+                // Step 4: Download the transformed image
                 $downloadResponse = Http::post('https://api-service.vanceai.com/web_api/v1/download', [
                     'api_token' => $apiToken,
                     'trans_id' => $transId,
                 ]);
 
+                $step4Time = microtime(true);
+
                 if ($downloadResponse->successful()) {
-                    // Save the transformed image locally
                     $fileContent = $downloadResponse->body();
                     $storagePath = 'transformed_images/' . time() . '.jpg';
                     Storage::disk('public')->put($storagePath, $fileContent);
                     $storageLink = Storage::url($storagePath);
 
-                    // Optional: Upload the transformed image to Cloudflare
+                    // Optional: Upload to Cloudflare
                     $folder = 'uploadcartoon';
                     $cloudflareLink = $this->uploadToCloudFlareFromFile($file, $folder, $filename);
-
-                    // Delete the local image after uploading to Cloudflare
                     Storage::delete($storagePath);
+
+                    $endTime = microtime(true);
 
                     return response()->json([
                         'message' => 'Image uploaded, transformed, and uploaded to Cloudflare successfully',
@@ -203,6 +206,13 @@ class ImageController extends Controller
                         'trans_id' => $transId,
                         'download_link' => $storageLink,
                         'cloudflare_link' => $cloudflareLink,
+                        'timing' => [
+                            'validation_time' => $step1Time - $startTime,
+                            'upload_time' => $step2Time - $step1Time,
+                            'transform_time' => $step3Time - $step2Time,
+                            'download_time' => $step4Time - $step3Time,
+                            'total_time' => $endTime - $startTime,
+                        ]
                     ]);
                 } else {
                     return response()->json(['error' => 'Failed to download transformed image'], 500);
@@ -214,6 +224,7 @@ class ImageController extends Controller
             return response()->json(['error' => 'Failed to upload image'], 500);
         }
     }
+
 
     public function download()
     {
