@@ -81,3 +81,8 @@ Route::prefix('users')->group(function () {
     Route::post('/login-with-email', [UserController::class, 'LoginWithEmail']);
 });
 Route::post('/upload-zip', [BackgroundController::class, 'uploadAndUnzip']);
+
+Route::post('/test_upload',[ImageAIController::class,'TestUpload']);
+Route::post('/test_transform/{id}',[ImageAIController::class,'testTransform']);
+Route::post('/test_download/{id}',[ImageAIController::class,'testDownLoad']);
+
