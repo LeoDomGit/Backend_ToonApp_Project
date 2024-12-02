@@ -1564,9 +1564,80 @@ private function uploadToCloudFlareFromCdn($cdnUrl, $folder, $filename)
             ], $response->status());
         }
     }
+
+    public function testDownLoad($id){
+        $apiToken = $this->vancekey;
+        $response = Http::post('https://api-service.vanceai.com/web_api/v1/download', [
+            'api_token' => $apiToken,
+            'trans_id' => $id,
+        ]);
+
+        if ($response->successful()) {
+            $fileContent = $response->body(); // Get the image data
+            $folder = 'uploadcartoon';
+            $filename = 'transformed_' . uniqid(); // Generate a unique filename
+
+            // Step 1: Save the binary content temporarily as a file
+            $tempFilePath = storage_path('app/temp_transformed_image.jpg');
+            file_put_contents($tempFilePath, $fileContent);
+            $tempFile = new \Illuminate\Http\File($tempFilePath);
+            return response()->json(['data'=>$tempFile]);
+        }
+    }
     /**
      * Show the form for creating a new resource.
      */
+    public function testTransform($id){
+        $apiToken = $this->vancekey;
+        $transformResponse = Http::post('https://api-service.vanceai.com/web_api/v1/transform', [
+            'api_token' => $apiToken,
+            'uid' =>$id,
+            'jconfig' => json_encode([
+                'job' => 'animegan',
+                'config' => [
+                    'module' => 'animegan2',
+                    'module_params' => [
+                        'model_name' => 'Animegan2Stable',
+                        'single_face' => true,
+                        'denoising_strength' => 0.75,
+                    ]
+                ]
+            ]),
+        ]);
+
+        if ($transformResponse->successful()) {
+            // Retrieve the 'trans_id' from the transform response
+            $transformData = $transformResponse->json();
+            $transId = $transformData['data']['trans_id'];
+            return $transId;
+        }
+    }
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function TestUpload(Request $request){
+        $file = $request->file('image');
+
+        // Generate a unique filename
+        $filename = time() . '_' . $file->getClientOriginalName();
+        $filePath = $file->getPathname();
+
+        // API Token (using Vance key set in the constructor)
+        $apiToken = $this->vancekey;
+        if (!$apiToken||$apiToken=='0'||$apiToken==0) {
+            return response()->json(['error' => 'No valid API key available'], 500);
+        }
+        $response = Http::attach('file', file_get_contents($filePath), $filename)
+            ->post('https://api-service.vanceai.com/web_api/v1/upload', [
+                'api_token' => $apiToken,
+            ]);
+        if ($response->successful()) {
+            // Retrieve the 'uid' from the response
+            $data = $response->json();
+            $uid = $data['data']['uid'];
+            return $uid;
+        }
+    }
     // public function cartoon(Request $request)
     // {
     //     $validator = Validator::make($request->all(), [
