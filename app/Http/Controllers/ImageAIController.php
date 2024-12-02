@@ -1571,7 +1571,7 @@ private function uploadToCloudFlareFromCdn($cdnUrl, $folder, $filename)
             'api_token' => $apiToken,
             'trans_id' => $id,
         ]);
-
+        return response()->json($response->body());
         if ($response->successful()) {
             $fileContent = $response->body(); // Get the image data
             $folder = 'uploadcartoon';
