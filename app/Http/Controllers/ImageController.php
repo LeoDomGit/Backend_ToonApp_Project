@@ -193,9 +193,15 @@ class ImageController extends Controller
                     Storage::disk('public')->put($storagePath, $fileContent);
                     $storageLink = Storage::url($storagePath);
 
-                    // Optional: Upload to Cloudflare
+                    // Step 5: Upload to Cloudflare
+                    $cloudflareStartTime = microtime(true);
+
                     $folder = 'uploadcartoon';
                     $cloudflareLink = $this->uploadToCloudFlareFromFile($file, $folder, $filename);
+
+                    $cloudflareEndTime = microtime(true);
+
+                    // Delete local image after Cloudflare upload
                     Storage::delete($storagePath);
 
                     $endTime = microtime(true);
@@ -211,6 +217,7 @@ class ImageController extends Controller
                             'upload_time' => $step2Time - $step1Time,
                             'transform_time' => $step3Time - $step2Time,
                             'download_time' => $step4Time - $step3Time,
+                            'cloudflare_upload_time' => $cloudflareEndTime - $cloudflareStartTime,
                             'total_time' => $endTime - $startTime,
                         ]
                     ]);
@@ -224,6 +231,7 @@ class ImageController extends Controller
             return response()->json(['error' => 'Failed to upload image'], 500);
         }
     }
+
 
 
     public function download()
