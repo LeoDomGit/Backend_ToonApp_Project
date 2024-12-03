@@ -21,6 +21,7 @@ use App\Http\Controllers\SecretKeyController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\HistoryController;
 use App\Http\Controllers\LanguagesController;
+use App\Http\Controllers\LanguagesListController;
 use Inertia\Inertia;
 
 /*
@@ -69,6 +70,7 @@ Route::middleware('checkLogin')->group(function () {
     Route::resource('/secretkeys',  SecretKeyController::class);
     Route::resource('/historys',  ActivityController::class);
     Route::resource('/languages',  LanguagesController::class);
+    Route::resource('/language_lists',  LanguagesListController::class);
     //==========================================================
     Route::resource('effects', EffectsController::class);
     Route::post('effects-update-image/{id}', [EffectsController::class, 'api_update_image']);
