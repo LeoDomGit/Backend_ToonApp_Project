@@ -120,6 +120,7 @@ class GroupBackgroundController extends Controller
                 // Store in database
                 Background::create([
                     'path' => $path,
+                    'url_back' => $path,
                     'group_id' => $request->groupId,
                     'status' => 1,
                     'is_front' => 0
