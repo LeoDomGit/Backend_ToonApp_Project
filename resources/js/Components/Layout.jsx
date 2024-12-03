@@ -94,6 +94,11 @@ function Layout({ children }) {
                                 Languages Keys
                             </MenuItem>
                         </a>
+                        <a href={"/language_lists"}>
+                            <MenuItem icon={<LanguageIcon />}>
+                                Languages List
+                            </MenuItem>
+                        </a>
                         <a href={"/effects"}>
                             <MenuItem icon={<FilterIcon />}>Effects</MenuItem>
                         </a>
