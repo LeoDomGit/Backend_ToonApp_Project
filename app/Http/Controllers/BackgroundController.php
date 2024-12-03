@@ -298,12 +298,15 @@ class BackgroundController extends Controller
         if ($validator->fails()) {
             return response()->json(['check' => false, 'msg' => $validator->errors()->first()], 400);
         }
-        $backgrounds = GroupBackground::with('backgrounds')
-            ->where('feature_id', $request->feature_id)
-            ->whereHas('backgrounds', function ($query) use ($id) {
-                $query->where('group_id', $id); // Using the correct foreign key
-            })
+
+        // Get backgrounds for all groups related to the given feature_id
+        $backgrounds = GroupBackground::with(['backgrounds' => function ($query) {
+            // Select only the necessary fields from the backgrounds
+            $query->select('id', 'group_id', 'url_front', 'url_back', 'path');
+        }])
+            ->where('feature_id', $request->feature_id) // Filter by feature_id
             ->get();
+
         return response()->json($backgrounds);
     }
 }
