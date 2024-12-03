@@ -304,7 +304,8 @@ class BackgroundController extends Controller
             // Select only the necessary fields from the backgrounds
             $query->select('id', 'group_id', 'url_front', 'url_back', 'path');
         }])
-            ->where('feature_id', $request->feature_id) // Filter by feature_id
+            ->where('feature_id', $request->feature_id)
+            ->where('id', $id)
             ->get();
 
         return response()->json($backgrounds);
