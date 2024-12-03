@@ -91,7 +91,7 @@ function Layout({ children }) {
                         </a>
                         <a href={"/languages"}>
                             <MenuItem icon={<LanguageIcon />}>
-                                Languages
+                                Languages Keys
                             </MenuItem>
                         </a>
                         <a href={"/effects"}>
