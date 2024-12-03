@@ -15,6 +15,8 @@ use App\Http\Controllers\TestController;
 use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\ImageController;
 use App\Http\Controllers\HistoryController;
+use App\Http\Controllers\LanguagesController;
+use App\Http\Controllers\LanguagesListController;
 
 /*
 |--------------------------------------------------------------------------
@@ -61,7 +63,8 @@ Route::middleware('device_login')->group(function () {
     Route::get('/image/{uid}', [ImageController::class, 'getImage']);
     Route::get('/history', [HistoryController::class, 'getCustomerDetails']);
     Route::post('/vancetransform', [ImageController::class, 'uploadImage']);
-
+    Route::get('/list_languages',[LanguagesListController::class,'index_api']);
+    Route::get('/list_keys/{id}',[LanguagesListController::class,'index_key']);
     // Create a new history record
 
     // Route::get('/effects', [Effects::class, 'api_index']);
