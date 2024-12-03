@@ -22,6 +22,7 @@ import FeaturedPlayListIcon from "@mui/icons-material/FeaturedPlayList";
 import FilterIcon from "@mui/icons-material/Filter";
 import "../../css/app.css";
 import PermDataSettingIcon from "@mui/icons-material/PermDataSetting";
+import LanguageIcon from '@mui/icons-material/Language';
 import LockIcon from "@mui/icons-material/Lock";
 function Layout({ children }) {
     const { collapseSidebar } = useProSidebar();
@@ -86,6 +87,11 @@ function Layout({ children }) {
                         <a href={"/backgrounds"}>
                             <MenuItem icon={<WallpaperIcon />}>
                                 Background
+                            </MenuItem>
+                        </a>
+                        <a href={"/languages"}>
+                            <MenuItem icon={<LanguageIcon />}>
+                                Languages
                             </MenuItem>
                         </a>
                         <a href={"/effects"}>
