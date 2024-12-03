@@ -2388,6 +2388,7 @@ private function uploadToCloudFlareFromCdn($cdnUrl, $folder, $filename)
                 }
             }
         } else {
+            list($width, $height) = getimagesize($file);
             $initImageId = $result->initImageId;
             $featuresId = $result->id;
             $folder = 'cartoon';
@@ -2402,6 +2403,8 @@ private function uploadToCloudFlareFromCdn($cdnUrl, $folder, $filename)
                 'presetStyle' => $result->presetStyle,
                 'num_images' => 1,
                 'alchemy' => true,
+                'width'=>$width,
+                'height'=>$height,
                 isset($initImageId) && $initImageId !== null ? [
                     'controlnets' => [
                         [
