@@ -54,7 +54,7 @@ function HistoryIndex({ data }) {
                 );
             },
         },
-        {   
+        {
             field: "created_at",
             headerName: "Created at",
             width: 200,
@@ -164,7 +164,12 @@ function HistoryIndex({ data }) {
                         <DataGrid
                             rows={historyData}
                             columns={columns}
-                            pageSizeOptions={[5]}
+                            pageSizeOptions={[
+                                10,
+                                100,
+                                { value: 1000, label: "1,000" },
+                                { value: -1, label: "All" },
+                            ]}
                             checkboxSelection
                             disableRowSelectionOnClick
                             onCellEditStop={(params, e) =>
