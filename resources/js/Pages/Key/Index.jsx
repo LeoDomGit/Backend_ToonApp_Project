@@ -167,7 +167,7 @@
                     <div className="col-md-9">
                         <div className="card border-0 shadow">
                             <div className="card-body">
-                                <Box sx={{ height: 400, width: "100%" }}>
+                                <Box sx={{ height: 700, width: "100%" }}>
                                     <DataGrid
                                         rows={data}
                                         columns={columns}
