@@ -164,7 +164,7 @@
                 </nav>
 
                 <div className="row">
-                    <div className="col-md-9">
+                    <div className="col-md-11">
                         <div className="card border-0 shadow">
                             <div className="card-body">
                                 <Box sx={{ height: 700, width: "100%" }}>
