@@ -173,6 +173,13 @@
                                         columns={columns}
                                         pageSizeOptions={[5]}
                                         checkboxSelection
+                                        initialState={{
+                                            pagination: {
+                                              paginationModel: {
+                                                pageSize: 5,
+                                              },
+                                            },
+                                          }}
                                         disableRowSelectionOnClick
                                         onCellEditStop={(params, e) =>
                                             handleEdit(
