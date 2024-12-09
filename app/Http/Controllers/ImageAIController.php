@@ -43,7 +43,6 @@ class ImageAIController extends Controller
     {
         $result = Key::where('api', 'picsart')->where('key', '!=', '0')->orderBy('id', 'asc')->first();
         $client = new \GuzzleHttp\Client();
-
         $response = $client->request('GET', 'https://genai-api.picsart.io/v1/balance', [
             'headers' => [
                 'X-Picsart-API-Key' => $result->key,
@@ -66,21 +65,21 @@ class ImageAIController extends Controller
 
         $max_num = 20;
         $used_num = 0;
-        while ($used_num < $max_num) {
-            $vance_key = Key::where('api', 'vance')
+        while ($used_num <= $max_num) {
+            $vance_key = Key::where('api', 'vance')->where('key','!=','')
                 ->first();
             if (!$vance_key) {
                 $this->vancekey = null;
                 break;
             }
-            // $responseVance = $client->request('GET', 'https://api-service.vanceai.com/web_api/v1/point?api_token=' . $vance_key->key);
-            // $bodyVance = json_decode($responseVance->getBody(), true);
-            // $max_num = isset($bodyVance['data']['max_num']) ? $bodyVance['data']['max_num'] : 0;
-            // $used_num = isset($bodyVance['data']['used_num']) ? $bodyVance['data']['used_num'] : 0;
-            // if ($used_num == $max_num) {
-            //     $vance_key->delete();
-            //     continue;
-            // }
+            $responseVance = $client->request('GET', 'https://api-service.vanceai.com/web_api/v1/point?api_token=' . $vance_key->key);
+            $bodyVance = json_decode($responseVance->getBody(), true);
+            $max_num = isset($bodyVance['data']['max_num']) ? $bodyVance['data']['max_num'] : 0;
+            $used_num = isset($bodyVance['data']['used_num']) ? $bodyVance['data']['used_num'] : 0;
+            if ($used_num == $max_num) {
+                $vance_key->update(['key'=>'']);
+                continue;
+            }
             $this->vancekey = $vance_key->key;
             break;
         }
@@ -2129,6 +2128,10 @@ private function uploadToCloudFlareFromCdn($cdnUrl, $folder, $filename)
                 }
             }
         }
+        list($originalWidth, $originalHeight) = getimagesize($file->getRealPath());
+        $width = round($originalWidth / 8) * 8;
+        $width = min(1536, $width);
+        $height = round($originalHeight / 8) * 8;
         $result = $this->uploadImage($file);
         $image_id = $result['id'];
         $routePath = $request->path();
@@ -2402,6 +2405,8 @@ private function uploadToCloudFlareFromCdn($cdnUrl, $folder, $filename)
                 'presetStyle' => $result->presetStyle,
                 'num_images' => 1,
                 'alchemy' => true,
+                'height'=>$height,
+                'width'=>$width,
                 isset($initImageId) && $initImageId !== null ? [
                     'controlnets' => [
                         [
