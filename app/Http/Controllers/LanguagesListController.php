@@ -35,8 +35,28 @@ class LanguagesListController extends Controller
         $data=$this->model::active()->get();
         return response()->json($data);
     }
-    public function index_key($id){
-        $data=$this->model1::select($id)->get();
+    public function index_key($language)
+    {
+        // Validate the $language parameter to ensure it matches a valid column
+        if (!in_array($language, ['en', 'vi', 'de', 'ksl', 'pl', 'nu'])) {
+            return response()->json(['error' => 'Invalid language'], 400);
+        }
+
+        // Initialize the data array with the language key
+        $data = [
+            $language => [],
+        ];
+
+        // Fetch all rows for the specified language column
+        $rows = $this->model1::select('key', $language)->get();
+
+        // Map each row's key and language value into the $data array
+        foreach ($rows as $row) {
+            if (!empty($row->key) && isset($row->$language)) {
+                $data[$language][$row->key] = $row->$language;
+            }
+        }
+
         return response()->json($data);
     }
 }
