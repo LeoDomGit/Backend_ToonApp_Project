@@ -33,9 +33,13 @@ class LanguageRequest extends FormRequest
                'nu'=>'required',
             ];
         } else if ($this->isMethod('put') || $this->isMethod('patch')) {
-            return [
-                'key'=>'required|unique:languages,key',
-             ];
+            $feature = Languages::find($id);
+            if (!$feature) {
+                throw new HttpResponseException(response()->json([
+                    'check' => false,
+                    'msg'   => 'Role id  not found',
+                ], 200));
+            }
         }else if ($this->isMethod('delete')) {
             $feature = Languages::find($id);
             if (!$feature) {

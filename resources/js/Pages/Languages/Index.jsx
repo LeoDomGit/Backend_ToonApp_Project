@@ -22,14 +22,18 @@ function Index({ languages }) {
     const [show, setShow] = useState(false);
 
     const columns = [
-        { field: "id", headerName: "#", width: 100 },
-        { field: "key", headerName: "Key", width: 200 },
+        { field: "id", headerName: "#", width: 100 , editable: true },
+        { field: "key", headerName: "Key", width: 200 , editable: true },
         { field: "en", headerName: "English", width: 150, editable: true },
         { field: "vi", headerName: "Vietnamese", width: 150, editable: true },
         { field: "de", headerName: "German", width: 150, editable: true },
         { field: "ksl", headerName: "Korean", width: 150, editable: true },
         { field: "pl", headerName: "Polish", width: 150, editable: true },
         { field: "nu", headerName: "Norwegian", width: 150, editable: true },
+        { field: "api_slug", headerName: "API slug", width: 150, editable: true },
+        { field: "subscription_id", headerName: "Subcription Id", width: 150, editable: true },
+        { field: "attribute", headerName: "Attribute", width: 150, editable: true },
+
     ];
 
     const handleSubmit = () => {

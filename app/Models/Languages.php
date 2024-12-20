@@ -17,6 +17,9 @@ class Languages extends Model
         'ksl',
         'pl',
         'nu',
+        'api_slug',
+        'subscription_id',
+        'attribute',
     ];
     protected $casts = [
         'en' => 'string',

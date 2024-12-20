@@ -6,6 +6,7 @@ use App\Http\Requests\FeatureRequest;
 use App\Models\Features;
 use App\Models\FeaturesSizes;
 use App\Models\ImageSize;
+use App\Models\Languages;
 use App\Models\SubFeatures;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -84,7 +85,6 @@ class FeaturesController
     public function api_index(Features $features)
     {
         $features = Features::with(['subFeatures', 'sizes'])->active()->get();
-
         if ($features) {
             // Hide the attributes in the features model
             $features->makeHidden(['model_id', 'prompt', 'presetStyle', 'preprocessorId', 'strengthType', 'initImageId']);
@@ -92,6 +92,8 @@ class FeaturesController
             // Loop through each subFeature and hide the specified attributes
             $features->each(function ($feature) {
                 $feature->subFeatures->each->makeHidden(['model_id', 'prompt', 'presetStyle', 'preprocessorId', 'strengthType', 'initImageId']);
+                $name = Languages::where('key',$feature->slug);
+                
             });
         }
         $highlightedSubFeatures = SubFeatures::where('is_highlight', 1)
