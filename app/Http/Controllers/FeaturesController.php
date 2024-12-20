@@ -82,40 +82,115 @@ class FeaturesController
     /**
      * Show the form for editing the specified resource.
      */
-    public function api_index(Features $features)
-    {
-        $features = Features::with(['subFeatures', 'sizes'])->active()->get();
-        if ($features) {
-            // Hide the attributes in the features model
-            $features->makeHidden(['model_id', 'prompt', 'presetStyle', 'preprocessorId', 'strengthType', 'initImageId']);
-
-            // Loop through each subFeature and hide the specified attributes
-            $features->each(function ($feature) {
-                $feature->subFeatures->each->makeHidden(['model_id', 'prompt', 'presetStyle', 'preprocessorId', 'strengthType', 'initImageId']);
-                $name = Languages::where('key',$feature->slug);
-                
-            });
-        }
-        $highlightedSubFeatures = SubFeatures::where('is_highlight', 1)
-            ->get()
-            ->map(function ($subFeature) {
-                $subFeature->makeHidden(['model_id', 'prompt', 'presetStyle', 'preprocessorId', 'strengthType', 'initImageId', 'feature_id', 'is_highlight']);
-                $featureId = $subFeature->feature_id;
-                $subFeaturesOfFeature = SubFeatures::where('feature_id', $featureId)
-                    ->get()
-                    ->map(function ($siblingSubFeature) {
-                        $siblingSubFeature->makeHidden(['model_id', 'prompt', 'presetStyle', 'preprocessorId', 'strengthType', 'initImageId']);
-                        return $siblingSubFeature;
-                    });
-                $subFeature->setAttribute('is_effect', 0);
-                $subFeature->setAttribute('sub_features', $subFeaturesOfFeature);
-                $subFeature->setAttribute('sizes', []);
-
-                return $subFeature;
-            });
-        $features = $features->merge($highlightedSubFeatures);
-        return response()->json($features);
+    public function api_index(Features $features, Request $request)
+{
+    $validator = Validator::make($request->all(), [
+        'lang' => 'required|in:en,vi,de,ko,pl,nu',
+    ]);
+    if ($validator->fails()) {
+        return response()->json(['check' => false, 'msg' => $validator->errors()->first()]);
     }
+    $language = $request->lang;
+    $features = Features::with(['subFeatures', 'sizes'])->active()->get();
+    if ($features) {
+        $features->makeHidden(['model_id', 'prompt', 'presetStyle', 'preprocessorId', 'strengthType', 'initImageId']);
+
+        $features->each(function ($feature) use ($language) {
+            $feature->subFeatures->each->makeHidden(['model_id', 'prompt', 'presetStyle', 'preprocessorId', 'strengthType', 'initImageId']);
+
+            // Get translated name and description for the feature
+            $languageData = Languages::where('api_slug', $feature->slug)->where('attribute','name')->first();
+            $languageData1 = Languages::where('api_slug', $feature->slug)->where('attribute','description')->first();
+            if ($languageData) {
+                $feature->name = $languageData->$language ?? '';
+                $feature->description = $languageData1->$language ??'';
+            }
+            $feature->subFeatures->each(function ($subFeature) use ($language) {
+                $languageData = Languages::where('key', $subFeature->slug)->first();
+                if ($languageData) {
+                    $subFeature->name = $languageData->$language ?? $subFeature->name;
+                    $subFeature->description = $languageData->$language ?? $subFeature->description;
+                }
+            });
+        });
+    }
+    $highlightedSubFeatures = SubFeatures::where('is_highlight', 1)
+        ->get()
+        ->map(function ($subFeature) use ($language) {
+            $subFeature->makeHidden(['model_id', 'prompt', 'presetStyle', 'preprocessorId', 'strengthType', 'initImageId', 'feature_id', 'is_highlight']);
+
+            $languageData = Languages::where('api_slug', $subFeature->slug)->first();
+
+            if ($languageData) {
+                $subFeature->name = $languageData->$language ?? $subFeature->name;
+                $subFeature->description = $languageData->$language ?? $subFeature->description;
+            }
+
+            $featureId = $subFeature->feature_id;
+            $subFeaturesOfFeature = SubFeatures::where('feature_id', $featureId)
+                ->get()
+                ->map(function ($siblingSubFeature) use ($language) {
+                    $siblingSubFeature->makeHidden(['model_id', 'prompt', 'presetStyle', 'preprocessorId', 'strengthType', 'initImageId']);
+
+                    $languageData = Languages::where('api_slug', $siblingSubFeature->slug)->first();
+
+                    if ($languageData) {
+                        $siblingSubFeature->name = $languageData->$language ?? $siblingSubFeature->name;
+                        $siblingSubFeature->description = $languageData->$language ?? $siblingSubFeature->description;
+                    }
+
+                    return $siblingSubFeature;
+                });
+            $subFeature->setAttribute('is_effect', 0);
+            $subFeature->setAttribute('sub_features', $subFeaturesOfFeature);
+            $subFeature->setAttribute('sizes', []);
+            return $subFeature;
+        });
+    $features = $features->merge($highlightedSubFeatures);
+
+    return response()->json($features);
+}
+
+    // public function api_index(Features $features,Request $request)
+    // {
+    //     $validator = Validator::make($request->all(), [
+    //         'lang' => 'required|in:en,vi,de,ksl,pl,nu',
+    //     ]);
+    //     if ($validator->fails()) {
+    //         return response()->json(['check' => false, 'msg' => $validator->errors()->first()]);
+    //     }
+    //     $features = Features::with(['subFeatures', 'sizes'])->active()->get();
+    //     if ($features) {
+    //         // Hide the attributes in the features model
+    //         $features->makeHidden(['model_id', 'prompt', 'presetStyle', 'preprocessorId', 'strengthType', 'initImageId']);
+
+    //         // Loop through each subFeature and hide the specified attributes
+    //         $features->each(function ($feature) {
+    //             $feature->subFeatures->each->makeHidden(['model_id', 'prompt', 'presetStyle', 'preprocessorId', 'strengthType', 'initImageId']);
+    //             $language=$request->lang;
+    //             $name = Languages::where('key',$feature->slug)->value();
+    //         });
+    //     }
+    //     $highlightedSubFeatures = SubFeatures::where('is_highlight', 1)
+    //         ->get()
+    //         ->map(function ($subFeature) {
+    //             $subFeature->makeHidden(['model_id', 'prompt', 'presetStyle', 'preprocessorId', 'strengthType', 'initImageId', 'feature_id', 'is_highlight']);
+    //             $featureId = $subFeature->feature_id;
+    //             $subFeaturesOfFeature = SubFeatures::where('feature_id', $featureId)
+    //                 ->get()
+    //                 ->map(function ($siblingSubFeature) {
+    //                     $siblingSubFeature->makeHidden(['model_id', 'prompt', 'presetStyle', 'preprocessorId', 'strengthType', 'initImageId']);
+    //                     return $siblingSubFeature;
+    //                 });
+    //             $subFeature->setAttribute('is_effect', 0);
+    //             $subFeature->setAttribute('sub_features', $subFeaturesOfFeature);
+    //             $subFeature->setAttribute('sizes', []);
+
+    //             return $subFeature;
+    //         });
+    //     $features = $features->merge($highlightedSubFeatures);
+    //     return response()->json($features);
+    // }
     public function api_detail(Features $features, $id)
     {
         $features = Features::with(['subFeatures', 'sizes'])->where('id', $id)->active()->first();

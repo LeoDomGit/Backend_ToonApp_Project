@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\PackageRequest;
 use App\Models\Customers;
+use App\Models\Languages;
 use App\Models\SubcriptionPackage;
 use App\Services\CloudflareService;
 use Carbon\Carbon;
@@ -34,11 +35,32 @@ class SubcriptionPackagesController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function getPackages()
-    {
-        $result = SubcriptionPackage::active()->get();
-        return response()->json($result);
+    public function getPackages(Request $request)
+{
+    if (!$request->has('lang')) {
+        return response()->json(['check' => false, 'msg' => 'Lang is required'], 400);
     }
+
+    $language = $request->lang; // Get the requested language
+
+    $result = SubcriptionPackage::active()->get()->map(function ($package) use ($language) {
+        // Retrieve translations for the subscription package
+        $nameTranslation = Languages::where('attribute', 'name')->where('en', $package->name)->value($language);
+        $descriptionTranslation = Languages::where('attribute', 'description')->where('en', $package->description)->value($language);
+
+        if ($nameTranslation) {
+            $package->name = $nameTranslation;
+        }
+
+        if ($descriptionTranslation) {
+            $package->description = $descriptionTranslation;
+        }
+
+        return $package;
+    });
+
+    return response()->json($result);
+}
 
     /**
      * Store a newly created resource in storage.

@@ -73,11 +73,6 @@ function Layout({ children }) {
                                     Sub Features
                                 </MenuItem>
                             </a>
-                            <a href={"/api_images"}>
-                                <MenuItem icon={<PhotoSizeSelectActualIcon />}>
-                                    API Images
-                                </MenuItem>
-                            </a>
                         </SubMenu>
                         <a href={"/sizes"}>
                             <MenuItem icon={<BrandingWatermarkIcon />}>

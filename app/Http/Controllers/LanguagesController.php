@@ -22,7 +22,7 @@ class LanguagesController extends Controller
     // This will use the UserRequest for validation
     public function update(LanguageRequest $request, $id)
     {
-       $data=$request->validated();
+       $data=$request->all();
        $data['updated_at']=now();
         $this->model::find($id)->update($data);
         $data=$this->model::all();
