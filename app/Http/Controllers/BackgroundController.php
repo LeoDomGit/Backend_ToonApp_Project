@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Background;
 use App\Models\Features;
 use App\Models\GroupBackground;
+use App\Models\Languages;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -279,16 +280,42 @@ class BackgroundController extends Controller
     }
 
     public function api_index(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'feature_id' => 'required|exists:features,id',
-        ]);
-        if ($validator->fails()) {
-            return response()->json(['check' => false, 'msg' => $validator->errors()->first()], 400);
-        }
-        $backgrounds = GroupBackground::with('backgrounds')->where('feature_id', $request->feature_id)->get();
-        return response()->json($backgrounds);
+{
+    // Validate the request
+    $validator = Validator::make($request->all(), [
+        'feature_id' => 'required|exists:features,id',
+        'lang' => 'required|exists:languages_list,key',
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json(['check' => false, 'msg' => $validator->errors()->first()], 400);
     }
+
+    // Fetch the feature_id and language key
+    $featureId = $request->feature_id;
+    $lang = $request->lang;
+
+    // Fetch the backgrounds associated with the feature_id
+    $backgrounds = GroupBackground::with('backgrounds')
+        ->where('feature_id', $featureId)
+        ->get();
+
+    // Loop through each background to set the translated name
+    $backgrounds->each(function ($background) use ($lang) {
+        // Fetch the translated name from the Languages table
+        $translatedName = Languages::where('api_slug', 'group-background')
+            ->where('attribute', 'name')
+            ->where('en', $background->name) // Match the original name in English
+            ->first();
+
+        // If a translation exists, set the background name to the translated version
+        if ($translatedName && isset($translatedName->$lang)) {
+            $background->name = $translatedName->$lang;
+        }
+    });
+    // Return the translated backgrounds
+    return response()->json($backgrounds);
+}
 
     public function api_single(Request $request, $id)
     {
