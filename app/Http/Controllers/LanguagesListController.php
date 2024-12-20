@@ -7,6 +7,7 @@ use App\Models\LanguageList;
 use App\Models\Languages;
 use App\Traits\HasCrud;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class LanguagesListController extends Controller
 {
@@ -37,11 +38,14 @@ class LanguagesListController extends Controller
     }
     public function index_key($language)
     {
-        // Validate the $language parameter to ensure it matches a valid column
-        if (!in_array($language, ['en', 'vi', 'de', 'ksl', 'pl', 'nu'])) {
+
+        $validator = Validator::make(['language' => $language], [
+            'language' => 'required|exists:languages_list,key',
+        ]);
+
+        if ($validator->fails()) {
             return response()->json(['error' => 'Invalid language'], 400);
         }
-
         // Initialize the data array with the language key
         $data = [
             $language => [],

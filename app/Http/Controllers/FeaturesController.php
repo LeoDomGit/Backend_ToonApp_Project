@@ -85,7 +85,7 @@ class FeaturesController
     public function api_index(Features $features, Request $request)
 {
     $validator = Validator::make($request->all(), [
-        'lang' => 'required|in:en,vi,de,ko,pl,nu',
+        'lang' => 'required|exists:languages_list,key',
     ]);
     if ($validator->fails()) {
         return response()->json(['check' => false, 'msg' => $validator->errors()->first()]);
@@ -104,12 +104,15 @@ class FeaturesController
             if ($languageData) {
                 $feature->name = $languageData->$language ?? '';
                 $feature->description = $languageData1->$language ??'';
+                $feature->lang=$language;
             }
             $feature->subFeatures->each(function ($subFeature) use ($language) {
                 $languageData = Languages::where('key', $subFeature->slug)->first();
                 if ($languageData) {
                     $subFeature->name = $languageData->$language ?? $subFeature->name;
                     $subFeature->description = $languageData->$language ?? $subFeature->description;
+                    $subFeature->lang=$language;
+
                 }
             });
         });
@@ -124,6 +127,7 @@ class FeaturesController
             if ($languageData) {
                 $subFeature->name = $languageData->$language ?? $subFeature->name;
                 $subFeature->description = $languageData->$language ?? $subFeature->description;
+                $subFeature->lang=$language;
             }
 
             $featureId = $subFeature->feature_id;
@@ -137,6 +141,7 @@ class FeaturesController
                     if ($languageData) {
                         $siblingSubFeature->name = $languageData->$language ?? $siblingSubFeature->name;
                         $siblingSubFeature->description = $languageData->$language ?? $siblingSubFeature->description;
+                        $siblingSubFeature->lang=$language;
                     }
 
                     return $siblingSubFeature;
