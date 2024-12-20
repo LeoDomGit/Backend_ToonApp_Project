@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Validator;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
-
+use Illuminate\Support\Str;
 class SubcriptionPackagesController extends Controller
 {
     protected $cloudFlareService;
@@ -47,13 +47,17 @@ class SubcriptionPackagesController extends Controller
         // Retrieve translations for the subscription package
         $nameTranslation = Languages::where('attribute', 'name')->where('en', $package->name)->value($language);
         $descriptionTranslation = Languages::where('attribute', 'description')->where('en', $package->description)->value($language);
-
+        $price = Languages::where('attribute', 'price')->where('subscription_id', $package->id)->value($language);
+        $package->identifier =Str::slug($package->name);
         if ($nameTranslation) {
             $package->name = $nameTranslation;
         }
 
         if ($descriptionTranslation) {
             $package->description = $descriptionTranslation;
+        }
+        if ($price) {
+            $package->price = $price;
         }
 
         return $package;
