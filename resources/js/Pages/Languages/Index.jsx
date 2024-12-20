@@ -15,9 +15,9 @@ function Index({ languages }) {
         en: "",
         vi: "",
         de: "",
-        ksl: "",
+        ko: "",
         pl: "",
-        nu: "",
+        no: "",
     });
     const [show, setShow] = useState(false);
 
@@ -48,9 +48,9 @@ function Index({ languages }) {
                         en: "",
                         vi: "",
                         de: "",
-                        ksl: "",
+                        ko: "",
                         pl: "",
-                        nu: "",
+                        no: "",
                     });
                     setShow(false);
                 } else {
@@ -133,7 +133,7 @@ function Index({ languages }) {
                 >
                     Add Language
                 </Button>
-                <Box sx={{ height: 400, width: "100%" }}>
+                <Box sx={{ height: 800, width: "100%" }}>
                     <DataGrid
                         rows={data}
                         columns={columns}
