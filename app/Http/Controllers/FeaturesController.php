@@ -196,13 +196,34 @@ class FeaturesController
     //     $features = $features->merge($highlightedSubFeatures);
     //     return response()->json($features);
     // }
-    public function api_detail(Features $features, $id)
+    public function api_detail(Features $features, $id,Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'lang' => 'required|exists:languages_list,key',
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['check' => false, 'msg' => $validator->errors()->first()]);
+        }
         $features = Features::with(['subFeatures', 'sizes'])->where('id', $id)->active()->first();
-
+        $language = $request->lang;
         if ($features) {
             $features->makeHidden(['model_id', 'prompt', 'presetStyle', 'preprocessorId', 'strengthType', 'initImageId']);
-            $features->subFeatures->each->makeHidden(['model_id', 'prompt', 'presetStyle', 'preprocessorId', 'strengthType', 'initImageId']);
+             $languageData = Languages::where('api_slug', $features->slug)->where('attribute','name')->first();
+             $languageData1 = Languages::where('api_slug', $features->slug)->where('attribute','description')->first();
+             if ($languageData) {
+                 $features->name = $languageData->$language ?? '';
+                 $features->description = $languageData1->$language ??'';
+                 $features->lang=$language;
+             }
+             $features->subFeatures->each(function ($subFeature) use ($language) {
+                 $languageData = Languages::where('key', $subFeature->slug)->first();
+                 if ($languageData) {
+                     $subFeature->name = $languageData->$language ?? $subFeature->name;
+                     $subFeature->description = $languageData->$language ?? $subFeature->description;
+                     $subFeature->lang=$language;
+
+                 }
+             });
         }
 
         return response()->json($features);
