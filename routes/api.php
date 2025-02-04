@@ -17,6 +17,8 @@ use App\Http\Controllers\ImageController;
 use App\Http\Controllers\HistoryController;
 use App\Http\Controllers\LanguagesController;
 use App\Http\Controllers\LanguagesListController;
+use Illuminate\Support\Facades\Route;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -88,4 +90,8 @@ Route::post('/upload-zip', [BackgroundController::class, 'uploadAndUnzip']);
 Route::post('/test_upload',[ImageAIController::class,'TestUpload']);
 Route::post('/test_transform/{id}',[ImageAIController::class,'testTransform']);
 Route::post('/test_download/{id}',[ImageAIController::class,'testDownLoad']);
-
+Route::fallback(function () {
+    return response()->json([
+        'message' => 'Resource not found'
+    ], 404);
+});
