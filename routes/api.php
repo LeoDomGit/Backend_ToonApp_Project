@@ -17,7 +17,6 @@ use App\Http\Controllers\ImageController;
 use App\Http\Controllers\HistoryController;
 use App\Http\Controllers\LanguagesController;
 use App\Http\Controllers\LanguagesListController;
-use Illuminate\Support\Facades\Route;
 
 
 /*
