@@ -53,7 +53,7 @@ class UserController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required',
             'email' => 'required|email|unique:users,email',
-            'idRole' => 'required|exists:roles,id'
+            'role_id' => 'required|exists:roles,id'
         ]);
         if ($validator->fails()) {
             return response()->json(['check' => false, 'msg' => $validator->errors()->first()]);
