@@ -3,6 +3,7 @@
 }
 a{
     text-decoration: none !important;
+    color: black;
 }
 .w-70{
     width: 70% !important;
@@ -29,7 +30,7 @@ a{
     cursor: pointer;
     position: relative;
   }
-  
+
   /* File icon for the group */
   .group-item .file-icon {
     width: 20px;
@@ -56,7 +57,7 @@ a{
     cursor: pointer;
     position: relative;
   }
-  
+
   /* File icon for the group */
   .group-item .file-icon {
     width: 20px;
@@ -71,14 +72,14 @@ a{
     font-size: 12px;
     font-weight: bold;
   }
-  
+
   /* Text label of the group */
   .group-item .group-name {
     flex: 1;
     font-size: 14px;
     color: #495057;
   }
-  
+
   /* Remove button style */
   .group-item .btn-remove {
     position: absolute;
@@ -93,8 +94,7 @@ a{
     font-size: 12px;
     cursor: pointer;
   }
-  
+
   .group-item .btn-remove:hover {
     background-color: #c82333;
   }
-  
