@@ -21,7 +21,12 @@
         };
 
         const columns = [
-            { field: "id", headerName: "#", width: 100 },
+             {
+        field: "rowIndex",
+        headerName: "#",
+        width: 100,
+        valueGetter: (params) => params.api.getRowIndex(params.id) + 1,
+    },
             { field: "api", headerName: "Api", width: 200, editable: true },
             { field: "key", headerName: "Key", width: 200, editable: true },
             { field: "gmail", headerName: "Gmail", width: 250, editable: true },
